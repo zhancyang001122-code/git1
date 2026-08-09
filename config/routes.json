@@ -1,0 +1,162 @@
+{
+  "mainNavigation": [
+    {
+      "label": "首页",
+      "href": "/",
+      "icon": "House"
+    },
+    {
+      "label": "推荐",
+      "href": "/discover",
+      "icon": "Compass"
+    },
+    {
+      "label": "小智",
+      "href": "/xiaozhi",
+      "icon": "Bot",
+      "prominent": true
+    },
+    {
+      "label": "消息",
+      "href": "/messages",
+      "icon": "MessageCircle"
+    },
+    {
+      "label": "我的",
+      "href": "/me",
+      "icon": "UserRound"
+    }
+  ],
+  "routes": [
+    {
+      "path": "/",
+      "name": "首页",
+      "shell": "main"
+    },
+    {
+      "path": "/discover",
+      "name": "推荐",
+      "shell": "main"
+    },
+    {
+      "path": "/discover/[id]",
+      "name": "社区内容详情",
+      "shell": "detail"
+    },
+    {
+      "path": "/xiaozhi",
+      "name": "小智欢迎页",
+      "shell": "main"
+    },
+    {
+      "path": "/xiaozhi/chat",
+      "name": "小智对话",
+      "shell": "chat"
+    },
+    {
+      "path": "/xiaozhi/chat/[conversationId]",
+      "name": "已有小智对话",
+      "shell": "chat"
+    },
+    {
+      "path": "/xiaozhi/history",
+      "name": "对话历史",
+      "shell": "detail"
+    },
+    {
+      "path": "/messages",
+      "name": "消息",
+      "shell": "main"
+    },
+    {
+      "path": "/me",
+      "name": "我的",
+      "shell": "main"
+    },
+    {
+      "path": "/me/favorites",
+      "name": "我的收藏",
+      "shell": "detail"
+    },
+    {
+      "path": "/me/history",
+      "name": "浏览与对话历史",
+      "shell": "detail"
+    },
+    {
+      "path": "/me/orders",
+      "name": "演示订单",
+      "shell": "detail"
+    },
+    {
+      "path": "/me/addresses",
+      "name": "地址管理",
+      "shell": "detail"
+    },
+    {
+      "path": "/me/preferences",
+      "name": "小智偏好",
+      "shell": "detail"
+    },
+    {
+      "path": "/me/feedback",
+      "name": "知识纠错与反馈",
+      "shell": "detail"
+    },
+    {
+      "path": "/houses",
+      "name": "房源列表",
+      "shell": "detail"
+    },
+    {
+      "path": "/houses/[id]",
+      "name": "房源详情",
+      "shell": "detail"
+    },
+    {
+      "path": "/deals",
+      "name": "团购列表",
+      "shell": "detail"
+    },
+    {
+      "path": "/deals/[id]",
+      "name": "团购详情",
+      "shell": "detail"
+    },
+    {
+      "path": "/market",
+      "name": "线上超市",
+      "shell": "detail"
+    },
+    {
+      "path": "/market/stores/[id]",
+      "name": "超市商家详情",
+      "shell": "detail"
+    },
+    {
+      "path": "/market/products/[id]",
+      "name": "商品详情",
+      "shell": "detail"
+    },
+    {
+      "path": "/cart",
+      "name": "购物车",
+      "shell": "detail"
+    },
+    {
+      "path": "/nearby",
+      "name": "周边服务",
+      "shell": "detail"
+    },
+    {
+      "path": "/knowledge-admin",
+      "name": "知识运营演示",
+      "shell": "admin"
+    },
+    {
+      "path": "/knowledge-admin/[id]",
+      "name": "知识候选审核",
+      "shell": "admin"
+    }
+  ]
+}

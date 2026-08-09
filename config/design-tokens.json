@@ -1,0 +1,60 @@
+{
+  "viewport": {
+    "mobileMin": 360,
+    "designWidth": 430,
+    "desktopCanvasMax": 430
+  },
+  "colors": {
+    "brand": "#4169F5",
+    "brandStrong": "#2548D8",
+    "accent": "#7557F6",
+    "brandSoft": "#EEF2FF",
+    "page": "#F7F9FC",
+    "surface": "#FFFFFF",
+    "surfaceTint": "#F4F7FF",
+    "text": "#161A25",
+    "textMuted": "#62697A",
+    "textSubtle": "#9AA1B2",
+    "border": "#E8ECF5",
+    "success": "#22B866",
+    "warning": "#FF8A34",
+    "danger": "#FF4D32"
+  },
+  "typography": {
+    "fontFamily": "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif",
+    "hero": { "size": 28, "lineHeight": 36, "weight": 700 },
+    "pageTitle": { "size": 24, "lineHeight": 32, "weight": 700 },
+    "sectionTitle": { "size": 18, "lineHeight": 26, "weight": 600 },
+    "cardTitle": { "size": 16, "lineHeight": 24, "weight": 600 },
+    "body": { "size": 14, "lineHeight": 22, "weight": 400 },
+    "meta": { "size": 13, "lineHeight": 19, "weight": 400 },
+    "label": { "size": 12, "lineHeight": 18, "weight": 500 }
+  },
+  "spacing": {
+    "pageX": 16,
+    "section": 16,
+    "card": 16,
+    "compact": 8,
+    "comfortable": 12,
+    "bottomContentPadding": 104
+  },
+  "radius": {
+    "tag": 8,
+    "control": 12,
+    "card": 16,
+    "feature": 20,
+    "pill": 999
+  },
+  "sizes": {
+    "header": 56,
+    "search": 48,
+    "bottomNav": 76,
+    "xiaozhiNavButton": 64,
+    "icon": 24,
+    "minimumTapTarget": 44
+  },
+  "shadow": {
+    "card": "0 8px 24px rgba(51, 76, 145, 0.08)",
+    "floating": "0 10px 30px rgba(65, 105, 245, 0.22)"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "runtime": {
+    "node": ">=22.0.0",
+    "packageManager": "pnpm@10"
+  },
+  "dependencies": {
+    "next": "latest-stable",
+    "react": "latest-stable",
+    "react-dom": "latest-stable",
+    "@supabase/ssr": "latest-stable",
+    "@supabase/supabase-js": "latest-stable",
+    "openai": "latest-stable",
+    "zod": "latest-stable",
+    "lucide-react": "latest-stable",
+    "clsx": "latest-stable",
+    "tailwind-merge": "latest-stable",
+    "react-markdown": "latest-stable",
+    "remark-gfm": "latest-stable"
+  },
+  "devDependencies": {
+    "vitest": "latest-stable",
+    "@vitejs/plugin-react": "latest-stable",
+    "@testing-library/react": "latest-stable",
+    "@testing-library/jest-dom": "latest-stable",
+    "@testing-library/user-event": "latest-stable",
+    "jsdom": "latest-stable",
+    "@playwright/test": "latest-stable",
+    "prettier": "latest-stable",
+    "prettier-plugin-tailwindcss": "latest-stable"
+  },
+  "avoidInitially": [
+    "LangChain",
+    "LangGraph",
+    "a second vector database",
+    "a second state-management library",
+    "a full component framework"
+  ],
+  "notes": [
+    "Resolve exact package versions when Codex scaffolds the project and commit the lockfile.",
+    "Use the OpenAI SDK only as the OpenAI-compatible HTTP client for Qwen; do not call OpenAI services.",
+    "Prefer React Server Components for reads and Route Handlers or Server Actions for mutations and AI APIs."
+  ]
+}
