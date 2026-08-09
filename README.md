@@ -33,6 +33,12 @@
 - `scripts/`：规格包辅助脚本
 - `MANIFEST.md`：原始规格包文件清单与摘要
 
+## 项目决策记录
+
+- [Task 1 启动设计](docs/superpowers/specs/2026-08-10-xiaozhi-task1-start-design.md)
+- [房源 API 服务设计](docs/superpowers/specs/2026-08-10-housing-api-design.md)
+- [Git 提交与版本规范](docs/superpowers/specs/2026-08-09-git-commit-release-conventions-design.md)
+
 ## 真实性与安全边界
 
 - 价格、库存、政策、状态、距离不得由模型编造。
