@@ -76,7 +76,7 @@ data: {"finishReason":"stop"}
 
 ## `POST /api/feedback`
 
-请求使用 `feedbackRequestSchema`。点踩、纠错或低置信可创建 `knowledge_candidates`，但不会更新 `kb_articles`。
+请求使用 `feedbackRequestSchema`，必须验证 `sessionId` 与 `messageId` 属于当前用户或匿名会话。点赞只记录反馈；点踩原因属于 `incorrect`、`missing_source` 或 `outdated` 时创建去重的 `knowledge_candidates`，但不会更新 `kb_articles`。
 
 ## `POST /api/knowledge/search`
 
@@ -84,7 +84,17 @@ data: {"finishReason":"stop"}
 
 ## `POST /api/knowledge/publish`
 
-演示管理员接口。请求头 `Authorization: Bearer <DEMO_ADMIN_TOKEN>`。动作：审核版本、标记 published、归档同文章旧版本、将 chunks 标记为待向量化、写审核日志。
+演示管理员接口。使用受服务端签名保护的 HttpOnly 管理会话 Cookie，脚本或自动化调用也可使用 `Authorization: Bearer <DEMO_ADMIN_TOKEN>`。动作顺序：创建新版本、发布、建立索引、执行关联评测；响应分别返回发布、索引、评测和可检索状态，不把部分成功描述为全部成功。
+
+## 知识运营管理 API
+
+- `POST /api/knowledge/admin-session`：表单口令换取四小时 HttpOnly 会话 Cookie；口令不进入 URL 或客户端脚本。
+- `GET /api/knowledge/candidates`：列出候选队列。
+- `POST /api/knowledge/candidates`：保存草稿或提交批准、驳回、退回修改决策。
+- `POST /api/knowledge/evaluate`：执行关联评测并返回通过数与得分。
+- `POST /api/knowledge/rollback`：只有存在上一已发布版本时才能回滚；没有回滚目标时返回稳定的 `409` 错误。
+
+上述 API 均要求管理会话或 Bearer Token，响应带 `cache-control: no-store` 与 `x-request-id`。
 
 ## `GET /api/health`
 

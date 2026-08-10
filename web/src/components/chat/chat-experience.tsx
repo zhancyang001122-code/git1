@@ -27,6 +27,7 @@ interface Message {
   id: string;
   role: "user" | "assistant";
   text: string;
+  sessionId?: string;
 }
 
 function requestContext(
@@ -67,6 +68,7 @@ export function ChatExperience({
       : [],
   );
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [lastPrompt, setLastPrompt] = useState(initialContext.prompt ?? "");
   const [sessionId, setSessionId] = useState<string | undefined>();
   const { state: stream, status, send, cancel, reset } = useChatStream();
@@ -100,6 +102,7 @@ export function ChatExperience({
           id: result.messageId ?? crypto.randomUUID(),
           role: "assistant",
           text: result.assistantText,
+          ...(result.sessionId && { sessionId: result.sessionId }),
         },
       ]);
     }
@@ -119,6 +122,54 @@ export function ChatExperience({
     setInput("");
     setLastPrompt("");
     setFeedback(null);
+  }
+
+  async function submitFeedback(
+    messageId: string,
+    messageSessionId: string | undefined,
+    rating: "up" | "down",
+  ) {
+    if (!messageSessionId || feedbackSubmitting) {
+      setFeedback("当前消息还没有可验证的会话标识，请重新发送后再反馈。");
+      return;
+    }
+    setFeedbackSubmitting(true);
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          sessionId: messageSessionId,
+          messageId,
+          rating,
+          reason: rating === "down" ? "missing_source" : null,
+          comment: null,
+        }),
+      });
+      const payload = (await response.json()) as {
+        candidateId?: string | null;
+        isDemo?: boolean;
+        error?: { message?: string };
+      };
+      if (!response.ok) {
+        throw new Error(payload.error?.message ?? "反馈提交失败");
+      }
+      setFeedback(
+        rating === "up"
+          ? payload.isDemo
+            ? "感谢反馈；本次点赞仅保存在服务器内存，没有写入 Supabase。"
+            : "感谢反馈，已记录。"
+          : payload.candidateId
+            ? payload.isDemo
+              ? "已生成服务器内存中的待审核候选；不会自动发布，也没有写入 Supabase。"
+              : "已生成待审核知识候选；不会自动发布。"
+            : "反馈已记录，但没有生成知识候选。",
+      );
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : "反馈提交失败");
+    } finally {
+      setFeedbackSubmitting(false);
+    }
   }
 
   const progressItems = Object.values(stream.progress);
@@ -164,8 +215,9 @@ export function ChatExperience({
                   <div className="mt-3 flex gap-2">
                     <button
                       aria-label="回答有帮助"
+                      disabled={feedbackSubmitting}
                       onClick={() =>
-                        setFeedback("感谢反馈，本次反馈仅保存在页面状态。")
+                        void submitFeedback(message.id, message.sessionId, "up")
                       }
                       className="p-2 text-text-muted"
                     >
@@ -173,9 +225,12 @@ export function ChatExperience({
                     </button>
                     <button
                       aria-label="回答需改进"
+                      disabled={feedbackSubmitting}
                       onClick={() =>
-                        setFeedback(
-                          "已记录演示纠错入口，可前往反馈页补充说明。",
+                        void submitFeedback(
+                          message.id,
+                          message.sessionId,
+                          "down",
                         )
                       }
                       className="p-2 text-text-muted"

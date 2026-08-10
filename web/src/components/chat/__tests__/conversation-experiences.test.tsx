@@ -89,6 +89,49 @@ describe("conversation experiences", () => {
     );
   });
 
+  it("submits message-scoped feedback to the server API", async () => {
+    const sessionId = "71000000-0000-4000-8000-000000000001";
+    const messageId = "72000000-0000-4000-8000-000000000001";
+    const responseText = [
+      encodeSseEvent({ type: "session", sessionId, messageId }),
+      encodeSseEvent({ type: "assistant_delta", delta: "需要核验来源" }),
+      encodeSseEvent({ type: "done", finishReason: "stop" }),
+    ].join("");
+    const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
+      const [input] = args;
+      if (String(input) === "/api/feedback") {
+        return Response.json({
+          candidateId: "64000000-0000-4000-8000-000000000001",
+          isDemo: true,
+        });
+      }
+      return new Response(responseText, {
+        headers: { "content-type": "text/event-stream; charset=utf-8" },
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <ChatExperience
+        initialContext={{ prompt: "这个回答有来源吗", debug: false }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await screen.findByText("需要核验来源");
+    fireEvent.click(screen.getByRole("button", { name: "回答需改进" }));
+
+    await screen.findByText(/已生成服务器内存中的待审核候选/);
+    const feedbackCall = fetchMock.mock.calls.find(
+      ([input]) => String(input) === "/api/feedback",
+    );
+    expect(JSON.parse(String(feedbackCall?.[1]?.body))).toMatchObject({
+      sessionId,
+      messageId,
+      rating: "down",
+      reason: "missing_source",
+    });
+  });
+
   it("does not report a truncated SSE response as completed", async () => {
     vi.stubGlobal(
       "fetch",

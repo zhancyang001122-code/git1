@@ -287,29 +287,85 @@ export function PreferencesExperience() {
 
 export function FeedbackExperience() {
   const [suggestion, setSuggestion] = useState("");
-  const [notice, setNotice] = useState(false);
-  function submit(event: FormEvent) {
+  const [messageKey, setMessageKey] = useState("refund");
+  const [reason, setReason] = useState("missing_source");
+  const [notice, setNotice] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const demoMessages = {
+    refund: {
+      sessionId: "71000000-0000-4000-8000-000000000001",
+      messageId: "72000000-0000-4000-8000-000000000001",
+    },
+    pet: {
+      sessionId: "71000000-0000-4000-8000-000000000002",
+      messageId: "72000000-0000-4000-8000-000000000002",
+    },
+    delivery: {
+      sessionId: "71000000-0000-4000-8000-000000000003",
+      messageId: "72000000-0000-4000-8000-000000000003",
+    },
+  } as const;
+  async function submit(event: FormEvent) {
     event.preventDefault();
-    if (suggestion.trim()) setNotice(true);
+    if (!suggestion.trim() || busy) return;
+    setBusy(true);
+    try {
+      const selected = demoMessages[messageKey as keyof typeof demoMessages];
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...selected,
+          rating: "down",
+          reason,
+          comment: suggestion,
+        }),
+      });
+      const payload = (await response.json()) as {
+        candidateId?: string | null;
+        isDemo?: boolean;
+        error?: { message?: string };
+      };
+      if (!response.ok) throw new Error(payload.error?.message ?? "提交失败");
+      setNotice(
+        payload.candidateId
+          ? payload.isDemo
+            ? "反馈已进入服务器内存中的待审核候选；没有写入 Supabase，也没有发布为知识。"
+            : "反馈已进入待审核候选；尚未发布为知识。"
+          : "反馈已记录，但该原因不会自动生成知识候选。",
+      );
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "反馈提交失败");
+    } finally {
+      setBusy(false);
+    }
   }
   return (
     <form onSubmit={submit} className="space-y-4 px-4 py-4">
       <DemoNotice>用户反馈不能直接发布为知识，必须进入人工审核。</DemoNotice>
       <label className="block text-sm font-medium text-text">
         关联消息
-        <select className={`${fieldClass} mt-2`}>
-          <option>团购退款演示回答</option>
-          <option>宠物友好房源演示回答</option>
-          <option>配送时效演示回答</option>
+        <select
+          value={messageKey}
+          onChange={(event) => setMessageKey(event.target.value)}
+          className={`${fieldClass} mt-2`}
+        >
+          <option value="refund">团购退款演示回答</option>
+          <option value="pet">宠物友好房源演示回答</option>
+          <option value="delivery">配送时效演示回答</option>
         </select>
       </label>
       <label className="block text-sm font-medium text-text">
         错误类型
-        <select className={`${fieldClass} mt-2`}>
-          <option>条件不完整</option>
-          <option>事实错误</option>
-          <option>引用不匹配</option>
-          <option>知识已过期</option>
+        <select
+          value={reason}
+          onChange={(event) => setReason(event.target.value)}
+          className={`${fieldClass} mt-2`}
+        >
+          <option value="missing_source">引用或来源缺失</option>
+          <option value="incorrect">事实错误</option>
+          <option value="outdated">知识已过期</option>
+          <option value="not_relevant">回答不相关</option>
         </select>
       </label>
       <label className="block text-sm font-medium text-text">
@@ -333,16 +389,12 @@ export function FeedbackExperience() {
       <Button
         type="submit"
         aria-label="提交演示反馈"
-        disabled={!suggestion.trim()}
+        disabled={!suggestion.trim() || busy}
         className="w-full"
       >
         提交演示反馈
       </Button>
-      {notice ? (
-        <DemoNotice>
-          反馈仅生成待审核候选，没有写入数据库，更没有发布为正式知识。
-        </DemoNotice>
-      ) : null}
+      {notice ? <DemoNotice>{notice}</DemoNotice> : null}
     </form>
   );
 }

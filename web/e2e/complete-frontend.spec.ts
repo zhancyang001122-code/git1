@@ -1,4 +1,16 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+const demoAdminToken = "playwright-demo-admin-token-000001";
+const refundCandidateId = "64000000-0000-4000-8000-000000000001";
+
+async function loginKnowledgeAdmin(page: Page) {
+  await page.goto("/knowledge-admin/login");
+  await page.getByLabel("管理口令").fill(demoAdminToken);
+  await Promise.all([
+    page.waitForURL("**/knowledge-admin"),
+    page.getByRole("button", { name: "验证并进入" }).click(),
+  ]);
+}
 
 const routes = [
   "/",
@@ -26,7 +38,7 @@ const routes = [
   "/cart",
   "/nearby",
   "/knowledge-admin",
-  "/knowledge-admin/candidate-refund-001",
+  `/knowledge-admin/${refundCandidateId}`,
 ] as const;
 
 for (const route of routes) {
@@ -34,6 +46,9 @@ for (const route of routes) {
     page,
   }) => {
     await page.setViewportSize({ width: 430, height: 932 });
+    if (route.startsWith("/knowledge-admin")) {
+      await loginKnowledgeAdmin(page);
+    }
     const response = await page.goto(route);
     expect(response?.ok()).toBe(true);
     await expect(page.locator("main")).toBeVisible();
@@ -162,7 +177,9 @@ test("chat explains the full housing, nearby and demo-knowledge chain", async ({
   await expect(progress).toContainText("正在查询房源");
   await expect(progress).toContainText("正在查询周边地点");
   await expect(progress).toContainText("正在检索知识依据");
-  await expect(page.getByText(/房源、周边和规则三项查询已按顺序完成/)).toBeVisible();
+  await expect(
+    page.getByText(/房源、周边和规则三项查询已按顺序完成/),
+  ).toBeVisible();
   await expect(page.getByRole("region", { name: "知识引用" })).toContainText(
     "模拟知识资料",
   );
@@ -175,13 +192,60 @@ test("feedback and knowledge review never claim remote writes", async ({
   await page.goto("/me/feedback");
   await page.getByLabel("纠正建议").fill("退款规则需要补充预约限制。");
   await page.getByRole("button", { name: "提交演示反馈" }).click();
-  await expect(
-    page.getByText(/反馈仅生成待审核候选，没有写入数据库/),
-  ).toBeVisible();
-  await page.goto("/knowledge-admin/candidate-refund-001");
+  await expect(page.getByText(/已进入服务器内存中的待审核候选/)).toBeVisible();
+  await loginKnowledgeAdmin(page);
+  await page.goto(`/knowledge-admin/${refundCandidateId}`);
   await page.getByRole("button", { name: "批准草稿" }).click();
   await page.getByRole("button", { name: "确认批准" }).click();
+  await expect(page.getByText(/候选已批准，但尚未发布/)).toBeVisible();
+});
+
+test("a knowledge gap becomes searchable only after review and publication", async ({
+  page,
+}) => {
+  const question = "团购券过期两天可以退款吗";
+  const title = `${question}（模拟草稿）`;
+
+  await page.goto(`/xiaozhi/chat?q=${encodeURIComponent(question)}`);
+  await page.getByRole("button", { name: "发送" }).click();
   await expect(
-    page.getByText(/本地状态已更新为“已批准”，尚未发布/),
+    page.getByText(/知识库没有找到足够可靠且当前有效的依据/),
   ).toBeVisible();
+  await expect(page.getByRole("region", { name: "知识引用" })).toHaveCount(0);
+
+  await loginKnowledgeAdmin(page);
+  const gapCandidate = page
+    .getByRole("link", { name: new RegExp(question) })
+    .filter({ hasText: "group_buy" });
+  await expect(gapCandidate).toBeVisible();
+  await gapCandidate.click();
+  await page.getByRole("button", { name: "批准草稿" }).click();
+  await page.getByRole("button", { name: "确认批准" }).click();
+  await expect(page.getByText(/候选已批准，但尚未发布/)).toBeVisible();
+  await page.getByRole("button", { name: "发布并索引" }).click();
+  await page.getByRole("button", { name: "确认发布" }).click();
+  await expect(
+    page.getByText(/模拟版本已发布、索引并通过确定性评测/),
+  ).toBeVisible();
+  await expect(page.getByText("是", { exact: true })).toBeVisible();
+
+  await page.goto(`/xiaozhi/chat?q=${encodeURIComponent(question)}`);
+  await page.getByRole("button", { name: "发送" }).click();
+  await expect(page.getByRole("region", { name: "知识引用" })).toContainText(
+    title,
+  );
+  await expect(page.getByText(/已根据演示知识库核验/)).toBeVisible();
+});
+
+test("a rejected candidate is never exposed as a knowledge citation", async ({
+  page,
+}) => {
+  await page.goto(
+    `/xiaozhi/chat?q=${encodeURIComponent("配送超时是否自动补偿")}`,
+  );
+  await page.getByRole("button", { name: "发送" }).click();
+
+  const citations = page.getByRole("region", { name: "知识引用" });
+  await expect(citations).toBeVisible();
+  await expect(citations).not.toContainText("配送超时是否自动补偿");
 });

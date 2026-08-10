@@ -14,6 +14,7 @@ export default defineConfig({
       ...process.env,
       NEXT_PUBLIC_DEMO_MODE: "true",
       NEXT_PUBLIC_ENABLE_AI_DEBUG: "true",
+      DEMO_ADMIN_TOKEN: "playwright-demo-admin-token-000001",
     },
   },
 });

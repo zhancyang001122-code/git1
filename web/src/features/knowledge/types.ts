@@ -165,7 +165,12 @@ export interface KnowledgeService {
 }
 
 export interface KnowledgeCandidateInput {
-  sourceType: "low_confidence" | "no_result";
+  sourceType:
+    | "low_confidence"
+    | "no_result"
+    | "user_feedback"
+    | "repeated_question"
+    | "human_correction";
   sessionId: string;
   messageId: string;
   question: string;

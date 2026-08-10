@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const port = Number.parseInt(process.env.PLAYWRIGHT_PORT ?? "3000", 10);
 const baseURL = `http://127.0.0.1:${port}`;
+const demoAdminToken = "playwright-demo-admin-token-000001";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -23,6 +24,7 @@ export default defineConfig({
       ...process.env,
       NEXT_PUBLIC_DEMO_MODE: "true",
       NEXT_PUBLIC_ENABLE_AI_DEBUG: "true",
+      DEMO_ADMIN_TOKEN: demoAdminToken,
     },
   },
   projects: [

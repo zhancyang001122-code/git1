@@ -1,4 +1,5 @@
 import { citationFromHit } from "@/features/knowledge/citations";
+import { findPublishedDemoKnowledge } from "@/features/knowledge-ops/demo-store";
 import { planKnowledgeQuery } from "@/features/knowledge/query-planner";
 import type {
   IndexResult,
@@ -153,7 +154,10 @@ export class FakeKnowledgeService implements KnowledgeService {
       /(?:过期|两天|2天).*(?:退|退款)|(?:退|退款).*(?:过期|两天|2天)/.test(
         input.query,
       );
-    const fixture = asksExpiredGuarantee ? null : relevantFixture(input.query);
+    const publishedDemo = findPublishedDemoKnowledge(input.query);
+    const fixture =
+      publishedDemo ??
+      (asksExpiredGuarantee ? null : relevantFixture(input.query));
     const chunks = fixture ? [fixture] : [];
     return {
       chunks,

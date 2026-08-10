@@ -29,11 +29,13 @@ import {
   createSupabaseChatPersistence,
   type ChatPersistence,
 } from "@/features/conversation/chat-persistence";
+import { registerDemoMessage } from "@/features/conversation/demo-message-registry";
 import { createSupabaseConversationRepository } from "@/features/conversation/repository";
 import { createRepositories } from "@/features/repositories";
 import { createMapsRuntime } from "@/features/maps/runtime";
 import { createKnowledgeRuntime } from "@/features/knowledge/runtime";
 import { createSupabaseKnowledgeCandidateSink } from "@/features/knowledge/candidate-sink";
+import { createDemoKnowledgeCandidateSink } from "@/features/knowledge-ops/demo-store";
 import { AppError, toPublicError } from "@/lib/errors";
 import { parsePublicEnv, parseServerEnv } from "@/lib/env";
 
@@ -94,7 +96,10 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
     const knowledge = createKnowledgeRuntime({ environment: process.env });
     return {
       provider: new DemoToolCallingProvider(),
-      persistence: createEphemeralChatPersistence(),
+      persistence: createEphemeralChatPersistence({
+        onPrepared: ({ sessionId, messageId, question }) =>
+          registerDemoMessage(sessionId, messageId, question),
+      }),
       timeoutMs: serverConfiguration.AI_REQUEST_TIMEOUT_MS,
       warning: {
         code: "DEMO_MODE",
@@ -109,6 +114,7 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
           business: repositories.business,
           maps: maps.service,
           knowledge: knowledge.service,
+          knowledgeCandidates: createDemoKnowledgeCandidateSink(),
           memory: repositories.memory,
           audit: createInMemoryToolAudit(),
           businessSource: "supabase_mock",

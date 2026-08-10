@@ -36,12 +36,25 @@ function providerHistory(
     }));
 }
 
-export function createEphemeralChatPersistence(): ChatPersistence {
+export function createEphemeralChatPersistence(options?: {
+  onPrepared?: (input: {
+    sessionId: string;
+    messageId: string;
+    question: string;
+  }) => void;
+}): ChatPersistence {
   return {
     async prepare(request) {
+      const sessionId = crypto.randomUUID();
+      const messageId = crypto.randomUUID();
+      options?.onPrepared?.({
+        sessionId,
+        messageId,
+        question: request.message,
+      });
       return {
-        sessionId: crypto.randomUUID(),
-        messageId: crypto.randomUUID(),
+        sessionId,
+        messageId,
         messages: [{ role: "user", content: request.message }],
         async persistAssistant() {},
       };

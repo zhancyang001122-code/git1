@@ -1,9 +1,8 @@
-import { timingSafeEqual } from "node:crypto";
-
 import { z } from "zod";
 
 import type { KnowledgeService } from "@/features/knowledge/types";
 import { createRequestKnowledgeService } from "@/features/knowledge/runtime";
+import { isKnowledgeAdminRequestAuthorized } from "@/features/knowledge-ops/admin-session";
 import { AppError, toPublicError } from "@/lib/errors";
 import { parseServerEnv } from "@/lib/env";
 
@@ -21,17 +20,6 @@ async function defaultRuntime(): Promise<IndexRuntime> {
     service: await createRequestKnowledgeService(),
     adminToken: parseServerEnv(process.env).DEMO_ADMIN_TOKEN,
   };
-}
-
-function authorized(request: Request, expected: string): boolean {
-  const header = request.headers.get("authorization") ?? "";
-  const provided = header.startsWith("Bearer ") ? header.slice(7) : "";
-  const expectedBytes = Buffer.from(expected);
-  const providedBytes = Buffer.from(provided);
-  return (
-    expectedBytes.length === providedBytes.length &&
-    timingSafeEqual(expectedBytes, providedBytes)
-  );
 }
 
 function errorResponse(error: unknown, requestId: string): Response {
@@ -59,7 +47,7 @@ export function createKnowledgeIndexHandler(
           status: 503,
         });
       }
-      if (!authorized(request, runtime.adminToken)) {
+      if (!isKnowledgeAdminRequestAuthorized(request, runtime.adminToken)) {
         throw new AppError({
           code: "KNOWLEDGE_ADMIN_UNAUTHORIZED",
           message: "无权执行知识索引操作",
