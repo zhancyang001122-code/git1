@@ -30,7 +30,9 @@ const paging = {
 };
 const houseFilterSchema = z
   .object({
+    city: optionalText,
     district: optionalText,
+    minPrice: z.number().int().min(0).max(200000).optional(),
     maxPrice: z.number().int().min(0).max(200000).optional(),
     roomType: optionalText,
     petsAllowed: z.boolean().optional(),
@@ -113,7 +115,10 @@ export function createSupabaseBusinessRepository(
         .from("houses")
         .select(HOUSE_COLUMNS, { count: "exact" })
         .eq("available", true);
+      if (filter.city) query = query.eq("city", filter.city);
       if (filter.district) query = query.eq("district", filter.district);
+      if (filter.minPrice !== undefined)
+        query = query.gte("price_monthly", filter.minPrice);
       if (filter.maxPrice !== undefined)
         query = query.lte("price_monthly", filter.maxPrice);
       if (filter.roomType) query = query.eq("room_type", filter.roomType);

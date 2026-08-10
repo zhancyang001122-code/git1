@@ -18,6 +18,11 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: false,
     timeout: 120_000,
+    env: {
+      ...process.env,
+      NEXT_PUBLIC_DEMO_MODE: "true",
+      NEXT_PUBLIC_ENABLE_AI_DEBUG: "true",
+    },
   },
   projects: [
     {

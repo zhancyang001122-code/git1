@@ -7,6 +7,7 @@ const databaseUuid = z
   .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 const isoDateTime = z.string().datetime({ offset: true });
 const sourceSchema = z.enum([
+  "housing_history_2024",
   "supabase_mock",
   "amap",
   "knowledge_base",
@@ -127,6 +128,26 @@ export const initialChatStreamState: ChatStreamState = {
   finishReason: null,
 };
 
+function mergeResultCards(
+  current: readonly ResultCard[],
+  incoming: readonly ResultCard[],
+): ResultCard[] {
+  const result = [...current];
+  for (const card of incoming) {
+    const id = card.data.id;
+    const existingIndex =
+      typeof id === "string"
+        ? result.findIndex(
+            (candidate) =>
+              candidate.kind === card.kind && candidate.data.id === id,
+          )
+        : -1;
+    if (existingIndex >= 0) result[existingIndex] = card;
+    else result.push(card);
+  }
+  return result;
+}
+
 export function parseChatStreamEvent(
   type: string,
   payload: unknown,
@@ -162,7 +183,7 @@ export function reduceChatStreamEvent(
         progress: { ...state.progress, [event.progress.id]: event.progress },
       };
     case "result_cards":
-      return { ...state, cards: [...state.cards, ...event.cards] };
+      return { ...state, cards: mergeResultCards(state.cards, event.cards) };
     case "citations":
       return { ...state, citations: [...state.citations, ...event.citations] };
     case "debug_tool_run":

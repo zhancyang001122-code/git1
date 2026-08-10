@@ -53,7 +53,7 @@ for (const route of routes) {
 test("housing filters and local favorite work", async ({ page }) => {
   await page.goto("/houses");
   await page.getByRole("button", { name: "允许宠物" }).click();
-  await expect(page.getByText(/找到 7 条历史记录/)).toBeVisible();
+  await expect(page.getByText(/找到 7 条演示记录/)).toBeVisible();
   await page.getByRole("button", { name: "收藏房源" }).first().click();
   await expect(
     page.getByRole("button", { name: "取消收藏房源" }),
@@ -71,18 +71,50 @@ test("cart state survives client-side navigation", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("chat streams through the server API and labels demo mode", async ({
+test("chat executes the housing tool and renders typed cards", async ({
   page,
 }) => {
   await page.goto("/xiaozhi/chat?q=找3500元以内允许养猫的房源&debug=true");
   await page.getByRole("button", { name: "发送" }).click();
-  await expect(page.getByText(/当前为聊天链路演示模式/)).toBeVisible();
   await expect(
     page.getByText(
-      "当前为演示模式，对话不会写入云端，也未调用真实千问或外部工具",
+      "当前为确定性工具演示模式：没有调用真实千问，对话和审计不会写入云端",
     ),
   ).toBeVisible();
-  await expect(page.getByText("本轮未执行外部工具。")).toBeVisible();
+  await expect(page.getByText(/已从演示房源数据查询到/)).toBeVisible();
+  await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
+    "正在查询房源",
+  );
+  await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
+    "已完成",
+  );
+  await expect(
+    page.getByRole("link", { name: /查看房源 武林晴川一居室/ }),
+  ).toBeVisible();
+  await expect(page.getByText("工具：search_houses")).toBeVisible();
+});
+
+test("chat resolves exact demo stock without exposing internal tool names", async ({
+  page,
+}) => {
+  await page.goto("/xiaozhi/chat?q=鲜牛奶现在还有库存吗");
+  await page.getByRole("button", { name: "发送" }).click();
+  await expect(
+    page.getByText(/鲜牛奶 950ml的演示可用库存为 30 件/),
+  ).toBeVisible();
+  await expect(page.getByText("演示库存 30")).toBeVisible();
+  await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
+    "正在查询商品",
+  );
+  await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
+    "正在核对商品库存",
+  );
+  await page.getByText("调试摘要", { exact: true }).click();
+  await expect(
+    page.getByText("工具已执行；内部调试摘要未开启。"),
+  ).toBeVisible();
+  await expect(page.locator("body")).not.toContainText("search_products");
+  await expect(page.locator("body")).not.toContainText("get_product_stock");
 });
 
 test("feedback and knowledge review never claim remote writes", async ({

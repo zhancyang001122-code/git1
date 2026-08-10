@@ -4,21 +4,41 @@
   "tools": [
     {
       "name": "search_houses",
-      "description": "Search available demo housing records with exact structured filters. Use this for rent, room type, pet, area and availability; never use RAG for exact housing filters.",
+      "description": "Search 2024 historical housing records with exact structured filters. Use this for recorded rent, room type, pet, area and availability; never present historical availability as current.",
       "strict": true,
       "parameters": {
         "type": "object",
         "properties": {
-          "city": { "type": "string", "description": "City name, default Hangzhou." },
+          "city": {
+            "type": "string",
+            "description": "City name, default Hangzhou."
+          },
           "district": { "type": ["string", "null"] },
-          "near_location": { "type": ["string", "null"], "description": "Named place used for later geocoding or ranking." },
+          "near_location": {
+            "type": ["string", "null"],
+            "description": "Named place used for later geocoding or ranking."
+          },
           "min_price": { "type": ["integer", "null"], "minimum": 0 },
           "max_price": { "type": ["integer", "null"], "minimum": 0 },
           "room_type": { "type": ["string", "null"] },
           "pets_allowed": { "type": ["boolean", "null"] },
-          "limit": { "type": "integer", "minimum": 1, "maximum": 10, "default": 5 }
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 5
+          }
         },
-        "required": ["city", "district", "near_location", "min_price", "max_price", "room_type", "pets_allowed", "limit"],
+        "required": [
+          "city",
+          "district",
+          "near_location",
+          "min_price",
+          "max_price",
+          "room_type",
+          "pets_allowed",
+          "limit"
+        ],
         "additionalProperties": false
       }
     },
@@ -44,9 +64,20 @@
           "category": { "type": ["string", "null"] },
           "max_price": { "type": ["number", "null"], "minimum": 0 },
           "refundable_only": { "type": ["boolean", "null"] },
-          "limit": { "type": "integer", "minimum": 1, "maximum": 10, "default": 5 }
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 5
+          }
         },
-        "required": ["query", "category", "max_price", "refundable_only", "limit"],
+        "required": [
+          "query",
+          "category",
+          "max_price",
+          "refundable_only",
+          "limit"
+        ],
         "additionalProperties": false
       }
     },
@@ -62,9 +93,21 @@
           "store_id": { "type": ["string", "null"], "format": "uuid" },
           "max_price": { "type": ["number", "null"], "minimum": 0 },
           "in_stock_only": { "type": "boolean", "default": true },
-          "limit": { "type": "integer", "minimum": 1, "maximum": 12, "default": 6 }
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12,
+            "default": 6
+          }
         },
-        "required": ["query", "category", "store_id", "max_price", "in_stock_only", "limit"],
+        "required": [
+          "query",
+          "category",
+          "store_id",
+          "max_price",
+          "in_stock_only",
+          "limit"
+        ],
         "additionalProperties": false
       }
     },
@@ -89,12 +132,38 @@
           "keyword": { "type": "string", "minLength": 1 },
           "city": { "type": "string" },
           "center_name": { "type": ["string", "null"] },
-          "longitude": { "type": ["number", "null"], "minimum": -180, "maximum": 180 },
-          "latitude": { "type": ["number", "null"], "minimum": -90, "maximum": 90 },
-          "radius_m": { "type": "integer", "minimum": 100, "maximum": 5000, "default": 2000 },
-          "limit": { "type": "integer", "minimum": 1, "maximum": 10, "default": 5 }
+          "longitude": {
+            "type": ["number", "null"],
+            "minimum": -180,
+            "maximum": 180
+          },
+          "latitude": {
+            "type": ["number", "null"],
+            "minimum": -90,
+            "maximum": 90
+          },
+          "radius_m": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 5000,
+            "default": 2000
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 5
+          }
         },
-        "required": ["keyword", "city", "center_name", "longitude", "latitude", "radius_m", "limit"],
+        "required": [
+          "keyword",
+          "city",
+          "center_name",
+          "longitude",
+          "latitude",
+          "radius_m",
+          "limit"
+        ],
         "additionalProperties": false,
         "allOf": [
           {
@@ -113,12 +182,33 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "origin_longitude": { "type": "number", "minimum": -180, "maximum": 180 },
-          "origin_latitude": { "type": "number", "minimum": -90, "maximum": 90 },
-          "destination_longitude": { "type": "number", "minimum": -180, "maximum": 180 },
-          "destination_latitude": { "type": "number", "minimum": -90, "maximum": 90 }
+          "origin_longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "origin_latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "destination_longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "destination_latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          }
         },
-        "required": ["origin_longitude", "origin_latitude", "destination_longitude", "destination_latitude"],
+        "required": [
+          "origin_longitude",
+          "origin_latitude",
+          "destination_longitude",
+          "destination_latitude"
+        ],
         "additionalProperties": false
       }
     },
@@ -130,10 +220,18 @@
         "type": "object",
         "properties": {
           "query": { "type": "string", "minLength": 2 },
-          "domain": { "type": ["string", "null"], "enum": ["housing", "group_buy", "market", "platform", null] },
+          "domain": {
+            "type": ["string", "null"],
+            "enum": ["housing", "group_buy", "market", "platform", null]
+          },
           "category": { "type": ["string", "null"] },
           "city": { "type": ["string", "null"] },
-          "top_k": { "type": "integer", "minimum": 1, "maximum": 8, "default": 5 }
+          "top_k": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8,
+            "default": 5
+          }
         },
         "required": ["query", "domain", "category", "city", "top_k"],
         "additionalProperties": false
@@ -145,7 +243,12 @@
       "strict": true,
       "parameters": {
         "type": "object",
-        "properties": { "scope": { "type": "string", "enum": ["housing", "food", "shopping", "all"] } },
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": ["housing", "food", "shopping", "all"]
+          }
+        },
         "required": ["scope"],
         "additionalProperties": false
       }
@@ -157,7 +260,17 @@
       "parameters": {
         "type": "object",
         "properties": {
-          "key": { "type": "string", "enum": ["max_housing_budget", "pets", "preferred_areas", "dietary_restrictions", "transport_modes", "family_profile"] },
+          "key": {
+            "type": "string",
+            "enum": [
+              "max_housing_budget",
+              "pets",
+              "preferred_areas",
+              "dietary_restrictions",
+              "transport_modes",
+              "family_profile"
+            ]
+          },
           "value": {},
           "consent_confirmed": { "type": "boolean", "const": true }
         },
@@ -174,7 +287,18 @@
         "properties": {
           "message_id": { "type": "string", "format": "uuid" },
           "rating": { "type": "string", "enum": ["up", "down"] },
-          "reason": { "type": ["string", "null"], "enum": ["incorrect", "not_relevant", "missing_source", "outdated", "unsafe", "other", null] },
+          "reason": {
+            "type": ["string", "null"],
+            "enum": [
+              "incorrect",
+              "not_relevant",
+              "missing_source",
+              "outdated",
+              "unsafe",
+              "other",
+              null
+            ]
+          },
           "comment": { "type": ["string", "null"], "maxLength": 1000 }
         },
         "required": ["message_id", "rating", "reason", "comment"],

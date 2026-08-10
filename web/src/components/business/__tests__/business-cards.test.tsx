@@ -42,10 +42,13 @@ describe("business presentation components", () => {
     ).toHaveAttribute("href", `/deals/${deal.id}`);
   });
 
-  it("labels historical housing separately from other demo business data", () => {
+  it("labels demo and imported historical housing without conflating them", () => {
     render(
       <>
         <HouseCard house={house} />
+        <HouseCard
+          house={{ ...house, id: `${house.id}-history`, isDemo: false }}
+        />
         <DealCard deal={deal} />
         <ProductCard product={product} />
         <StoreCard store={store} />
@@ -54,7 +57,9 @@ describe("business presentation components", () => {
     );
 
     expect(screen.getByText("2024 历史房源数据")).toBeInTheDocument();
-    expect(screen.getAllByText("演示业务数据")).toHaveLength(4);
+    expect(screen.getAllByText("演示业务数据")).toHaveLength(5);
+    expect(screen.getByText("2024 历史记录")).toBeInTheDocument();
+    expect(screen.getByText("2024 演示记录")).toBeInTheDocument();
     expect(screen.queryByText(/实时在租|当前可租/)).not.toBeInTheDocument();
   });
 

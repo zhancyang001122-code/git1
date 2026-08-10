@@ -91,7 +91,9 @@ export interface CommunityPost extends SourcedEntity {
 export type HouseSort = "recommended" | "price_asc" | "price_desc";
 
 export interface HouseFilter {
+  city?: string;
   district?: string;
+  minPrice?: number;
   maxPrice?: number;
   roomType?: string;
   petsAllowed?: boolean;

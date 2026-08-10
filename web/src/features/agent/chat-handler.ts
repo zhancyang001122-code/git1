@@ -5,12 +5,18 @@ import {
   chatRequestSchema,
   type ChatRequest,
 } from "@/features/agent/chat-request";
-import { FakeAIProvider } from "@/features/agent/fake-provider";
+import { DemoToolCallingProvider } from "@/features/agent/demo-tool-provider";
 import { orchestrateChatTurn } from "@/features/agent/orchestrator";
 import type { AIProvider } from "@/features/agent/provider";
 import { createQwenProvider } from "@/features/agent/qwen-provider";
 import { encodeSseEvent } from "@/features/agent/sse";
 import { XIAOZHI_SYSTEM_PROMPT } from "@/features/agent/system-prompt";
+import {
+  createAIOpsToolAudit,
+  createInMemoryToolAudit,
+} from "@/features/agent/tools/audit";
+import { ToolExecutor } from "@/features/agent/tools/executor";
+import type { ToolContext } from "@/features/agent/tools/types";
 import {
   createAnonymousSessionCookie,
   readAnonymousSessionCookie,
@@ -23,6 +29,7 @@ import {
   type ChatPersistence,
 } from "@/features/conversation/chat-persistence";
 import { createSupabaseConversationRepository } from "@/features/conversation/repository";
+import { createRepositories } from "@/features/repositories";
 import { AppError, toPublicError } from "@/lib/errors";
 import { parsePublicEnv, parseServerEnv } from "@/lib/env";
 
@@ -31,6 +38,15 @@ export interface ChatRuntime {
   persistence: ChatPersistence;
   timeoutMs: number;
   warning?: { code: string; message: string };
+  tools?: {
+    executor: ToolExecutor;
+    context: Omit<
+      ToolContext,
+      "sessionId" | "messageId" | "requestId" | "signal"
+    >;
+    debugEnabled: boolean;
+    maxRounds: number;
+  };
 }
 
 export type ChatRuntimeFactory = (request: ChatRequest) => Promise<ChatRuntime>;
@@ -64,29 +80,35 @@ async function parseRequest(request: Request): Promise<ChatRequest> {
   return result.data;
 }
 
-async function defaultChatRuntime(): Promise<ChatRuntime> {
+async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
   const publicConfiguration = parsePublicEnv(process.env);
   const serverConfiguration = parseServerEnv(process.env);
 
   if (publicConfiguration.NEXT_PUBLIC_DEMO_MODE) {
+    const repositories = await createRepositories({ environment: process.env });
     return {
-      provider: new FakeAIProvider([
-        {
-          type: "text_delta",
-          delta: "当前为聊天链路演示模式，未调用真实千问或外部工具。",
-        },
-        {
-          type: "text_delta",
-          delta:
-            "我可以继续了解你的需求，但暂时不会给出未经工具核验的价格、库存、距离或政策。",
-        },
-        { type: "finish", reason: "stop" },
-      ]),
+      provider: new DemoToolCallingProvider(),
       persistence: createEphemeralChatPersistence(),
       timeoutMs: serverConfiguration.AI_REQUEST_TIMEOUT_MS,
       warning: {
         code: "DEMO_MODE",
-        message: "当前为演示模式，对话不会写入云端，也未调用真实千问或外部工具",
+        message:
+          "当前为确定性工具演示模式：没有调用真实千问，对话和审计不会写入云端",
+      },
+      tools: {
+        executor: new ToolExecutor({
+          timeoutMs: serverConfiguration.TOOL_TIMEOUT_MS,
+        }),
+        context: {
+          business: repositories.business,
+          memory: repositories.memory,
+          audit: createInMemoryToolAudit(),
+          businessSource: "supabase_mock",
+          userId: null,
+        },
+        debugEnabled:
+          request.debug && publicConfiguration.NEXT_PUBLIC_ENABLE_AI_DEBUG,
+        maxRounds: serverConfiguration.AI_MAX_TOOL_ROUNDS,
       },
     };
   }
@@ -121,6 +143,7 @@ async function defaultChatRuntime(): Promise<ChatRuntime> {
 
   const { cookies } = await import("next/headers");
   const { createAdminSupabaseClient } = await import("@/lib/supabase/admin");
+  const { createServerSupabaseClient } = await import("@/lib/supabase/server");
   const cookieStore = await cookies();
   const cookieValue = cookieStore.get(ANONYMOUS_SESSION_COOKIE)?.value;
   let anonymousId = readAnonymousSessionCookie(
@@ -139,9 +162,11 @@ async function defaultChatRuntime(): Promise<ChatRuntime> {
     );
   }
 
-  const repository = createSupabaseConversationRepository(
-    createAdminSupabaseClient(),
-  );
+  const adminClient = createAdminSupabaseClient();
+  const serverClient = await createServerSupabaseClient();
+  const repository = createSupabaseConversationRepository(adminClient);
+  const repositories = await createRepositories({ serverClient, adminClient });
+  const authenticated = await serverClient.auth.getUser();
   return {
     provider: createQwenProvider(),
     persistence: createSupabaseChatPersistence({
@@ -150,6 +175,24 @@ async function defaultChatRuntime(): Promise<ChatRuntime> {
       modelName: serverConfiguration.DASHSCOPE_MODEL,
     }),
     timeoutMs: serverConfiguration.AI_REQUEST_TIMEOUT_MS,
+    tools: {
+      executor: new ToolExecutor({
+        timeoutMs: serverConfiguration.TOOL_TIMEOUT_MS,
+      }),
+      context: {
+        business: repositories.business,
+        memory: repositories.memory,
+        audit: createAIOpsToolAudit(repositories.aiOps),
+        businessSource:
+          repositories.mode.mode === "supabase"
+            ? "housing_history_2024"
+            : "supabase_mock",
+        userId: authenticated.data.user?.id ?? null,
+      },
+      debugEnabled:
+        request.debug && publicConfiguration.NEXT_PUBLIC_ENABLE_AI_DEBUG,
+      maxRounds: serverConfiguration.AI_MAX_TOOL_ROUNDS,
+    },
   };
 }
 
@@ -188,6 +231,18 @@ export function createChatHandler(
             ],
             signal: streamController.signal,
             timeoutMs: runtime.timeoutMs,
+            ...(runtime.tools && {
+              toolExecutor: runtime.tools.executor,
+              toolContext: {
+                ...runtime.tools.context,
+                sessionId: prepared.sessionId,
+                messageId: prepared.messageId,
+                requestId,
+                signal: streamController.signal,
+              },
+              debug: runtime.tools.debugEnabled,
+              maxToolRounds: runtime.tools.maxRounds,
+            }),
             onComplete: prepared.persistAssistant,
           })) {
             controller.enqueue(encoder.encode(encodeSseEvent(event)));

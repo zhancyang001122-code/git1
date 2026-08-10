@@ -11,7 +11,9 @@ const availableHouses = demoHouses.filter((house) => house.available);
 
 describe("housing and deal experiences", () => {
   it("filters, sorts and locally favorites historical houses", () => {
-    render(<HouseListExperience houses={availableHouses} />);
+    render(
+      <HouseListExperience houses={availableHouses} source="supabase_mock" />,
+    );
 
     expect(screen.getAllByRole("article")).toHaveLength(11);
 
@@ -33,6 +35,7 @@ describe("housing and deal experiences", () => {
     expect(
       screen.getByText("收藏仅保存在当前页面，刷新后会重置。"),
     ).toBeInTheDocument();
+    expect(screen.getByText(/以下为演示房源记录/)).toBeInTheDocument();
   });
 
   it("filters demo deals without implying a live marketplace", () => {
@@ -49,11 +52,13 @@ describe("housing and deal experiences", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows provenance and honest actions on a house detail", () => {
+  it("shows demo provenance and honest actions on a demo house detail", () => {
     render(<HouseDetail house={demoHouses[0]!} />);
 
-    expect(screen.getByText("2024 历史房源数据")).toBeInTheDocument();
-    expect(screen.getByText(/不代表当前仍可出租/)).toBeInTheDocument();
+    expect(screen.getByText("演示业务数据")).toBeInTheDocument();
+    expect(
+      screen.getByText(/不代表真实房源或当前可租状态/),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "问小智" })).toHaveAttribute(
       "href",
       expect.stringContaining("/xiaozhi/chat"),
@@ -61,6 +66,13 @@ describe("housing and deal experiences", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "预约演示" }));
     expect(screen.getByText(/不会提交真实预约/)).toBeInTheDocument();
+  });
+
+  it("shows imported 2024 housing as historical rather than live", () => {
+    render(<HouseDetail house={{ ...demoHouses[0]!, isDemo: false }} />);
+
+    expect(screen.getByText("2024 历史房源数据")).toBeInTheDocument();
+    expect(screen.getByText(/不代表当前仍可出租/)).toBeInTheDocument();
   });
 
   it("shows package rules and blocks real purchase on a deal detail", () => {

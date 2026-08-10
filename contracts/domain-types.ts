@@ -3,9 +3,16 @@
 export type UUID = string;
 export type ISODateTime = string;
 
-export type DataSource = "supabase_mock" | "amap" | "knowledge_base" | "user_memory";
-export type ToolStatus = "queued" | "running" | "succeeded" | "failed" | "timed_out";
-export type KnowledgeStatus = "draft" | "reviewing" | "published" | "archived" | "rejected";
+export type DataSource =
+  | "housing_history_2024"
+  | "supabase_mock"
+  | "amap"
+  | "knowledge_base"
+  | "user_memory";
+export type ToolStatus =
+  "queued" | "running" | "succeeded" | "failed" | "timed_out";
+export type KnowledgeStatus =
+  "draft" | "reviewing" | "published" | "archived" | "rejected";
 
 export interface GeoPoint {
   longitude: number;

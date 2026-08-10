@@ -129,6 +129,37 @@ describe("chat persistence", () => {
     });
   });
 
+  it("persists structured result cards with the assistant turn", async () => {
+    const repo = repository();
+    const prepared = await createSupabaseChatPersistence({
+      repository: repo,
+      anonymousId,
+      modelName: "qwen-plus",
+    }).prepare({ message: "找房", debug: false });
+    const cards = [
+      {
+        kind: "house" as const,
+        data: {
+          id: "20000000-0000-0000-0000-000000000001",
+          name: "武林晴川一居室",
+        },
+      },
+    ];
+
+    await prepared.persistAssistant({
+      assistantText: "找到一条记录",
+      finishReason: "stop",
+      cards,
+    });
+
+    expect(repo.appendMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        role: "assistant",
+        structuredPayload: { finishReason: "stop", cards },
+      }),
+    );
+  });
+
   it("keeps demo persistence explicitly ephemeral", async () => {
     const prepared = await createEphemeralChatPersistence().prepare({
       message: "演示问题",

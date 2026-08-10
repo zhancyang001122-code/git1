@@ -66,7 +66,7 @@ test("capture every frontend route template", async ({ browser }) => {
     expect(response?.ok(), route).toBe(true);
     if (slug === "05-chat") {
       await page.getByRole("button", { name: "发送" }).click();
-      await expect(page.getByText(/当前为聊天链路演示模式/)).toBeVisible();
+      await expect(page.getByText(/已从演示房源数据查询到/)).toBeVisible();
     }
     await page.screenshot({
       path: path.join(outputDir, `${slug}.png`),

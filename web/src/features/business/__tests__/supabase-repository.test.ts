@@ -68,7 +68,9 @@ describe("SupabaseBusinessRepository", () => {
     const fake = fakeClient({ data: [houseRow], count: 1 });
     const repository = createSupabaseBusinessRepository(fake.client);
     const page = await repository.listHouses({
+      city: "杭州",
       district: "拱墅区",
+      minPrice: 2_500,
       maxPrice: 3500,
       roomType: "一居室",
       petsAllowed: true,
@@ -83,7 +85,15 @@ describe("SupabaseBusinessRepository", () => {
     ).not.toContain("*");
     expect(fake.calls).toContainEqual({
       method: "eq",
+      args: ["city", "杭州"],
+    });
+    expect(fake.calls).toContainEqual({
+      method: "eq",
       args: ["district", "拱墅区"],
+    });
+    expect(fake.calls).toContainEqual({
+      method: "gte",
+      args: ["price_monthly", 2500],
     });
     expect(fake.calls).toContainEqual({
       method: "lte",

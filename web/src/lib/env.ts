@@ -57,6 +57,8 @@ const serverEnvSchema = z.object({
   DASHSCOPE_API_KEY: optionalString,
   DASHSCOPE_MODEL: z.string().min(1).default("qwen-plus"),
   AI_REQUEST_TIMEOUT_MS: integerFromString(30_000, 1_000, 120_000),
+  TOOL_TIMEOUT_MS: integerFromString(8_000, 100, 30_000),
+  AI_MAX_TOOL_ROUNDS: integerFromString(8, 1, 8),
   AMAP_WEB_SERVICE_KEY: optionalString,
   DASHSCOPE_BASE_URL: z.preprocess(
     emptyStringToUndefined,

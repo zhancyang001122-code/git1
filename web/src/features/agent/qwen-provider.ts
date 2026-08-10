@@ -139,6 +139,7 @@ export class QwenProvider implements AIProvider {
             name: tool.name,
             description: tool.description,
             parameters: tool.parameters,
+            ...(tool.strict !== undefined && { strict: tool.strict }),
           },
         })),
       }),

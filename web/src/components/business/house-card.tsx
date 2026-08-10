@@ -22,14 +22,14 @@ export function HouseCard({ actions, eager, house }: HouseCardProps) {
       >
         <BusinessCardImage
           src={house.imageSrc}
-          alt={`${house.name}的室内演示图`}
+          alt={`${house.name}的房源配图`}
           sizes="116px"
           className="h-full min-h-40"
           eager={eager}
         />
         <div className="min-w-0 space-y-2 p-3">
           <div className="flex items-start justify-between gap-2">
-            <Tag>2024 历史示例</Tag>
+            <Tag>{house.isDemo ? "2024 演示记录" : "2024 历史记录"}</Tag>
             <span className="shrink-0 text-sm font-bold text-danger">
               ¥{house.priceMonthly}/月
             </span>
@@ -53,7 +53,9 @@ export function HouseCard({ actions, eager, house }: HouseCardProps) {
               允许宠物记录
             </p>
           ) : null}
-          <SourceBadge source="housing_history_2024" />
+          <SourceBadge
+            source={house.isDemo ? "supabase_mock" : "housing_history_2024"}
+          />
         </div>
       </Link>
       {actions ? (

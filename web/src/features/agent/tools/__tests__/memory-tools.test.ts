@@ -1,0 +1,142 @@
+import { describe, expect, it, vi } from "vitest";
+
+import { createTaskSixToolRegistry } from "@/features/agent/tools/registry";
+import type {
+  MemoryRepository,
+  UserPreferences,
+} from "@/features/memory/repository";
+
+import { createToolTestContext } from "./helpers";
+
+const userId = "70000000-0000-0000-0000-000000000001";
+
+function preferences(
+  overrides: Partial<UserPreferences> = {},
+): UserPreferences {
+  return {
+    userId,
+    maxHousingBudget: 3_500,
+    pets: ["猫"],
+    preferredAreas: ["拱墅区"],
+    dietaryRestrictions: ["少辣"],
+    transportModes: ["地铁"],
+    familyProfile: [],
+    allowLongTermMemory: true,
+    consentedAt: "2026-08-11T00:00:00.000Z",
+    updatedAt: "2026-08-11T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function memoryRepository(
+  value: UserPreferences | null = preferences(),
+): MemoryRepository {
+  return {
+    getPreferences: vi.fn(async () => value),
+    upsertPreferences: vi.fn(async (_userId, input) =>
+      preferences({
+        maxHousingBudget:
+          input.maxHousingBudget === undefined
+            ? (value?.maxHousingBudget ?? null)
+            : input.maxHousingBudget,
+        allowLongTermMemory: input.allowLongTermMemory,
+        consentedAt: input.consentedAt ?? null,
+      }),
+    ),
+  };
+}
+
+describe("memory tools", () => {
+  it("returns only consented preferences in the requested scope", async () => {
+    const enabled = await createTaskSixToolRegistry()
+      .get("get_user_preferences")
+      .execute(
+        { scope: "housing" },
+        createToolTestContext({ memory: memoryRepository(), userId }),
+      );
+    expect(enabled.data).toEqual({
+      enabled: true,
+      scope: "housing",
+      preferences: {
+        maxHousingBudget: 3_500,
+        pets: ["猫"],
+        preferredAreas: ["拱墅区"],
+        transportModes: ["地铁"],
+        familyProfile: [],
+      },
+    });
+
+    const disabled = await createTaskSixToolRegistry()
+      .get("get_user_preferences")
+      .execute(
+        { scope: "all" },
+        createToolTestContext({
+          memory: memoryRepository(
+            preferences({ allowLongTermMemory: false, consentedAt: null }),
+          ),
+          userId,
+        }),
+      );
+    expect(disabled.data).toEqual({ enabled: false, scope: "all" });
+  });
+
+  it("requires authentication instead of pretending an anonymous preference was saved", async () => {
+    const repository = memoryRepository();
+    const result = await createTaskSixToolRegistry()
+      .get("save_user_preference")
+      .execute(
+        {
+          key: "max_housing_budget",
+          value: 4_000,
+          consent_confirmed: true,
+        },
+        createToolTestContext({ memory: repository, userId: null }),
+      );
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "USER_AUTH_REQUIRED", retryable: false },
+    });
+    expect(repository.upsertPreferences).not.toHaveBeenCalled();
+  });
+
+  it("validates a key-specific value and writes explicit consent", async () => {
+    const repository = memoryRepository();
+    const tool = createTaskSixToolRegistry().get("save_user_preference");
+    const context = createToolTestContext({ memory: repository, userId });
+
+    const invalid = await tool.execute(
+      {
+        key: "max_housing_budget",
+        value: "3500",
+        consent_confirmed: true,
+      },
+      context,
+    );
+    expect(invalid).toMatchObject({
+      ok: false,
+      error: { code: "PREFERENCE_VALUE_INVALID" },
+    });
+
+    const saved = await tool.execute(
+      {
+        key: "max_housing_budget",
+        value: 4_000,
+        consent_confirmed: true,
+      },
+      context,
+    );
+    expect(saved).toMatchObject({
+      ok: true,
+      data: { saved: true, key: "max_housing_budget", value: 4_000 },
+    });
+    expect(repository.upsertPreferences).toHaveBeenCalledWith(
+      userId,
+      expect.objectContaining({
+        maxHousingBudget: 4_000,
+        allowLongTermMemory: true,
+        consentedAt: expect.any(String),
+      }),
+    );
+  });
+});

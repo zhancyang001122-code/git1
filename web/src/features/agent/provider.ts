@@ -17,6 +17,7 @@ export interface ProviderToolDefinition {
   name: string;
   description: string;
   parameters: Record<string, unknown>;
+  strict?: boolean;
 }
 
 export interface ProviderTurnInput {

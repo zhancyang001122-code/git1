@@ -13,6 +13,7 @@ import { cn } from "@/lib/cn";
 
 export interface HouseListExperienceProps {
   houses: readonly House[];
+  source: "housing_history_2024" | "supabase_mock";
 }
 
 const districts = ["全部", "拱墅区", "西湖区", "上城区"] as const;
@@ -27,7 +28,10 @@ function chipClass(active: boolean) {
   );
 }
 
-export function HouseListExperience({ houses }: HouseListExperienceProps) {
+export function HouseListExperience({
+  houses,
+  source,
+}: HouseListExperienceProps) {
   const [district, setDistrict] = useState<(typeof districts)[number]>("全部");
   const [roomType, setRoomType] =
     useState<(typeof roomTypes)[number]>("全部户型");
@@ -76,7 +80,9 @@ export function HouseListExperience({ houses }: HouseListExperienceProps) {
   return (
     <div className="space-y-4 px-4 py-4">
       <DemoNotice>
-        以下为 2024 年历史房源记录，不代表当前房态、租金或可签约状态。
+        {source === "housing_history_2024"
+          ? "以下为 2024 年历史房源记录，不代表当前房态、租金或可签约状态。"
+          : "以下为演示房源记录，不代表真实房源、当前房态或可签约状态。"}
       </DemoNotice>
 
       <section aria-label="房源筛选" className="space-y-3">
@@ -135,7 +141,8 @@ export function HouseListExperience({ houses }: HouseListExperienceProps) {
 
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-text-muted">
-          找到 {filteredHouses.length} 条历史记录
+          找到 {filteredHouses.length} 条
+          {source === "housing_history_2024" ? "历史" : "演示"}记录
         </p>
         <label className="flex items-center gap-2 text-xs text-text-muted">
           <span>排序</span>
@@ -192,7 +199,7 @@ export function HouseListExperience({ houses }: HouseListExperienceProps) {
         </div>
       ) : (
         <EmptyState
-          title="没有符合条件的历史记录"
+          title={`没有符合条件的${source === "housing_history_2024" ? "历史" : "演示"}记录`}
           message="请减少筛选条件后再试。"
         />
       )}

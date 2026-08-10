@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { ChatRequest } from "@/features/agent/chat-request";
-import type { ChatTurnCompletion } from "@/features/agent/orchestrator";
+import type { ChatTurnCompletion } from "@/features/agent/completion";
 import type { ProviderMessage } from "@/features/agent/provider";
 import type { ConversationRepository } from "@/features/conversation/repository";
 import { AppError } from "@/lib/errors";
@@ -93,7 +93,13 @@ export function createSupabaseChatPersistence({
             sessionId: session.id,
             role: "assistant",
             content: completion.assistantText,
-            structuredPayload: { finishReason: completion.finishReason },
+            structuredPayload: {
+              finishReason: completion.finishReason,
+              ...(completion.cards?.length && { cards: completion.cards }),
+              ...(completion.citations?.length && {
+                citations: completion.citations,
+              }),
+            },
             modelName,
             inputTokens: completion.inputTokens ?? null,
             outputTokens: completion.outputTokens ?? null,

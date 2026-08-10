@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { createChatHandler } from "@/features/agent/chat-handler";
+import { DemoToolCallingProvider } from "@/features/agent/demo-tool-provider";
 import { FakeAIProvider } from "@/features/agent/fake-provider";
 import { SseEventParser } from "@/features/agent/sse";
+import { createInMemoryToolAudit } from "@/features/agent/tools/audit";
+import { ToolExecutor } from "@/features/agent/tools/executor";
+import { createDemoRepository } from "@/features/business/demo-repository";
 import { createEphemeralChatPersistence } from "@/features/conversation/chat-persistence";
 
 function handler() {
@@ -79,5 +83,48 @@ describe("POST /api/chat handler", () => {
     ]);
     expect(events[2]).toEqual({ type: "assistant_delta", delta: "你好，杭州" });
     expect(responseText).not.toContain("secret");
+  });
+
+  it("streams public tool progress and cards without leaking tool names", async () => {
+    const post = createChatHandler(async () => ({
+      provider: new DemoToolCallingProvider(),
+      persistence: createEphemeralChatPersistence(),
+      timeoutMs: 1_000,
+      tools: {
+        executor: new ToolExecutor(),
+        context: {
+          business: createDemoRepository(),
+          memory: {
+            getPreferences: async () => null,
+            upsertPreferences: async () => {
+              throw new Error("not available");
+            },
+          },
+          audit: createInMemoryToolAudit(),
+          businessSource: "supabase_mock",
+          userId: null,
+        },
+        debugEnabled: false,
+        maxRounds: 8,
+      },
+    }));
+    const response = await post(
+      new Request("http://localhost/api/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "找3500元以内允许养猫的一居室",
+          debug: true,
+        }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    const responseText = await response.text();
+    const events = new SseEventParser().push(responseText);
+
+    expect(events[0]?.type).toBe("session");
+    expect(events.some((event) => event.type === "tool_progress")).toBe(true);
+    expect(events.some((event) => event.type === "result_cards")).toBe(true);
+    expect(events.at(-1)).toEqual({ type: "done", finishReason: "stop" });
+    expect(responseText).not.toContain("search_houses");
   });
 });

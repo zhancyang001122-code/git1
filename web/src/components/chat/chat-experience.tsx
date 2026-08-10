@@ -14,6 +14,8 @@ import {
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
+import { AgentProgressList } from "@/components/chat/agent-progress-list";
+import { AgentResultCards } from "@/components/chat/agent-result-cards";
 import { useChatStream } from "@/components/chat/use-chat-stream";
 import { Button } from "@/components/ui/button";
 import { DemoNotice } from "@/components/ui/demo-notice";
@@ -202,19 +204,26 @@ export function ChatExperience({
             </article>
           ) : null}
         </section>
-        {running ? (
+        <AgentProgressList items={progressItems} />
+        <AgentResultCards cards={stream.cards} />
+        {running && progressItems.length === 0 ? (
           <div
             role="status"
             className="rounded-card border border-brand/20 bg-surface p-4"
           >
             <p className="flex items-center gap-2 text-sm font-medium text-text">
               <span className="size-2 animate-pulse rounded-full bg-brand" />
-              {progressItems.at(-1)?.label ?? "正在生成回答"}
+              正在生成回答
             </p>
             <p className="mt-2 text-xs text-text-subtle">
               关闭页面或点击取消会中止本轮请求
             </p>
           </div>
+        ) : null}
+        {running && progressItems.length > 0 ? (
+          <p className="text-xs text-text-subtle">
+            关闭页面或点击取消会中止本轮请求
+          </p>
         ) : null}
         {stream.warnings.map((warning) => (
           <DemoNotice key={`${warning.code}-${warning.message}`}>
@@ -281,6 +290,8 @@ export function ChatExperience({
                   <p>错误码：{run.errorCode ?? "无"}</p>
                 </div>
               ))
+            ) : progressItems.length > 0 ? (
+              <p>工具已执行；内部调试摘要未开启。</p>
             ) : (
               <p>本轮未执行外部工具。</p>
             )}

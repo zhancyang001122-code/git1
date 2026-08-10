@@ -51,9 +51,19 @@ describe("environment contract", () => {
       SUPABASE_FALLBACK_TO_DEMO: true,
       DASHSCOPE_MODEL: "qwen-plus",
       AI_REQUEST_TIMEOUT_MS: 30000,
+      TOOL_TIMEOUT_MS: 8000,
+      AI_MAX_TOOL_ROUNDS: 8,
       DASHSCOPE_BASE_URL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
       AMAP_BASE_URL: "https://restapi.amap.com",
     });
+  });
+
+  it("bounds configurable tool timeouts and rounds", () => {
+    expect(
+      parseServerEnv({ TOOL_TIMEOUT_MS: "500", AI_MAX_TOOL_ROUNDS: "4" }),
+    ).toMatchObject({ TOOL_TIMEOUT_MS: 500, AI_MAX_TOOL_ROUNDS: 4 });
+    expect(() => parseServerEnv({ AI_MAX_TOOL_ROUNDS: "9" })).toThrow();
+    expect(() => parseServerEnv({ TOOL_TIMEOUT_MS: "99" })).toThrow();
   });
 
   it("reports disabled services in demo mode without inspecting the network", () => {

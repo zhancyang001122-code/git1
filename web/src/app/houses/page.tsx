@@ -7,15 +7,19 @@ import { createRepositories } from "@/features/repositories";
 export default async function HousesPage() {
   const repositories = await createRepositories();
   const result = await repositories.business.listHouses({ limit: 24 });
+  const source =
+    repositories.mode.mode === "supabase"
+      ? "housing_history_2024"
+      : "supabase_mock";
 
   return (
     <DetailShell
       title="房源列表"
       backHref="/"
-      actions={<SourceBadge source="housing_history_2024" />}
+      actions={<SourceBadge source={source} />}
     >
       <RepositoryModeNotice className="mx-4 mt-4" mode={repositories.mode} />
-      <HouseListExperience houses={result.items} />
+      <HouseListExperience houses={result.items} source={source} />
     </DetailShell>
   );
 }

@@ -23,7 +23,7 @@ export function HouseDetail({ house }: HouseDetailProps) {
     <div className="space-y-5 pb-6">
       <BusinessCardImage
         src={house.imageSrc}
-        alt={`${house.name}的历史示例图片`}
+        alt={`${house.name}的房源配图`}
         sizes="430px"
         className="aspect-[16/10]"
         eager
@@ -31,7 +31,9 @@ export function HouseDetail({ house }: HouseDetailProps) {
       <div className="space-y-5 px-4">
         <section className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <SourceBadge source="housing_history_2024" />
+            <SourceBadge
+              source={house.isDemo ? "supabase_mock" : "housing_history_2024"}
+            />
             <strong className="text-lg text-danger">
               ¥{house.priceMonthly}/月
             </strong>
@@ -44,8 +46,9 @@ export function HouseDetail({ house }: HouseDetailProps) {
             {house.district} · {house.address}
           </p>
           <DemoNotice>
-            这是 2024
-            年历史房源数据，不代表当前仍可出租，也不能替代真实看房和合同核验。
+            {house.isDemo
+              ? "这是演示房源记录，不代表真实房源或当前可租状态。"
+              : "这是 2024 年历史房源数据，不代表当前仍可出租，也不能替代真实看房和合同核验。"}
           </DemoNotice>
         </section>
 

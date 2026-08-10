@@ -73,6 +73,34 @@ describe("chat SSE protocol", () => {
     });
   });
 
+  it("replaces a repeated card with the newer exact result", () => {
+    let state = reduceChatStreamEvent(initialChatStreamState, {
+      type: "result_cards",
+      cards: [
+        {
+          kind: "product",
+          data: { id: "product-1", name: "鲜牛奶", inStock: true },
+        },
+      ],
+    });
+    state = reduceChatStreamEvent(state, {
+      type: "result_cards",
+      cards: [
+        {
+          kind: "product",
+          data: { id: "product-1", name: "鲜牛奶", availableStock: 30 },
+        },
+      ],
+    });
+
+    expect(state.cards).toEqual([
+      {
+        kind: "product",
+        data: { id: "product-1", name: "鲜牛奶", availableStock: 30 },
+      },
+    ]);
+  });
+
   it("rejects malformed event data with a stable protocol error", () => {
     const parser = new SseEventParser();
     expect(() => parser.push("event: done\ndata: {}\n\n")).toThrowError(

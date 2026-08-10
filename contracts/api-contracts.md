@@ -24,7 +24,7 @@ event: session
 data: {"sessionId":"...","messageId":"..."}
 
 event: tool_progress
-data: {"id":"...","label":"正在查询房源","status":"running","source":"supabase_mock"}
+data: {"id":"...","label":"正在查询房源","status":"running","source":"housing_history_2024"}
 
 event: result_cards
 data: {"cards":[{"kind":"house","data":{}}]}
@@ -56,9 +56,15 @@ data: {"finishReason":"stop"}
 {
   "items": [],
   "nextCursor": null,
-  "source": { "source": "supabase_mock", "label": "演示房源数据", "isDemo": true }
+  "source": {
+    "source": "housing_history_2024",
+    "label": "2024 历史房源数据",
+    "isDemo": false
+  }
 }
 ```
+
+演示或故障回退时，`source` 必须改为 `supabase_mock`、`label` 改为“演示业务数据”、`isDemo` 改为 `true`；客户端不得把两种来源合并展示。
 
 ## `GET /api/deals`, `GET /api/products`, `GET /api/community-posts`
 

@@ -1,17 +1,12 @@
 import type { ChatStreamEvent } from "@/features/agent/chat-events";
-import type {
-  AIProvider,
-  ProviderMessage,
-  ProviderTurnInput,
-} from "@/features/agent/provider";
+import type { ChatTurnCompletion } from "@/features/agent/completion";
+import type { AIProvider, ProviderMessage } from "@/features/agent/provider";
+import { runAgentToolLoop } from "@/features/agent/tool-loop";
+import type { ToolExecutor } from "@/features/agent/tools/executor";
+import type { ToolContext } from "@/features/agent/tools/types";
 import { AppError } from "@/lib/errors";
 
-export interface ChatTurnCompletion {
-  assistantText: string;
-  finishReason: "stop" | "tool_limit" | "fallback";
-  inputTokens?: number;
-  outputTokens?: number;
-}
+export type { ChatTurnCompletion } from "@/features/agent/completion";
 
 interface OrchestrateChatTurnInput {
   sessionId: string;
@@ -20,6 +15,10 @@ interface OrchestrateChatTurnInput {
   messages: readonly ProviderMessage[];
   signal: AbortSignal;
   timeoutMs: number;
+  toolExecutor?: ToolExecutor;
+  toolContext?: ToolContext;
+  debug?: boolean;
+  maxToolRounds?: number;
   onComplete?: (completion: ChatTurnCompletion) => Promise<void> | void;
 }
 
@@ -65,65 +64,23 @@ export async function* orchestrateChatTurn(
     );
   }, input.timeoutMs);
 
-  let assistantText = "";
-  let inputTokens: number | undefined;
-  let outputTokens: number | undefined;
-  let toolRequested = false;
-  let finished = false;
-  const providerInput: ProviderTurnInput = { messages: input.messages };
-
   try {
-    for await (const event of input.provider.streamTurn(
-      providerInput,
-      requestController.signal,
-    )) {
-      if (event.type === "text_delta") {
-        assistantText += event.delta;
-        yield { type: "assistant_delta", delta: event.delta };
-      } else if (event.type === "usage") {
-        inputTokens = event.inputTokens ?? inputTokens;
-        outputTokens = event.outputTokens ?? outputTokens;
-      } else if (event.type === "tool_calls") {
-        if (!toolRequested) {
-          toolRequested = true;
-          yield {
-            type: "warning",
-            code: "TOOLS_NOT_AVAILABLE",
-            message: "当前阶段暂不执行外部工具，请稍后重试",
-          };
-        }
-      } else if (event.type === "finish") {
-        const finishReason = toolRequested ? "fallback" : "stop";
-        if (input.onComplete) {
-          try {
-            await input.onComplete({
-              assistantText,
-              finishReason,
-              ...(inputTokens !== undefined && { inputTokens }),
-              ...(outputTokens !== undefined && { outputTokens }),
-            });
-          } catch (error) {
-            yield {
-              type: "warning",
-              code: "CONVERSATION_PERSISTENCE_FAILED",
-              message: "回答已生成，但对话记录暂未保存",
-            };
-            void error;
-          }
-        }
-        yield { type: "done", finishReason };
-        finished = true;
-        break;
-      }
-    }
-
-    if (!finished) {
-      yield {
-        type: "error",
-        code: "QWEN_STREAM_INCOMPLETE",
-        message: "模型响应未完整结束，请重试",
-        retryable: true,
-      };
+    for await (const event of runAgentToolLoop({
+      provider: input.provider,
+      messages: input.messages,
+      signal: requestController.signal,
+      ...(input.toolExecutor && { executor: input.toolExecutor }),
+      ...(input.toolContext && {
+        toolContext: {
+          ...input.toolContext,
+          signal: requestController.signal,
+        },
+      }),
+      debug: input.debug ?? false,
+      maxRounds: input.maxToolRounds ?? 8,
+      onComplete: input.onComplete,
+    })) {
+      yield event;
     }
   } catch (error) {
     if (input.signal.aborted) {

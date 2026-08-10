@@ -62,7 +62,10 @@ export function createDemoRepository(): BusinessRepository {
       let items: House[] = demoHouses.filter(
         (house) =>
           house.available &&
+          (!filter.city || house.city === filter.city) &&
           (!filter.district || house.district === filter.district) &&
+          (filter.minPrice === undefined ||
+            house.priceMonthly >= filter.minPrice) &&
           (filter.maxPrice === undefined ||
             house.priceMonthly <= filter.maxPrice) &&
           (!filter.roomType || house.roomType === filter.roomType) &&
