@@ -1,0 +1,1 @@
+"""Housing API application package."""
