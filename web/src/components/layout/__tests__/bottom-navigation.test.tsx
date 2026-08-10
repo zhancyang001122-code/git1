@@ -34,6 +34,20 @@ describe("BottomNavigation", () => {
     ).toHaveLength(1);
   });
 
+  it("uses a flat five-column mini-program tab bar", () => {
+    render(<BottomNavigation active="xiaozhi" />);
+
+    const navigation = screen.getByRole("navigation", { name: "主导航" });
+    const xiaozhiIcon = screen
+      .getByRole("link", { name: "小智" })
+      .querySelector("span");
+
+    expect(navigation).toHaveClass(
+      "h-[calc(56px+env(safe-area-inset-bottom))]",
+    );
+    expect(xiaozhiIcon).not.toHaveClass("size-16", "-mt-8");
+  });
+
   it("lets AppShell own the only navigation landmark", () => {
     render(
       <AppShell activeNav="home">
@@ -42,6 +56,8 @@ describe("BottomNavigation", () => {
     );
 
     expect(screen.getAllByRole("navigation")).toHaveLength(1);
-    expect(screen.getByRole("main")).toHaveClass("pb-[104px]");
+    expect(screen.getByRole("main")).toHaveClass(
+      "pb-[calc(72px+env(safe-area-inset-bottom))]",
+    );
   });
 });

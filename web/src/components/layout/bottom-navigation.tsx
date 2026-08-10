@@ -17,19 +17,12 @@ interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
-  prominent?: boolean;
 }
 
 const navigationItems: readonly NavItem[] = [
   { key: "home", label: "首页", href: "/", icon: House },
   { key: "discover", label: "推荐", href: "/discover", icon: Compass },
-  {
-    key: "xiaozhi",
-    label: "小智",
-    href: "/xiaozhi",
-    icon: Bot,
-    prominent: true,
-  },
+  { key: "xiaozhi", label: "小智", href: "/xiaozhi", icon: Bot },
   {
     key: "messages",
     label: "消息",
@@ -47,7 +40,7 @@ export function BottomNavigation({ active }: BottomNavigationProps) {
   return (
     <nav
       aria-label="主导航"
-      className="fixed bottom-0 left-1/2 z-50 grid h-[calc(76px+env(safe-area-inset-bottom))] w-full max-w-[430px] -translate-x-1/2 grid-cols-5 border-t border-border bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-nav backdrop-blur-xl"
+      className="fixed bottom-0 left-1/2 z-50 grid h-[calc(56px+env(safe-area-inset-bottom))] w-full max-w-[430px] -translate-x-1/2 grid-cols-5 border-t border-border bg-white px-1 pb-[env(safe-area-inset-bottom)] shadow-nav"
     >
       {navigationItems.map((item) => {
         const Icon = item.icon;
@@ -59,21 +52,17 @@ export function BottomNavigation({ active }: BottomNavigationProps) {
             href={item.href}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "relative flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 rounded-xl text-xs font-medium text-text-muted outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
+              "relative flex h-14 min-h-11 min-w-11 flex-col items-center justify-center gap-0.5 rounded-control text-xs font-medium text-text-muted outline-none transition-colors motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset",
               isActive && "text-brand",
             )}
           >
             <span
               aria-hidden="true"
-              className={cn(
-                "flex size-8 items-center justify-center rounded-full",
-                item.prominent &&
-                  "-mt-8 size-16 border-4 border-white bg-gradient-to-br from-brand to-accent text-white shadow-floating",
-              )}
+              className="flex size-7 items-center justify-center"
             >
-              <Icon className={cn("size-6", item.prominent && "size-8")} />
+              <Icon className="size-[22px]" strokeWidth={isActive ? 2.3 : 2} />
             </span>
-            <span className={cn(item.prominent && "-mt-1")}>{item.label}</span>
+            <span>{item.label}</span>
           </Link>
         );
       })}

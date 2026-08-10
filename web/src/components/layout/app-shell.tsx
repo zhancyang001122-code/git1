@@ -22,8 +22,20 @@ export function AppShell({
 }: AppShellProps) {
   return (
     <MobileCanvas className="flex flex-col">
+      <a
+        href="#main-content"
+        className="sr-only z-[60] rounded-control bg-surface px-3 py-2 text-sm text-brand focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:ring-2 focus:ring-brand"
+      >
+        跳到主要内容
+      </a>
       {header}
-      <main className={cn("flex-1", !hideBottomNav && "pb-[104px]")}>
+      <main
+        id="main-content"
+        className={cn(
+          "flex-1",
+          !hideBottomNav && "pb-[calc(72px+env(safe-area-inset-bottom))]",
+        )}
+      >
         {children}
       </main>
       {hideBottomNav ? null : <BottomNavigation active={activeNav} />}
