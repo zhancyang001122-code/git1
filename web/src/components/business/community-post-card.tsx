@@ -10,9 +10,14 @@ import type { CommunityPost } from "@/features/business/domain";
 export interface CommunityPostCardProps {
   post: CommunityPost;
   actions?: ReactNode;
+  eager?: boolean;
 }
 
-export function CommunityPostCard({ actions, post }: CommunityPostCardProps) {
+export function CommunityPostCard({
+  actions,
+  eager,
+  post,
+}: CommunityPostCardProps) {
   return (
     <article className="group overflow-hidden rounded-card border border-border bg-surface shadow-card">
       <Link
@@ -24,6 +29,7 @@ export function CommunityPostCard({ actions, post }: CommunityPostCardProps) {
           alt={`${post.title}的演示社区封面`}
           sizes="(max-width: 430px) 50vw, 215px"
           className="aspect-[4/3]"
+          eager={eager}
         />
         <div className="space-y-2 p-3">
           <Tag>{post.category}</Tag>

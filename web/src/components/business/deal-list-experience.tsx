@@ -103,12 +103,13 @@ export function DealListExperience({ deals }: DealListExperienceProps) {
 
       {filteredDeals.length > 0 ? (
         <div className="grid grid-cols-2 gap-3">
-          {filteredDeals.map((deal) => {
+          {filteredDeals.map((deal, index) => {
             const favorite = favoriteIds.has(deal.id);
             return (
               <DealCard
                 key={deal.id}
                 deal={deal}
+                eager={index === 0}
                 actions={
                   <div className="grid gap-2">
                     <Button

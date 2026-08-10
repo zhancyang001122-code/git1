@@ -26,6 +26,7 @@ export function HouseDetail({ house }: HouseDetailProps) {
         alt={`${house.name}的历史示例图片`}
         sizes="430px"
         className="aspect-[16/10]"
+        eager
       />
       <div className="space-y-5 px-4">
         <section className="space-y-3">

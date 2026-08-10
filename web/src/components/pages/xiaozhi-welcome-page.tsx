@@ -61,6 +61,7 @@ export function XiaozhiWelcomePage() {
               src="/images/home/xiaozhi-mascot.png"
               alt=""
               sizes="112px"
+              loading="eager"
               className="object-contain"
             />
           </div>

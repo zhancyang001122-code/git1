@@ -9,9 +9,10 @@ import type { Product } from "@/features/business/domain";
 export interface ProductCardProps {
   product: Product;
   actions?: ReactNode;
+  eager?: boolean;
 }
 
-export function ProductCard({ actions, product }: ProductCardProps) {
+export function ProductCard({ actions, eager, product }: ProductCardProps) {
   const inStock = product.availableStock > 0;
 
   return (
@@ -25,6 +26,7 @@ export function ProductCard({ actions, product }: ProductCardProps) {
           alt={`${product.name}的演示商品图片`}
           sizes="(max-width: 430px) 50vw, 215px"
           className="aspect-square"
+          eager={eager}
         />
         <div className="space-y-2 p-3">
           <p className="text-xs font-medium text-brand">{product.category}</p>

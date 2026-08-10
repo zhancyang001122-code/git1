@@ -10,9 +10,10 @@ import type { Deal } from "@/features/business/domain";
 export interface DealCardProps {
   deal: Deal;
   actions?: ReactNode;
+  eager?: boolean;
 }
 
-export function DealCard({ actions, deal }: DealCardProps) {
+export function DealCard({ actions, deal, eager }: DealCardProps) {
   return (
     <article className="group overflow-hidden rounded-card border border-border bg-surface shadow-card">
       <Link
@@ -24,6 +25,7 @@ export function DealCard({ actions, deal }: DealCardProps) {
           alt={`${deal.title}的演示餐食图片`}
           sizes="(max-width: 430px) 50vw, 215px"
           className="aspect-[4/3]"
+          eager={eager}
         />
         <div className="space-y-2 p-3">
           <div className="flex items-center justify-between gap-2">

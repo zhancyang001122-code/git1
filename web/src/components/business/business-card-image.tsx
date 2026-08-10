@@ -7,11 +7,13 @@ export interface BusinessCardImageProps {
   alt: string;
   sizes: string;
   className?: string;
+  eager?: boolean;
 }
 
 export function BusinessCardImage({
   alt,
   className,
+  eager = false,
   sizes,
   src,
 }: BusinessCardImageProps) {
@@ -22,6 +24,7 @@ export function BusinessCardImage({
         src={src}
         alt={alt}
         sizes={sizes}
+        loading={eager ? "eager" : "lazy"}
         className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
       />
     </div>

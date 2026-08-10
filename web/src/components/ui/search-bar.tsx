@@ -16,9 +16,12 @@ export interface SearchBarProps {
   disabled?: boolean;
   className?: string;
   inputRef?: Ref<HTMLInputElement>;
+  action?: string;
+  queryName?: string;
 }
 
 export function SearchBar({
+  action,
   className,
   disabled = false,
   inputRef,
@@ -27,6 +30,7 @@ export function SearchBar({
   onSubmit,
   onValueChange,
   placeholder = "输入你想了解的本地生活服务",
+  queryName,
   submitLabel = "搜索",
   value,
 }: SearchBarProps) {
@@ -34,19 +38,24 @@ export function SearchBar({
   const unavailable = disabled || loading;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
     const query = value.trim();
 
     if (!query || unavailable) {
+      event.preventDefault();
       return;
     }
 
-    onSubmit(query);
+    if (!action) {
+      event.preventDefault();
+      onSubmit(query);
+    }
   }
 
   return (
     <form
       role="search"
+      action={action}
+      method={action ? "get" : undefined}
       aria-busy={loading}
       className={cn(
         "flex min-h-12 items-center gap-2 rounded-control border border-border bg-surface p-1.5 pl-3 shadow-card transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15",
@@ -66,6 +75,7 @@ export function SearchBar({
         ref={inputRef}
         id={inputId}
         type="search"
+        name={queryName}
         value={value}
         placeholder={placeholder}
         disabled={unavailable}

@@ -25,6 +25,7 @@ export function DealDetail({ deal }: DealDetailProps) {
         alt={`${deal.title}的演示餐食图片`}
         sizes="430px"
         className="aspect-[16/10]"
+        eager
       />
       <div className="space-y-5 px-4">
         <section className="space-y-3">

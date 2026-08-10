@@ -33,8 +33,8 @@ export function NearbyExperience({ stores }: { stores: readonly Store[] }) {
         </Link>
       </div>
       <div className="space-y-3">
-        {stores.map((store) => (
-          <StoreCard key={store.id} store={store} />
+        {stores.map((store, index) => (
+          <StoreCard key={store.id} store={store} eager={index === 0} />
         ))}
       </div>
       <div className="rounded-card border border-dashed border-border p-4 text-sm text-text-muted">

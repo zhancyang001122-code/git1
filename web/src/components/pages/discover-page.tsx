@@ -79,12 +79,13 @@ export function DiscoverPage() {
         {notice ? <DemoNotice>{notice}</DemoNotice> : null}
 
         <section aria-label="社区推荐" className="grid grid-cols-2 gap-3">
-          {posts.map((post) => {
+          {posts.map((post, index) => {
             const favorite = favorites.has(post.id);
             return (
               <CommunityPostCard
                 key={post.id}
                 post={post}
+                eager={index === 0}
                 actions={
                   <div className="flex items-center justify-between gap-2">
                     <button

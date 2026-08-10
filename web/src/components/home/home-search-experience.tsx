@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 
-import { DemoNotice } from "@/components/ui/demo-notice";
 import { SearchBar } from "@/components/ui/search-bar";
 
 const quickPrompts = [
@@ -14,30 +13,25 @@ const quickPrompts = [
 
 export function HomeSearchExperience() {
   const [query, setQuery] = useState("");
-  const [notice, setNotice] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function choosePrompt(prompt: string) {
     setQuery(prompt);
-    setNotice(null);
     inputRef.current?.focus();
-  }
-
-  function handleSubmit() {
-    setNotice("小智对话将在下一阶段接通，本次没有发送网络请求。");
   }
 
   return (
     <section aria-label="小智搜索" className="space-y-3">
       <SearchBar
+        action="/xiaozhi/chat"
+        queryName="q"
         inputRef={inputRef}
         label="搜索本地生活服务"
         value={query}
         onValueChange={(value) => {
           setQuery(value);
-          setNotice(null);
         }}
-        onSubmit={handleSubmit}
+        onSubmit={() => undefined}
         placeholder="说说你想找什么……"
       />
 
@@ -53,8 +47,6 @@ export function HomeSearchExperience() {
           </button>
         ))}
       </div>
-
-      {notice ? <DemoNotice>{notice}</DemoNotice> : null}
     </section>
   );
 }

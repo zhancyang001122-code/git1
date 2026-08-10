@@ -7,9 +7,10 @@ import type { Store } from "@/features/business/domain";
 
 export interface StoreCardProps {
   store: Store;
+  eager?: boolean;
 }
 
-export function StoreCard({ store }: StoreCardProps) {
+export function StoreCard({ eager, store }: StoreCardProps) {
   return (
     <article className="group overflow-hidden rounded-card border border-border bg-surface shadow-card">
       <Link
@@ -21,6 +22,7 @@ export function StoreCard({ store }: StoreCardProps) {
           alt={`${store.name}的演示门店图片`}
           sizes="104px"
           className="h-full min-h-32"
+          eager={eager}
         />
         <div className="min-w-0 space-y-2 p-3">
           <h2 className="text-base font-semibold leading-6 text-text">

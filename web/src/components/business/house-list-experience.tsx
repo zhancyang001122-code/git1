@@ -156,12 +156,13 @@ export function HouseListExperience({ houses }: HouseListExperienceProps) {
 
       {filteredHouses.length > 0 ? (
         <div className="space-y-3">
-          {filteredHouses.map((house) => {
+          {filteredHouses.map((house, index) => {
             const favorite = favoriteIds.has(house.id);
             return (
               <HouseCard
                 key={house.id}
                 house={house}
+                eager={index === 0}
                 actions={
                   <div className="grid grid-cols-2 gap-2">
                     <Button

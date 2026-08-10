@@ -22,6 +22,7 @@ export function CommunityPostDetail({ post }: { post: CommunityPost }) {
         alt={`${post.title}的演示封面`}
         sizes="430px"
         className="aspect-[16/10]"
+        eager
       />
       <div className="space-y-5 px-4">
         <section className="space-y-3">

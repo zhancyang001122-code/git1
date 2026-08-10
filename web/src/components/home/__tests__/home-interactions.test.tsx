@@ -22,24 +22,28 @@ describe("HomePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("keeps quick prompts local and never claims an AI request was sent", () => {
+  it("submits quick prompts through the validated chat route", () => {
     render(<HomePage />);
 
     fireEvent.click(screen.getByRole("button", { name: "找宠物友好房源" }));
     expect(screen.getByRole("searchbox")).toHaveValue("找宠物友好房源");
-    fireEvent.submit(screen.getByRole("search"));
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "小智对话将在下一阶段接通",
+    expect(screen.getByRole("search")).toHaveAttribute(
+      "action",
+      "/xiaozhi/chat",
     );
-    expect(screen.queryByText(/查询成功|已经找到/)).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox")).toHaveAttribute("name", "q");
   });
 
-  it("explains unavailable service entries instead of navigating to a missing route", () => {
+  it("links service entries to their completed routes", () => {
     render(<HomePage />);
 
-    fireEvent.click(screen.getByRole("button", { name: "租房" }));
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "租房功能将在下一阶段开放",
+    expect(screen.getByRole("link", { name: "租房" })).toHaveAttribute(
+      "href",
+      "/houses",
+    );
+    expect(screen.getByRole("link", { name: "团购" })).toHaveAttribute(
+      "href",
+      "/deals",
     );
   });
 });

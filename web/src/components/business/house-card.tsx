@@ -10,9 +10,10 @@ import type { House } from "@/features/business/domain";
 export interface HouseCardProps {
   house: House;
   actions?: ReactNode;
+  eager?: boolean;
 }
 
-export function HouseCard({ actions, house }: HouseCardProps) {
+export function HouseCard({ actions, eager, house }: HouseCardProps) {
   return (
     <article className="group overflow-hidden rounded-card border border-border bg-surface shadow-card">
       <Link
@@ -24,6 +25,7 @@ export function HouseCard({ actions, house }: HouseCardProps) {
           alt={`${house.name}的室内演示图`}
           sizes="116px"
           className="h-full min-h-40"
+          eager={eager}
         />
         <div className="min-w-0 space-y-2 p-3">
           <div className="flex items-start justify-between gap-2">

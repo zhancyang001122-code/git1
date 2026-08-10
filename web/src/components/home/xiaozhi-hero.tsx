@@ -33,6 +33,7 @@ export function XiaozhiHero() {
             src="/images/home/xiaozhi-mascot.png"
             alt=""
             sizes="92px"
+            loading="eager"
             className="object-contain"
           />
           <Sparkles

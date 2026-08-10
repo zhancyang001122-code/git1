@@ -26,6 +26,7 @@ export function ProductDetail({
         alt={`${product.name}的演示商品图片`}
         sizes="430px"
         className="aspect-square"
+        eager
       />
       <div className="space-y-5 px-4">
         <section className="space-y-3">

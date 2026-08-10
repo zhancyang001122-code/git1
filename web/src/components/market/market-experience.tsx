@@ -86,18 +86,19 @@ export function MarketExperience({
         <div className="space-y-3">
           {stores
             .filter((store) => store.category === "supermarket")
-            .map((store) => (
-              <StoreCard key={store.id} store={store} />
+            .map((store, index) => (
+              <StoreCard key={store.id} store={store} eager={index === 0} />
             ))}
         </div>
       </section>
       <section>
         <h2 className="mb-3 text-lg font-semibold text-text">演示商品</h2>
         <div className="grid grid-cols-2 gap-3">
-          {visibleProducts.map((product) => (
+          {visibleProducts.map((product, index) => (
             <ProductCard
               key={product.id}
               product={product}
+              eager={index === 0}
               actions={
                 <Button
                   className="w-full px-2"
