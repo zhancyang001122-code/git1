@@ -1,11 +1,15 @@
 import { DetailShell } from "@/components/layout/detail-shell";
 import { NearbyExperience } from "@/components/market/nearby-experience";
-import { demoStores } from "@/features/business/demo-data";
+import { RepositoryModeNotice } from "@/components/ui/repository-mode-notice";
+import { createRepositories } from "@/features/repositories";
 
-export default function NearbyPage() {
+export default async function NearbyPage() {
+  const repositories = await createRepositories();
+  const stores = await repositories.business.listStores();
   return (
     <DetailShell title="周边服务" backHref="/">
-      <NearbyExperience stores={demoStores} />
+      <RepositoryModeNotice className="mx-4 mt-4" mode={repositories.mode} />
+      <NearbyExperience stores={stores} />
     </DetailShell>
   );
 }

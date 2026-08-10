@@ -5,10 +5,16 @@ import { DiscoverPage } from "@/components/pages/discover-page";
 import { MePage } from "@/components/pages/me-page";
 import { MessagesPage } from "@/components/pages/messages-page";
 import { XiaozhiWelcomePage } from "@/components/pages/xiaozhi-welcome-page";
+import { demoCommunityPosts } from "@/features/business/demo-data";
 
 describe("primary product pages", () => {
   it("renders and filters the complete community feed", () => {
-    render(<DiscoverPage />);
+    render(
+      <DiscoverPage
+        posts={demoCommunityPosts}
+        mode={{ mode: "demo", reason: "产品演示模式已开启" }}
+      />,
+    );
 
     expect(screen.getAllByRole("article")).toHaveLength(10);
     fireEvent.click(screen.getByRole("button", { name: "租房避坑" }));

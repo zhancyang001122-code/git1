@@ -28,6 +28,7 @@ describe("environment contract", () => {
       SUPABASE_SERVICE_ROLE_KEY: "supabase-secret",
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
+      SUPABASE_FALLBACK_TO_DEMO: "true",
     });
 
     expect(value).not.toHaveProperty("SUPABASE_SERVICE_ROLE_KEY");
@@ -40,12 +41,14 @@ describe("environment contract", () => {
       SUPABASE_SERVICE_ROLE_KEY: "supabase-secret",
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
+      SUPABASE_FALLBACK_TO_DEMO: "true",
     });
 
     expect(value).toEqual({
       SUPABASE_SERVICE_ROLE_KEY: "supabase-secret",
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
+      SUPABASE_FALLBACK_TO_DEMO: true,
       DASHSCOPE_BASE_URL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
       AMAP_BASE_URL: "https://restapi.amap.com",
     });

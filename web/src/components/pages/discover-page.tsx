@@ -8,8 +8,10 @@ import { CommunityPostCard } from "@/components/business/community-post-card";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { DemoNotice } from "@/components/ui/demo-notice";
+import { RepositoryModeNotice } from "@/components/ui/repository-mode-notice";
 import { SearchBar } from "@/components/ui/search-bar";
-import { demoCommunityPosts } from "@/features/business/demo-data";
+import type { CommunityPost } from "@/features/business/domain";
+import type { RepositoryMode } from "@/features/repositories";
 
 const categories = [
   "全部",
@@ -20,7 +22,13 @@ const categories = [
   "团购经验",
 ] as const;
 
-export function DiscoverPage() {
+export function DiscoverPage({
+  posts: allPosts,
+  mode,
+}: {
+  posts: readonly CommunityPost[];
+  mode: RepositoryMode;
+}) {
   const [category, setCategory] = useState<(typeof categories)[number]>("全部");
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
@@ -28,7 +36,7 @@ export function DiscoverPage() {
 
   const posts = useMemo(
     () =>
-      demoCommunityPosts.filter(
+      allPosts.filter(
         (post) =>
           (category === "全部" || post.category === category) &&
           (!query.trim() ||
@@ -36,7 +44,7 @@ export function DiscoverPage() {
               query.trim(),
             )),
       ),
-    [category, query],
+    [allPosts, category, query],
   );
 
   function toggleFavorite(id: string) {
@@ -52,6 +60,7 @@ export function DiscoverPage() {
   return (
     <AppShell activeNav="discover" header={<PageHeader title="推荐" />}>
       <div className="space-y-4 px-4 py-4">
+        <RepositoryModeNotice mode={mode} />
         <SearchBar
           label="搜索社区演示内容"
           value={query}

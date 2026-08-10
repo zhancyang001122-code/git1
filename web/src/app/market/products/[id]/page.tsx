@@ -2,11 +2,8 @@ import { notFound } from "next/navigation";
 
 import { DetailShell } from "@/components/layout/detail-shell";
 import { ProductDetail } from "@/components/market/product-detail";
-import { demoProducts, demoStores } from "@/features/business/demo-data";
-
-export function generateStaticParams() {
-  return demoProducts.map((product) => ({ id: product.id }));
-}
+import { RepositoryModeNotice } from "@/components/ui/repository-mode-notice";
+import { createRepositories } from "@/features/repositories";
 
 export default async function ProductDetailRoute({
   params,
@@ -14,12 +11,14 @@ export default async function ProductDetailRoute({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const product = demoProducts.find((item) => item.id === id);
+  const repositories = await createRepositories();
+  const product = await repositories.business.getProduct(id);
   if (!product) notFound();
-  const store = demoStores.find((item) => item.id === product.storeId);
+  const store = await repositories.business.getStore(product.storeId);
   if (!store) notFound();
   return (
     <DetailShell title="商品详情" backHref="/market">
+      <RepositoryModeNotice className="mx-4 mt-4" mode={repositories.mode} />
       <ProductDetail product={product} store={store} />
     </DetailShell>
   );

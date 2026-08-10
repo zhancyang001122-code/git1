@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-type EnvironmentInput = Record<string, string | undefined>;
+export type EnvironmentInput = Record<string, string | undefined>;
 
 const emptyStringToUndefined = (value: unknown) =>
   value === "" ? undefined : value;
@@ -38,6 +38,7 @@ const publicEnvSchema = z.object({
 
 const serverEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: optionalString,
+  SUPABASE_FALLBACK_TO_DEMO: stringBoolean(false),
   DASHSCOPE_API_KEY: optionalString,
   AMAP_WEB_SERVICE_KEY: optionalString,
   DASHSCOPE_BASE_URL: z.preprocess(

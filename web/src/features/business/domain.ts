@@ -4,13 +4,19 @@ export interface Page<T> {
   nextCursor: string | null;
 }
 
-export interface DemoEntity {
+export interface SourcedEntity {
   id: string;
-  isDemo: true;
+  isDemo: boolean;
 }
 
-export interface House extends DemoEntity {
+export interface GeoPoint {
+  longitude: number;
+  latitude: number;
+}
+
+export interface House extends SourcedEntity {
   name: string;
+  city: string;
   district: string;
   address: string;
   priceMonthly: number;
@@ -23,9 +29,10 @@ export interface House extends DemoEntity {
   imageSrc: string;
   tags: readonly string[];
   historicalYear: 2024;
+  location: GeoPoint;
 }
 
-export interface Deal extends DemoEntity {
+export interface Deal extends SourcedEntity {
   storeId: string | null;
   title: string;
   merchantName: string;
@@ -40,19 +47,22 @@ export interface Deal extends DemoEntity {
   imageSrc: string;
   tags: readonly string[];
   salesCount: number;
+  location: GeoPoint;
 }
 
-export interface Store extends DemoEntity {
+export interface Store extends SourcedEntity {
   name: string;
+  city: string;
   category: "supermarket" | "restaurant" | "cafe";
   district: string;
   address: string;
   deliveryMinutes: number | null;
   minimumOrder: number;
   imageSrc: string;
+  location: GeoPoint;
 }
 
-export interface Product extends DemoEntity {
+export interface Product extends SourcedEntity {
   storeId: string;
   name: string;
   category: string;
@@ -65,7 +75,7 @@ export interface Product extends DemoEntity {
   availableStock: number;
 }
 
-export interface CommunityPost extends DemoEntity {
+export interface CommunityPost extends SourcedEntity {
   category: string;
   title: string;
   excerpt: string;

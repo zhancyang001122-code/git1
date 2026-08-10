@@ -38,7 +38,10 @@ as $$
       v.effective_from,
       c.content,
       c.metadata,
-      greatest(0::double precision, 1 - (c.embedding <=> p_query_embedding)) as vector_score,
+      greatest(
+        0::double precision,
+        1 - (c.embedding OPERATOR(extensions.<=>) p_query_embedding)
+      ) as vector_score,
       greatest(0::double precision, extensions.similarity(c.content, p_query_text)) as text_score
     from public.kb_chunks c
     join public.kb_article_versions v on v.id = c.version_id

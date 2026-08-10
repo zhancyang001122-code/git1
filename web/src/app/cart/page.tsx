@@ -1,11 +1,15 @@
 import { DetailShell } from "@/components/layout/detail-shell";
 import { CartExperience } from "@/components/market/cart-experience";
-import { demoProducts } from "@/features/business/demo-data";
+import { RepositoryModeNotice } from "@/components/ui/repository-mode-notice";
+import { createRepositories } from "@/features/repositories";
 
-export default function CartPage() {
+export default async function CartPage() {
+  const repositories = await createRepositories();
+  const products = await repositories.business.listProducts({ limit: 24 });
   return (
     <DetailShell title="购物车" backHref="/market">
-      <CartExperience products={demoProducts} />
+      <RepositoryModeNotice className="mx-4 mt-4" mode={repositories.mode} />
+      <CartExperience products={products.items} />
     </DetailShell>
   );
 }
