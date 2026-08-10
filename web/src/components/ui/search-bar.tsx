@@ -1,7 +1,7 @@
 "use client";
 
 import { LoaderCircle, Search } from "lucide-react";
-import type { FormEvent } from "react";
+import { useId, type FormEvent, type Ref } from "react";
 
 import { cn } from "@/lib/cn";
 
@@ -15,11 +15,13 @@ export interface SearchBarProps {
   loading?: boolean;
   disabled?: boolean;
   className?: string;
+  inputRef?: Ref<HTMLInputElement>;
 }
 
 export function SearchBar({
   className,
   disabled = false,
+  inputRef,
   label,
   loading = false,
   onSubmit,
@@ -28,6 +30,7 @@ export function SearchBar({
   submitLabel = "搜索",
   value,
 }: SearchBarProps) {
+  const inputId = useId();
   const unavailable = disabled || loading;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -51,7 +54,7 @@ export function SearchBar({
       )}
       onSubmit={handleSubmit}
     >
-      <label htmlFor="local-life-search" className="sr-only">
+      <label htmlFor={inputId} className="sr-only">
         {label}
       </label>
       <Search
@@ -60,7 +63,8 @@ export function SearchBar({
         strokeWidth={2}
       />
       <input
-        id="local-life-search"
+        ref={inputRef}
+        id={inputId}
         type="search"
         value={value}
         placeholder={placeholder}

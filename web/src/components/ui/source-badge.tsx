@@ -42,7 +42,7 @@ export function SourceBadge({ className, source }: SourceBadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full bg-surface-tint px-2 py-1 text-[11px] font-medium text-text-muted",
+        "inline-flex items-center gap-1 rounded-full bg-surface-tint px-2 py-1 text-xs font-medium text-text-muted",
         className,
       )}
     >
