@@ -22,8 +22,11 @@ const houseSchema = z.object({
   priceMonthly: z.number().nonnegative(),
   roomType: z.string(),
   areaSqm: z.number().positive(),
-  petsAllowed: z.boolean(),
+  petsAllowed: z.boolean().nullable(),
+  distanceM: z.number().nonnegative().optional(),
   isDemo: z.boolean(),
+  detailAvailable: z.boolean().optional(),
+  sourceUrl: z.string().url().nullable().optional(),
 });
 
 const dealSchema = z.object({
@@ -58,12 +61,8 @@ const placeSchema = z.object({
 });
 
 function HouseResult({ data }: { data: z.infer<typeof houseSchema> }) {
-  return (
-    <Link
-      href={`/houses/${data.id}`}
-      aria-label={`查看房源 ${data.name}`}
-      className="block rounded-card border border-border bg-surface p-4 shadow-card outline-none focus-visible:ring-2 focus-visible:ring-brand"
-    >
+  const content = (
+    <>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Tag>{data.roomType}</Tag>
@@ -78,6 +77,11 @@ function HouseResult({ data }: { data: z.infer<typeof houseSchema> }) {
       <p className="mt-2 text-xs text-text-muted">
         {data.areaSqm}㎡ · {data.district}
       </p>
+      {data.distanceM !== undefined ? (
+        <p className="mt-2 text-xs text-text-muted">
+          距查询中心 {Math.round(data.distanceM)} 米
+        </p>
+      ) : null}
       <p className="mt-2 flex items-center gap-1 text-xs text-text-subtle">
         <MapPin aria-hidden="true" className="size-3.5 shrink-0" />
         <span className="truncate">{data.address}</span>
@@ -87,11 +91,42 @@ function HouseResult({ data }: { data: z.infer<typeof houseSchema> }) {
           <PawPrint aria-hidden="true" className="size-3.5" />
           允许宠物记录
         </p>
+      ) : data.petsAllowed === null ? (
+        <p className="mt-2 flex items-center gap-1 text-xs text-text-muted">
+          <PawPrint aria-hidden="true" className="size-3.5" />
+          宠物政策未提供
+        </p>
       ) : null}
       <SourceBadge
         source={data.isDemo ? "supabase_mock" : "housing_history_2024"}
         className="mt-3"
       />
+    </>
+  );
+  if (data.detailAvailable === false) {
+    return (
+      <article className="rounded-card border border-border bg-surface p-4 shadow-card">
+        {content}
+        {data.sourceUrl ? (
+          <a
+            href={data.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-flex text-xs font-medium text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            查看历史来源
+          </a>
+        ) : null}
+      </article>
+    );
+  }
+  return (
+    <Link
+      href={`/houses/${data.id}`}
+      aria-label={`查看房源 ${data.name}`}
+      className="block rounded-card border border-border bg-surface p-4 shadow-card outline-none focus-visible:ring-2 focus-visible:ring-brand"
+    >
+      {content}
     </Link>
   );
 }

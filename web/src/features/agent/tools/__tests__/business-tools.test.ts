@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createDemoRepository } from "@/features/business/demo-repository";
 import { createTaskSixToolRegistry } from "@/features/agent/tools/registry";
@@ -57,6 +57,129 @@ describe("business tools", () => {
     expect(result).toMatchObject({
       ok: false,
       error: { code: "HOUSE_NOT_FOUND", retryable: false },
+    });
+  });
+
+  it("uses the local historical HTTP service only for its configured WGS84 center", async () => {
+    const search = vi.fn(async () => ({
+      items: [
+        {
+          id: "house_abc",
+          title: "武林广场旁整租两居",
+          community: "环北新村",
+          address: "拱墅区武林路 1 号",
+          district: "拱墅区",
+          distanceM: 23.2,
+          monthlyRent: 3_800,
+          rentType: "整租",
+          layout: "2室1厅",
+          areaSqm: 65,
+          orientation: "南",
+          floor: "中楼层",
+          sourceUrl: "https://example.invalid/HZ-001",
+          location: { longitude: 120.1552, latitude: 30.2742 },
+          petsPolicy: "unknown" as const,
+          datasetPeriod: "2024-11" as const,
+        },
+      ],
+      sourceLabel: "2024年11月杭州租房历史快照",
+      datasetPeriod: "2024-11" as const,
+      isHistorical: true as const,
+      isRealtime: false as const,
+      disclaimer: "仅供历史房源参考，不代表当前仍可出租或当前价格",
+      requestId: "housing-request-1",
+      durationMs: 12,
+      warnings: [],
+    }));
+    const result = await createTaskSixToolRegistry()
+      .get("search_houses")
+      .execute(
+        {
+          city: "杭州",
+          district: "拱墅区",
+          near_location: "武林广场",
+          min_price: null,
+          max_price: 4_000,
+          room_type: "两居室",
+          pets_allowed: null,
+          limit: 5,
+        },
+        createToolTestContext({
+          housing: {
+            mode: "http",
+            service: { search },
+            defaultCenter: {
+              label: "武林广场",
+              longitude: 120.1551,
+              latitude: 30.2741,
+            },
+            radiusM: 2_000,
+          },
+        }),
+      );
+
+    expect(search).toHaveBeenCalledWith(
+      expect.objectContaining({
+        center: expect.objectContaining({ label: "武林广场" }),
+        filters: expect.objectContaining({
+          maxPrice: 4_000,
+          rentType: null,
+          layout: "2室",
+        }),
+      }),
+      expect.any(AbortSignal),
+    );
+    expect(result).toMatchObject({
+      ok: true,
+      source: "housing_history_2024",
+      resultCount: 1,
+      data: {
+        datasetPeriod: "2024-11",
+        centerLabel: "武林广场",
+        isRealtime: false,
+      },
+    });
+    expect(result.cards?.[0]?.data).toMatchObject({
+      id: "house_abc",
+      petsAllowed: null,
+      detailAvailable: false,
+    });
+  });
+
+  it("refuses to pretend the historical dataset supports pet filtering", async () => {
+    const search = vi.fn();
+    const result = await createTaskSixToolRegistry()
+      .get("search_houses")
+      .execute(
+        {
+          city: "杭州",
+          district: null,
+          near_location: "武林广场",
+          min_price: null,
+          max_price: 4_000,
+          room_type: null,
+          pets_allowed: true,
+          limit: 5,
+        },
+        createToolTestContext({
+          housing: {
+            mode: "http",
+            service: { search },
+            defaultCenter: {
+              label: "武林广场",
+              longitude: 120.1551,
+              latitude: 30.2741,
+            },
+            radiusM: 2_000,
+          },
+        }),
+      );
+
+    expect(search).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      ok: false,
+      source: "housing_history_2024",
+      error: { code: "HOUSING_PET_FILTER_UNAVAILABLE" },
     });
   });
 

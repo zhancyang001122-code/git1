@@ -68,6 +68,42 @@ describe("AgentResultCards", () => {
     expect(screen.getByText("演示库存 19")).toBeInTheDocument();
   });
 
+  it("renders local HTTP history without inventing pet policy or a missing detail page", () => {
+    render(
+      <AgentResultCards
+        cards={[
+          {
+            kind: "house",
+            data: {
+              id: "house_abc",
+              name: "武林广场旁整租两居",
+              district: "拱墅区",
+              address: "拱墅区武林路 1 号",
+              priceMonthly: 3_800,
+              roomType: "2室1厅",
+              areaSqm: 65,
+              petsAllowed: null,
+              distanceM: 23.2,
+              isDemo: false,
+              detailAvailable: false,
+              sourceUrl: "https://example.invalid/HZ-001",
+            },
+          },
+        ]}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("link", { name: /查看房源 武林广场旁整租两居/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("宠物政策未提供")).toBeInTheDocument();
+    expect(screen.getByText("距查询中心 23 米")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "查看历史来源" })).toHaveAttribute(
+      "href",
+      "https://example.invalid/HZ-001",
+    );
+  });
+
   it("shows AMap place distance while keeping fixture status visible", () => {
     render(
       <AgentResultCards

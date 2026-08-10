@@ -34,6 +34,7 @@ import { createSupabaseConversationRepository } from "@/features/conversation/re
 import { createRepositories } from "@/features/repositories";
 import { createMapsRuntime } from "@/features/maps/runtime";
 import { createKnowledgeRuntime } from "@/features/knowledge/runtime";
+import { createHousingRuntime } from "@/features/housing/runtime";
 import { createSupabaseKnowledgeCandidateSink } from "@/features/knowledge/candidate-sink";
 import { createDemoKnowledgeCandidateSink } from "@/features/knowledge-ops/demo-store";
 import { metrics } from "@/features/observability/metrics";
@@ -109,6 +110,7 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
     const repositories = await createRepositories({ environment: process.env });
     const maps = createMapsRuntime(process.env);
     const knowledge = createKnowledgeRuntime({ environment: process.env });
+    const housing = createHousingRuntime(process.env);
     return {
       provider: new DemoToolCallingProvider(),
       persistence: createEphemeralChatPersistence({
@@ -119,7 +121,9 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
       warning: {
         code: "DEMO_MODE",
         message:
-          "当前为本地确定性演示：房源、团购、商品、地图和知识均为模拟数据；未连接 Supabase、高德或千问，对话和审计不会写入云端",
+          housing.mode === "http"
+            ? "当前为本地混合演示：武林广场附近房源来自 2024-11 历史库；团购、商品、地图和知识仍为模拟数据，未连接 Supabase、高德或千问"
+            : "当前为本地确定性演示：房源、团购、商品、地图和知识均为模拟数据；未连接 Supabase、高德或千问，对话和审计不会写入云端",
       },
       tools: {
         executor: new ToolExecutor({
@@ -127,6 +131,7 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
         }),
         context: {
           business: repositories.business,
+          housing,
           maps: maps.service,
           knowledge: knowledge.service,
           knowledgeCandidates: createDemoKnowledgeCandidateSink(),
@@ -196,6 +201,7 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
   const repository = createSupabaseConversationRepository(adminClient);
   const repositories = await createRepositories({ serverClient, adminClient });
   const maps = createMapsRuntime(process.env);
+  const housing = createHousingRuntime(process.env);
   const knowledge = createKnowledgeRuntime({
     environment: process.env,
     supabase: adminClient,
@@ -215,6 +221,7 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
       }),
       context: {
         business: repositories.business,
+        housing,
         maps: maps.service,
         knowledge: knowledge.service,
         knowledgeCandidates: createSupabaseKnowledgeCandidateSink(adminClient),

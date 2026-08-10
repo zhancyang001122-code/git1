@@ -12,6 +12,7 @@ import type {
   ToolSource,
 } from "@/features/agent/tools/types";
 import type { Deal, House, Product } from "@/features/business/domain";
+import type { HistoricalHousingItem } from "@/features/housing/types";
 
 function contract(name: ToolName) {
   return toolContractDefinitions.find(
@@ -46,6 +47,52 @@ function houseView(house: House): Record<string, unknown> {
     location: house.location,
     isDemo: house.isDemo,
   };
+}
+
+function historicalHouseView(
+  house: HistoricalHousingItem,
+): Record<string, unknown> {
+  return {
+    id: house.id,
+    name: house.title,
+    city: "杭州",
+    district: house.district,
+    address: house.address,
+    priceMonthly: house.monthlyRent,
+    roomType: house.layout,
+    areaSqm: house.areaSqm,
+    petsAllowed: null,
+    petsPolicy: house.petsPolicy,
+    available: null,
+    subwayDistanceM: null,
+    distanceM: house.distanceM,
+    tags: [house.rentType, house.orientation, house.floor].filter(Boolean),
+    historicalYear: 2024,
+    datasetPeriod: house.datasetPeriod,
+    location: house.location,
+    isDemo: false,
+    detailAvailable: false,
+    sourceUrl: house.sourceUrl,
+  };
+}
+
+function normalizedCenterName(value: string): string {
+  return value.trim().replace(/(?:附近|周边)$/u, "").trim();
+}
+
+function historicalLayout(roomType: string | null): string | null {
+  if (roomType === "一居室") return "1室";
+  if (roomType === "两居室") return "2室";
+  if (roomType === "开间") return "1室0厅";
+  if (roomType === "整租" || roomType === "合租") return null;
+  return roomType;
+}
+
+function historicalRentType(
+  roomType: string | null,
+): "整租" | "合租" | null {
+  if (roomType === "整租" || roomType === "合租") return roomType;
+  return null;
 }
 
 function dealView(deal: Deal): Record<string, unknown> {
@@ -101,9 +148,96 @@ function failure<T>(
 const searchHouses: ToolDefinition<ToolInputs["search_houses"]> = {
   ...contract("search_houses"),
   publicLabel: "正在查询房源",
-  source: (context) => context.businessSource,
+  source: (context, input) => {
+    const requestedCenter = input?.near_location
+      ? normalizedCenterName(input.near_location)
+      : null;
+    const configuredCenter = context.housing
+      ? normalizedCenterName(context.housing.defaultCenter.label)
+      : null;
+    return context.housing?.mode === "http" &&
+      requestedCenter !== null &&
+      requestedCenter === configuredCenter
+      ? "housing_history_2024"
+      : context.businessSource;
+  },
   inputSchema: toolInputSchemas.search_houses,
   async execute(input, context) {
+    const housing = context.housing;
+    if (housing?.mode === "http" && input.near_location !== null) {
+      const requestedCenter = normalizedCenterName(input.near_location);
+      const configuredCenter = normalizedCenterName(
+        housing.defaultCenter.label,
+      );
+      if (requestedCenter !== configuredCenter) {
+        return failure(
+          "housing_history_2024",
+          "HOUSING_LOCATION_NOT_GEOCODED",
+          `本地历史房源当前只配置了${housing.defaultCenter.label}坐标；接入高德后才能查询其他地点`,
+        );
+      }
+      if (input.city !== "杭州") {
+        return failure(
+          "housing_history_2024",
+          "HOUSING_UNSUPPORTED_CITY",
+          "当前历史房源数据仅覆盖杭州",
+        );
+      }
+      if (input.pets_allowed !== null) {
+        return failure(
+          "housing_history_2024",
+          "HOUSING_PET_FILTER_UNAVAILABLE",
+          "2024 历史房源没有可靠的宠物政策字段，不能按是否允许宠物筛选",
+        );
+      }
+      if (!housing.service) {
+        return failure(
+          "housing_history_2024",
+          "HOUSING_NOT_CONFIGURED",
+          "历史房源服务尚未完成配置",
+        );
+      }
+      const result = await housing.service.search(
+        {
+          city: input.city,
+          center: housing.defaultCenter,
+          radiusM: housing.radiusM,
+          filters: {
+            minPrice: input.min_price,
+            maxPrice: input.max_price,
+            rentType: historicalRentType(input.room_type),
+            layout: historicalLayout(input.room_type),
+            minArea: null,
+            maxArea: null,
+            district: input.district,
+          },
+          sort: "distance",
+          limit: input.limit,
+        },
+        context.signal,
+      );
+      const items = result.items.map(historicalHouseView);
+      return {
+        ok: true,
+        data: {
+          items,
+          total: items.length,
+          historicalYear: 2024,
+          datasetPeriod: result.datasetPeriod,
+          centerLabel: housing.defaultCenter.label,
+          radiusM: housing.radiusM,
+          isHistorical: result.isHistorical,
+          isRealtime: result.isRealtime,
+          disclaimer: result.disclaimer,
+          sourceLabel: result.sourceLabel,
+          upstreamRequestId: result.requestId,
+          source: "housing_history_2024",
+        },
+        source: "housing_history_2024",
+        cards: cards("house", items),
+        resultCount: items.length,
+      };
+    }
     const page = await context.business.listHouses({
       city: input.city,
       ...(input.district !== null && { district: input.district }),

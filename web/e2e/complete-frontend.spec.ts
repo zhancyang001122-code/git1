@@ -162,7 +162,9 @@ test("chat composes housing and AMap tools without inventing current availabilit
     "正在查询周边地点",
   );
   await expect(page.getByText("武林生活超市（演示）")).toBeVisible();
-  await expect(page.locator("body")).toContainText("演示房源数据");
+  await expect(page.locator("body")).toContainText(
+    "房源卡可能来自 2024-11 历史库或演示数据",
+  );
 });
 
 test("chat explains the full housing, nearby and demo-knowledge chain", async ({

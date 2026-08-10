@@ -8,6 +8,7 @@ import type { ToolContractDefinition } from "@/features/agent/tools/schemas";
 import type { BusinessRepository } from "@/features/business/repository";
 import type { MemoryRepository } from "@/features/memory/repository";
 import type { MapsService } from "@/features/maps/types";
+import type { HousingRuntime } from "@/features/housing/types";
 import type {
   KnowledgeCandidateSink,
   KnowledgeService,
@@ -61,6 +62,7 @@ export interface ToolAuditSink {
 
 export interface ToolContext {
   business: BusinessRepository;
+  housing?: HousingRuntime;
   maps: MapsService;
   knowledge: KnowledgeService;
   knowledgeCandidates?: KnowledgeCandidateSink;
@@ -91,7 +93,7 @@ export interface ToolDefinition<
   TOutput = unknown,
 > extends ToolContractDefinition {
   publicLabel: string;
-  source(context: ToolContext): ToolSource;
+  source(context: ToolContext, input?: TInput): ToolSource;
   inputSchema: z.ZodType<TInput>;
   execute(input: TInput, context: ToolContext): Promise<ToolResult<TOutput>>;
 }

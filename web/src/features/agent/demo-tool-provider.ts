@@ -280,10 +280,20 @@ function summarizeTool(
       payload.source === "housing_history_2024"
         ? "2024 年历史房源数据"
         : "演示房源数据";
+    const hasHistoricalDistance =
+      payload.source === "housing_history_2024" &&
+      (payload.facts?.some((fact) => typeof fact.distanceM === "number") ??
+        false);
     const locationNotice = /(?:附近|周边|路线|距离|步行)/.test(userText)
-      ? " 周边条件尚未通过高德核验，结果未按真实距离排序。"
+      ? hasHistoricalDistance
+        ? " 房源距离按 2024 历史坐标计算直线距离，不等同于高德步行路线。"
+        : " 周边条件尚未通过高德核验，结果未按真实距离排序。"
       : "";
-    return `已从${label}查询到 ${payload.resultCount} 条符合结构化条件的记录，请查看结果卡。${locationNotice}`;
+    const historyNotice =
+      payload.source === "housing_history_2024"
+        ? " 这些是 2024-11 历史记录，不代表当前仍可出租或当前价格。"
+        : "";
+    return `已从${label}查询到 ${payload.resultCount} 条符合结构化条件的记录，请查看结果卡。${historyNotice}${locationNotice}`;
   }
   if (name === "search_deals")
     return `已查询到 ${payload.resultCount} 条演示团购，请查看结果卡；退款结论仍需正式知识库核验。`;
@@ -295,7 +305,7 @@ function summarizeTool(
   if (name === "search_nearby_places") {
     const demo = payload.facts?.some((fact) => fact.isDemo === true) ?? false;
     const housingNotice = /(?:房|租房|一居室|两居室|开间|合租)/.test(userText)
-      ? " 房源卡是演示房源数据，不代表当前可租。"
+      ? " 房源卡可能来自 2024-11 历史库或演示数据，不代表当前仍可出租或当前价格。"
       : "";
     return `已查询到 ${payload.resultCount} 个周边地点，请查看结果卡。${demo ? " 当前为明确标注的高德接口演示数据。" : " 地点与距离来自高德地图工具。"}${housingNotice}`;
   }

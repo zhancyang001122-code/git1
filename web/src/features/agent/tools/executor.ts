@@ -157,7 +157,11 @@ export class ToolExecutor {
       };
     }
 
-    const source = definition.source(context);
+    const parsed = definition.inputSchema.safeParse(rawInput);
+    const source = definition.source(
+      context,
+      parsed.success ? parsed.data : undefined,
+    );
 
     const audit = async (
       status: ToolRunStatus,
@@ -183,7 +187,6 @@ export class ToolExecutor {
     };
 
     await audit("queued");
-    const parsed = definition.inputSchema.safeParse(rawInput);
     if (!parsed.success) {
       const result = failure(
         source,

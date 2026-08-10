@@ -22,6 +22,7 @@ describe("GET /api/health", () => {
         supabase: "disabled",
         qwen: "disabled",
         amap: "disabled",
+        housing: "disabled",
       },
     });
   });
@@ -39,6 +40,7 @@ describe("GET /api/health", () => {
       supabase: "configured",
       qwen: "configured",
       amap: "missing",
+      housing: "missing",
     });
 
     const allowedStatuses = ["configured", "missing", "disabled"];
@@ -54,6 +56,11 @@ describe("GET /api/health", () => {
     vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "supabase-secret-value");
     vi.stubEnv("DASHSCOPE_API_KEY", "qwen-secret-value");
     vi.stubEnv("AMAP_WEB_SERVICE_KEY", "amap-secret-value");
+    vi.stubEnv("HOUSING_API_BASE_URL", "http://127.0.0.1:8000");
+    vi.stubEnv(
+      "HOUSING_API_KEY",
+      "housing-secret-value-that-is-at-least-32-characters",
+    );
 
     const response = await GET();
     const serializedBody = JSON.stringify(await response.json());
@@ -61,5 +68,8 @@ describe("GET /api/health", () => {
     expect(serializedBody).not.toContain("supabase-secret-value");
     expect(serializedBody).not.toContain("qwen-secret-value");
     expect(serializedBody).not.toContain("amap-secret-value");
+    expect(serializedBody).not.toContain(
+      "housing-secret-value-that-is-at-least-32-characters",
+    );
   });
 });

@@ -107,6 +107,7 @@ describe("environment contract", () => {
         supabase: "disabled",
         qwen: "disabled",
         amap: "disabled",
+        housing: "disabled",
       },
     });
   });
@@ -125,7 +126,19 @@ describe("environment contract", () => {
         supabase: "configured",
         qwen: "configured",
         amap: "missing",
+        housing: "missing",
       },
     });
+  });
+
+  it("reports the local housing service independently in demo mode", () => {
+    const value = getServiceConfiguration({
+      NEXT_PUBLIC_DEMO_MODE: "true",
+      HOUSING_API_BASE_URL: "http://127.0.0.1:8000",
+      HOUSING_API_KEY: "local-key-that-is-at-least-32-characters",
+    });
+
+    expect(value.services.housing).toBe("configured");
+    expect(value.services.amap).toBe("disabled");
   });
 });
