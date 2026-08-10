@@ -45,9 +45,10 @@ Demo Preview 不需要 Supabase、高德或百炼账号。页面必须持续显�
 3. 执行 `pnpm db:verify-http`，验证 anon、authenticated 和 service role 边界。
 4. 配置百炼文本模型、`text-embedding-v4`，按需配置 `qwen3-rerank`。
 5. 配置高德 Web 服务 Key，不使用浏览器 JS Key。
-6. 导入已脱敏并带版本、生效日期、负责人和来源的正式知识材料。
-7. 为已发布知识版本生成 1024 维 Embedding，运行 RAG 评测。
-8. 只有上述步骤全部通过后，才将 `NEXT_PUBLIC_DEMO_MODE=false`。
+6. 房源方案二选一：将清洗后的历史数据导入 Supabase，或把 `services/housing-api` 独立部署到可由 Vercel 服务端访问的 HTTPS 环境。`127.0.0.1` 只适用于本机，Vercel 无法访问用户电脑。
+7. 导入已脱敏并带版本、生效日期、负责人和来源的正式知识材料。
+8. 为已发布知识版本生成 1024 维 Embedding，运行 RAG 评测。
+9. 只有上述步骤全部通过后，才将 `NEXT_PUBLIC_DEMO_MODE=false`。
 
 完整变量以 `.env.example` 为准。
 

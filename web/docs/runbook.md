@@ -30,6 +30,13 @@
 - 处理：检查 Web 服务 Key、配额和 Host。只对幂等 GET 的瞬时故障重试一次。
 - 恢复：验证地理编码、周边 POI、步行路线；恢复前不得展示估算距离。
 
+### 本机历史房源服务不可用
+
+- 现象：`HOUSING_TIMEOUT`、`HOUSING_DATA_UNAVAILABLE`、`HOUSING_UNAUTHORIZED` 或 `CIRCUIT_OPEN`。
+- 处理：先访问房源服务 `/health`；核对 `HOUSING_DB_PATH`、两端一致的 `HOUSING_API_KEY`、8000 端口和 SQLite 文件权限。浏览器不能直接持有房源 API Key。
+- 数据边界：只支持杭州 2024-11 历史快照；默认中心为武林广场 WGS84 坐标；宠物政策缺失时必须拒绝对应筛选。
+- 恢复：运行房源服务的 `pytest`、`ruff`、`mypy`，再执行带 `HOUSING_API_BASE_URL` 的 `e2e/housing-http.spec.ts`。禁止把失败静默伪装成真实历史查询。
+
 ### Supabase 或 RLS 异常
 
 - 现象：业务查询失败、跨用户请求被拒或迁移版本不一致。
