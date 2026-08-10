@@ -2,11 +2,11 @@
 
 ## 为什么不是完整美团？
 
-我保留完整产品形态和业务链路，但真实开发重点是 AI 与业务系统的连接。支付、核销、履约是明确标注的模拟流程；房源查询、地图、RAG、工具编排和知识闭环是真实实现。
+我保留完整产品形态和业务链路，但开发重点是 AI 与业务系统的连接。支付、核销、履约是明确标注的模拟流程；工具契约、Adapter、RAG 版本治理、编排、测试和知识闭环是实际代码。当前只有本机 2024-11 房源库完成真实数据纵向验证；Supabase、高德、千问和正式知识材料尚未在线接通，默认页面仍明确显示 Demo。
 
 ## 为什么 Supabase，不用 MySQL？
 
-Supabase 底层是 PostgreSQL，同时提供 API、Auth、RLS 和 pgvector，适合快速交付。企业已有 MySQL 时不会强迫迁库，而是通过 Business Service 接入。
+我把 Supabase 选作目标后端，因为它基于 PostgreSQL，同时提供 API、Auth、RLS 和 pgvector，适合快速交付。当前已完成迁移、Repository 和 RLS 验证，但还没有创建并连接用户的远端 Supabase 项目。企业已有 MySQL 时不会强迫迁库，而是通过 Business Service 接入。
 
 ## 为什么业务数据不用 RAG？
 
@@ -14,7 +14,7 @@ Supabase 底层是 PostgreSQL，同时提供 API、Auth、RLS 和 pgvector，适
 
 ## RAG 为什么仍在 Supabase？
 
-独立首先是职责和接口独立。Knowledge Service 有独立文章、版本、切片、检索和评测，当前底层用 pgvector。未来换专用搜索平台时，`search_knowledge` 不变。
+独立首先是职责和接口独立。Knowledge Service 已实现独立文章、版本、切片、检索和评测边界，目标底层是 Supabase pgvector；当前演示使用确定性 Fake Service，还没有用户正式材料和真实 Embedding。未来换专用搜索平台时，`search_knowledge` 不变。
 
 ## Function Calling 和 MCP？
 
@@ -66,7 +66,7 @@ Dify 适合快速验证；本作品需要展示工具契约、数据边界、版
 
 ## 如何证明不是套壳？
 
-现场展示同一问题触发 Supabase、高德、Knowledge 三类工具；修改 Supabase 后页面和 AI 同步变化；发布新知识并重新评测。
+当前可以用代码、契约测试、工具审计、只读历史房源 API 和明确标注的多工具 Demo 证明它不只是聊天 UI。等 Supabase、高德、千问和正式知识材料接通后，再现场展示同一问题触发三类真实服务、修改业务数据后页面与 AI 同步变化，以及发布新知识后重新索引和评测；在此之前不能这样宣称。
 
 ## 使用 Codex 应该怎么诚实回答？
 
