@@ -56,5 +56,6 @@ pnpm build
 - [Task 10 知识闭环报告](docs/task-reports/2026-08-11-task-10-governed-knowledge-loop.md)
 - [Task 11 安全加固报告](docs/task-reports/2026-08-11-task-11-service-hardening.md)
 - [本机历史房源接入报告](docs/task-reports/2026-08-11-housing-http-integration.md)
+- [公开业务 API 契约对齐报告](docs/task-reports/2026-08-11-task-13-public-business-api.md)
 
 Vercel Root Directory 固定为 `web/`。

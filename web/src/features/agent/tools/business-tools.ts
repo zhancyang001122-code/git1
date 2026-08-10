@@ -77,7 +77,10 @@ function historicalHouseView(
 }
 
 function normalizedCenterName(value: string): string {
-  return value.trim().replace(/(?:附近|周边)$/u, "").trim();
+  return value
+    .trim()
+    .replace(/(?:附近|周边)$/u, "")
+    .trim();
 }
 
 function historicalLayout(roomType: string | null): string | null {
@@ -88,9 +91,7 @@ function historicalLayout(roomType: string | null): string | null {
   return roomType;
 }
 
-function historicalRentType(
-  roomType: string | null,
-): "整租" | "合租" | null {
+function historicalRentType(roomType: string | null): "整租" | "合租" | null {
   if (roomType === "整租" || roomType === "合租") return roomType;
   return null;
 }

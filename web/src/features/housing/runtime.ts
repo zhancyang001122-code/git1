@@ -2,10 +2,7 @@ import "server-only";
 
 import { HousingHttpAdapter } from "@/features/housing/http-adapter";
 import type { HousingRuntime } from "@/features/housing/types";
-import {
-  parseServerEnv,
-  type EnvironmentInput,
-} from "@/lib/env";
+import { parseServerEnv, type EnvironmentInput } from "@/lib/env";
 
 export function createHousingRuntime(
   environment: EnvironmentInput = process.env,

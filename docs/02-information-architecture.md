@@ -66,7 +66,7 @@
 
 ```text
 点踩/纠错/低置信
-→ submit_feedback
+→ POST /api/feedback（验证消息归属）
 → knowledge_candidate
 → 人工审核
 → 发布不可变版本

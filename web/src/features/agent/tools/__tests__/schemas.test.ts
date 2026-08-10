@@ -36,14 +36,13 @@ describe("Task 7 tool schemas", () => {
         parameters: Record<string, unknown>;
       }>;
     };
-    const expected = contract.tools.filter((tool) =>
-      taskSevenTools.includes(tool.name as ToolName),
-    );
-
     const byName = (left: { name: string }, right: { name: string }) =>
       left.name.localeCompare(right.name);
     expect([...toolContractDefinitions].sort(byName)).toEqual(
-      [...expected].sort(byName),
+      [...contract.tools].sort(byName),
+    );
+    expect(contract.tools.map((tool) => tool.name).sort()).toEqual(
+      [...taskSevenTools].sort(),
     );
   });
 

@@ -277,33 +277,6 @@
         "required": ["key", "value", "consent_confirmed"],
         "additionalProperties": false
       }
-    },
-    {
-      "name": "submit_feedback",
-      "description": "Record feedback or a correction proposal. This creates a reviewable candidate and never publishes knowledge automatically.",
-      "strict": true,
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "message_id": { "type": "string", "format": "uuid" },
-          "rating": { "type": "string", "enum": ["up", "down"] },
-          "reason": {
-            "type": ["string", "null"],
-            "enum": [
-              "incorrect",
-              "not_relevant",
-              "missing_source",
-              "outdated",
-              "unsafe",
-              "other",
-              null
-            ]
-          },
-          "comment": { "type": ["string", "null"], "maxLength": 1000 }
-        },
-        "required": ["message_id", "rating", "reason", "comment"],
-        "additionalProperties": false
-      }
     }
   ]
 }

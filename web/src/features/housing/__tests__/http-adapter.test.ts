@@ -82,9 +82,7 @@ describe("HousingHttpAdapter", () => {
     expect(result.isHistorical).toBe(true);
     expect(fetcher).toHaveBeenCalledOnce();
     const [url, init] = fetcher.mock.calls[0] as unknown as [URL, RequestInit];
-    expect(url.toString()).toBe(
-      "http://127.0.0.1:8000/v1/houses/search",
-    );
+    expect(url.toString()).toBe("http://127.0.0.1:8000/v1/houses/search");
     expect(init.headers).toMatchObject({
       authorization: "Bearer local-key-that-is-at-least-32-characters",
     });

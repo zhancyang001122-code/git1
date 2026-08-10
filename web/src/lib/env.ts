@@ -94,10 +94,7 @@ const serverEnvSchema = z
       z.string().min(32).optional(),
     ),
     HOUSING_API_TIMEOUT_MS: integerFromString(8_000, 100, 30_000),
-    HOUSING_DEFAULT_CENTER_NAME: z
-      .string()
-      .min(1)
-      .default("武林广场"),
+    HOUSING_DEFAULT_CENTER_NAME: z.string().min(1).default("武林广场"),
     HOUSING_DEFAULT_LONGITUDE: numberFromString(120.1551, -180, 180),
     HOUSING_DEFAULT_LATITUDE: numberFromString(30.2741, -90, 90),
     HOUSING_DEFAULT_RADIUS_M: integerFromString(2_000, 100, 5_000),
@@ -135,7 +132,9 @@ const serverEnvSchema = z
         message: "启用重排时必须配置工作空间专属 Rerank 地址",
       });
     }
-    if (Boolean(value.HOUSING_API_BASE_URL) !== Boolean(value.HOUSING_API_KEY)) {
+    if (
+      Boolean(value.HOUSING_API_BASE_URL) !== Boolean(value.HOUSING_API_KEY)
+    ) {
       context.addIssue({
         code: "custom",
         path: ["HOUSING_API_BASE_URL"],

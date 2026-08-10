@@ -215,7 +215,8 @@ export class HousingHttpAdapter implements HousingSearchService {
                 signal: controller.signal,
               });
               const value: unknown = await response.json();
-              if (!response.ok) throw normalizedServiceError(response.status, value);
+              if (!response.ok)
+                throw normalizedServiceError(response.status, value);
               return value;
             } catch (error) {
               if (error instanceof AppError) throw error;

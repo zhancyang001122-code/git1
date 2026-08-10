@@ -61,9 +61,8 @@ P0：
 - `calculate_walking_route`
 - `search_knowledge`
 - `get_user_preferences`
-- `submit_feedback`
 
-以下能力由应用服务控制，不直接暴露给模型：购物车写入、演示订单创建、页面上下文加载、知识候选创建与知识发布。
+以下能力由应用服务控制，不直接暴露给模型：反馈提交、购物车写入、演示订单创建、页面上下文加载、知识候选创建与知识发布。反馈必须通过 `/api/feedback` 验证消息归属后提交，避免模型代替用户点赞、点踩或纠错。
 
 精确 Schema 见 `contracts/tool-contracts.json`。
 

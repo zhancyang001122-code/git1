@@ -48,7 +48,7 @@ data: {"finishReason":"stop"}
 
 ## `GET /api/houses`
 
-查询参数：`district`、`minPrice`、`maxPrice`、`roomType`、`petsAllowed`、`sort`、`cursor`。
+查询参数：`city`、`district`、`minPrice`、`maxPrice`、`roomType`、`petsAllowed`、`sort`、`cursor`、`limit`。未知参数、重复参数、非法数字或布尔值返回 `BUSINESS_QUERY_INVALID`。
 
 返回：
 
@@ -59,16 +59,17 @@ data: {"finishReason":"stop"}
   "source": {
     "source": "housing_history_2024",
     "label": "2024 历史房源数据",
-    "isDemo": false
+    "isDemo": false,
+    "mode": "supabase"
   }
 }
 ```
 
-演示或故障回退时，`source` 必须改为 `supabase_mock`、`label` 改为“演示业务数据”、`isDemo` 改为 `true`；客户端不得把两种来源合并展示。
+演示或故障回退时，`source` 必须改为 `supabase_mock`、`label` 改为“演示业务数据”、`isDemo` 改为 `true`，`mode` 分别为 `demo` 或 `demo_fallback`；客户端不得把两种来源合并展示。所有列表响应还包含 `total`，并设置 `cache-control: no-store` 与 `x-request-id`。
 
 ## `GET /api/deals`, `GET /api/products`, `GET /api/community-posts`
 
-采用同一分页封装。列表默认只返回 active/published 数据。
+采用同一分页与来源封装，支持 `cursor` 和 `limit`。列表默认只返回 active/published 数据；这些商业记录在 V1.0 中仍是明确标记的演示业务，即使未来存放在 Supabase 中也不能描述成真实交易。
 
 ## `GET /api/preferences` / `PATCH /api/preferences`
 
@@ -77,6 +78,8 @@ data: {"finishReason":"stop"}
 ## `POST /api/feedback`
 
 请求使用 `feedbackRequestSchema`，必须验证 `sessionId` 与 `messageId` 属于当前用户或匿名会话。点赞只记录反馈；点踩原因属于 `incorrect`、`missing_source` 或 `outdated` 时创建去重的 `knowledge_candidates`，但不会更新 `kb_articles`。
+
+反馈是用户发起的受控应用操作，不注册为 Agent 工具。模型不能代替用户点赞、点踩、纠错或发布知识。
 
 ## `POST /api/knowledge/search`
 
