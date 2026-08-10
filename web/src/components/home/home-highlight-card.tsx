@@ -1,28 +1,24 @@
-import { Building2, MapPin, ShoppingBasket, Soup, Trees } from "lucide-react";
+import { MapPin } from "lucide-react";
+import Image from "next/image";
 
 import { SourceBadge } from "@/components/ui/source-badge";
 import type { HomeHighlight } from "@/features/home/home-types";
-
-const kindIcons = {
-  housing: Building2,
-  deal: Soup,
-  product: ShoppingBasket,
-  community: Trees,
-} satisfies Record<HomeHighlight["kind"], typeof Building2>;
 
 export interface HomeHighlightCardProps {
   item: HomeHighlight;
 }
 
 export function HomeHighlightCard({ item }: HomeHighlightCardProps) {
-  const Icon = kindIcons[item.kind];
-
   return (
     <article className="min-w-0 overflow-hidden rounded-card border border-border bg-surface shadow-card">
-      <div className="flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-brand-soft via-surface-tint to-white text-brand">
-        <span className="inline-flex size-14 items-center justify-center rounded-feature bg-white/75 shadow-sm">
-          <Icon aria-hidden="true" className="size-7" strokeWidth={1.75} />
-        </span>
+      <div className="relative aspect-[4/3] overflow-hidden bg-surface-tint">
+        <Image
+          fill
+          src={item.imageSrc}
+          alt={item.imageAlt}
+          sizes="(max-width: 430px) calc((100vw - 44px) / 2), 193px"
+          className="object-cover"
+        />
       </div>
 
       <div className="space-y-2 p-3">

@@ -1,4 +1,5 @@
-import { Bot, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import Image from "next/image";
 
 import { Tag } from "@/components/ui/tag";
 
@@ -26,15 +27,17 @@ export function XiaozhiHero() {
           </p>
         </div>
 
-        <div className="relative flex aspect-square items-center justify-center rounded-feature bg-white/70 shadow-floating">
+        <div className="relative aspect-square overflow-hidden rounded-feature bg-white/70 shadow-floating">
+          <Image
+            fill
+            src="/images/home/xiaozhi-mascot.png"
+            alt=""
+            sizes="92px"
+            className="object-contain"
+          />
           <Sparkles
             aria-hidden="true"
-            className="absolute right-2 top-2 size-4 text-accent"
-          />
-          <Bot
-            aria-hidden="true"
-            className="size-12 text-brand"
-            strokeWidth={1.6}
+            className="absolute right-2 top-2 z-10 size-4 text-accent"
           />
         </div>
       </div>
