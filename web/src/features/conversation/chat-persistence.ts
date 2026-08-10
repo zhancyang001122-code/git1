@@ -4,12 +4,14 @@ import type { ChatRequest } from "@/features/agent/chat-request";
 import type { ChatTurnCompletion } from "@/features/agent/completion";
 import type { ProviderMessage } from "@/features/agent/provider";
 import type { ConversationRepository } from "@/features/conversation/repository";
+import { summarizeConversation } from "@/features/conversation/summarizer";
 import { AppError } from "@/lib/errors";
 
 export interface PreparedChatTurn {
   sessionId: string;
   messageId: string;
   messages: readonly ProviderMessage[];
+  conversationSummary?: string;
   persistAssistant(completion: ChatTurnCompletion): Promise<void>;
 }
 
@@ -82,14 +84,21 @@ export function createSupabaseChatPersistence({
         role: "user",
         content: request.message,
       });
-      const messages = await repository.listMessages(session.id, { limit: 12 });
+      const messages = await repository.listMessages(session.id, { limit: 40 });
+      const olderMessages = messages.slice(0, -12);
+      const conversationSummary =
+        session.summary.trim() ||
+        (olderMessages.length > 0
+          ? summarizeConversation(olderMessages)
+          : undefined);
 
       return {
         sessionId: session.id,
         messageId: userMessage.id,
         messages: providerHistory(messages),
+        ...(conversationSummary && { conversationSummary }),
         async persistAssistant(completion) {
-          await repository.appendMessage({
+          const assistantMessage = await repository.appendMessage({
             sessionId: session.id,
             role: "assistant",
             content: completion.assistantText,
@@ -104,6 +113,13 @@ export function createSupabaseChatPersistence({
             inputTokens: completion.inputTokens ?? null,
             outputTokens: completion.outputTokens ?? null,
           });
+          if (messages.length + 1 > 12) {
+            const summary = summarizeConversation([
+              ...messages,
+              assistantMessage,
+            ]);
+            if (summary) await repository.updateSummary(session.id, summary);
+          }
         },
       };
     },

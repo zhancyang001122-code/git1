@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { ChatStreamEvent } from "@/features/agent/chat-events";
+import { buildContextWindow } from "@/features/agent/context-builder";
 import {
   chatRequestSchema,
   type ChatRequest,
@@ -98,7 +99,7 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
       warning: {
         code: "DEMO_MODE",
         message:
-          "当前为确定性工具演示模式：没有调用真实千问，对话和审计不会写入云端",
+          "当前为本地确定性演示：房源、团购、商品、地图和知识均为模拟数据；未连接 Supabase、高德或千问，对话和审计不会写入云端",
       },
       tools: {
         executor: new ToolExecutor({
@@ -236,14 +237,17 @@ export function createChatHandler(
     const body = new ReadableStream<Uint8Array>({
       async start(controller) {
         try {
+          const contextWindow = buildContextWindow({
+            systemPrompt: XIAOZHI_SYSTEM_PROMPT,
+            conversationSummary: prepared.conversationSummary,
+            recentMessages: prepared.messages,
+            pageContext: chatRequest.context,
+          });
           for await (const event of orchestrateChatTurn({
             sessionId: prepared.sessionId,
             messageId: prepared.messageId,
             provider: runtime.provider,
-            messages: [
-              { role: "system", content: XIAOZHI_SYSTEM_PROMPT },
-              ...prepared.messages,
-            ],
+            messages: contextWindow.messages,
             signal: streamController.signal,
             timeoutMs: runtime.timeoutMs,
             ...(runtime.tools && {

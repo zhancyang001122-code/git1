@@ -8,10 +8,17 @@ import type {
 
 interface InternalToolPayload {
   ok?: boolean;
-  data?: unknown;
   error?: { code?: string; message?: string };
   resultCount?: number;
   source?: string;
+  itemIds?: readonly string[];
+  facts?: readonly Record<string, unknown>[];
+  knowledge?: {
+    lowConfidence?: boolean;
+    conflict?: boolean;
+    isDemo?: boolean;
+    passages?: readonly { content?: string }[];
+  };
 }
 
 function latestUserText(messages: readonly ProviderMessage[]): string {
@@ -214,24 +221,21 @@ function route(text: string): ProviderToolCall | null {
 
 function firstProductId(data: unknown): string | null {
   if (!data || typeof data !== "object") return null;
-  const items = (data as { items?: unknown }).items;
-  if (!Array.isArray(items)) return null;
-  const first = items[0];
-  if (!first || typeof first !== "object") return null;
-  const id = (first as { id?: unknown }).id;
-  return typeof id === "string" ? id : null;
+  return (data as InternalToolPayload).itemIds?.[0] ?? null;
 }
 
 function stockSummary(data: unknown): string | null {
   if (!data || typeof data !== "object") return null;
-  const value = data as {
-    name?: unknown;
-    availableStock?: unknown;
-    inStock?: unknown;
-  };
+  const value = (data as InternalToolPayload).facts?.[0] as
+    | {
+        name?: unknown;
+        availableStock?: unknown;
+        inStock?: unknown;
+      }
+    | undefined;
   if (
-    typeof value.name !== "string" ||
-    typeof value.availableStock !== "number"
+    typeof value?.name !== "string" ||
+    typeof value?.availableStock !== "number"
   )
     return null;
   return value.inStock
@@ -256,14 +260,7 @@ function summarizeTool(
       ? "知识库没有找到足够可靠且当前有效的依据，所以我不能给出确定的政策结论。"
       : "没有找到符合全部条件的记录。可以先放宽一个条件，例如预算或区域。";
   if (name === "search_knowledge") {
-    const data = payload.data as
-      | {
-          lowConfidence?: boolean;
-          conflict?: boolean;
-          isDemo?: boolean;
-          passages?: readonly { content?: string }[];
-        }
-      | undefined;
+    const data = payload.knowledge;
     if (data?.conflict)
       return "检索到的知识依据互相冲突，需要人工复核；我不能替你做确定结论。";
     if (data?.lowConfidence)
@@ -277,7 +274,7 @@ function summarizeTool(
     return `已根据${data?.isDemo ? "演示知识库" : "当前有效知识库"}核验，请以随回答展示的引用版本和生效日期为准。`;
   }
   if (name === "get_product_stock")
-    return stockSummary(payload.data) ?? "已核对演示商品库存，请查看结果卡。";
+    return stockSummary(payload) ?? "已核对演示商品库存，请查看结果卡。";
   if (name === "search_houses") {
     const label =
       payload.source === "housing_history_2024"
@@ -296,7 +293,7 @@ function summarizeTool(
   if (name === "save_user_preference")
     return "已保存你刚才明确确认的长期偏好。";
   if (name === "search_nearby_places") {
-    const demo = JSON.stringify(payload.data).includes('"isDemo":true');
+    const demo = payload.facts?.some((fact) => fact.isDemo === true) ?? false;
     const housingNotice = /(?:房|租房|一居室|两居室|开间|合租)/.test(userText)
       ? " 房源卡是演示房源数据，不代表当前可租。"
       : "";
@@ -325,6 +322,13 @@ export class DemoToolCallingProvider implements AIProvider {
     signal.throwIfAborted();
     const userText = latestUserText(input.messages);
     const exchange = latestToolExchange(input.messages);
+    const completedToolNames = new Set(
+      input.messages.flatMap((message) =>
+        message.role === "assistant"
+          ? (message.toolCalls ?? []).map((toolCall) => toolCall.name)
+          : [],
+      ),
+    );
 
     if (exchange) {
       if (
@@ -339,11 +343,20 @@ export class DemoToolCallingProvider implements AIProvider {
         return;
       }
       if (
+        exchange.name === "search_nearby_places" &&
+        requiresKnowledge(userText) &&
+        !completedToolNames.has("search_knowledge")
+      ) {
+        yield { type: "tool_calls", calls: [knowledgeCall(userText)] };
+        yield { type: "finish", reason: "tool_calls" };
+        return;
+      }
+      if (
         exchange.name === "search_products" &&
         /(?:库存|还有|有货)/.test(userText) &&
         exchange.payload.ok
       ) {
-        const productId = firstProductId(exchange.payload.data);
+        const productId = firstProductId(exchange.payload);
         if (productId) {
           yield {
             type: "tool_calls",
@@ -356,6 +369,23 @@ export class DemoToolCallingProvider implements AIProvider {
       if (exchange.name === "search_houses" && requiresKnowledge(userText)) {
         yield { type: "tool_calls", calls: [knowledgeCall(userText)] };
         yield { type: "finish", reason: "tool_calls" };
+        return;
+      }
+      if (
+        exchange.name === "search_knowledge" &&
+        completedToolNames.has("search_houses") &&
+        completedToolNames.has("search_nearby_places")
+      ) {
+        const knowledgeSummary = summarizeTool(
+          exchange.name,
+          exchange.payload,
+          userText,
+        );
+        yield {
+          type: "text_delta",
+          delta: `房源、周边和规则三项查询已按顺序完成。${knowledgeSummary} 房源与周边结果请查看卡片。`,
+        };
+        yield { type: "finish", reason: "stop" };
         return;
       }
       yield {

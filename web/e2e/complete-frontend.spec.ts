@@ -80,7 +80,7 @@ test("chat executes the housing tool and renders typed cards", async ({
   await page.getByRole("button", { name: "发送" }).click();
   await expect(
     page.getByText(
-      "当前为确定性工具演示模式：没有调用真实千问，对话和审计不会写入云端",
+      "当前为本地确定性演示：房源、团购、商品、地图和知识均为模拟数据；未连接 Supabase、高德或千问，对话和审计不会写入云端",
     ),
   ).toBeVisible();
   await expect(page.getByText(/已从演示房源数据查询到/)).toBeVisible();
@@ -148,6 +148,25 @@ test("chat composes housing and AMap tools without inventing current availabilit
   );
   await expect(page.getByText("武林生活超市（演示）")).toBeVisible();
   await expect(page.locator("body")).toContainText("演示房源数据");
+});
+
+test("chat explains the full housing, nearby and demo-knowledge chain", async ({
+  page,
+}) => {
+  await page.goto(
+    "/xiaozhi/chat?q=找武林广场附近3500以内允许养猫且附近有超市的房子，并告诉我宠物损坏责任&debug=true",
+  );
+  await page.getByRole("button", { name: "发送" }).click();
+
+  const progress = page.getByRole("region", { name: "处理进度" });
+  await expect(progress).toContainText("正在查询房源");
+  await expect(progress).toContainText("正在查询周边地点");
+  await expect(progress).toContainText("正在检索知识依据");
+  await expect(page.getByText(/房源、周边和规则三项查询已按顺序完成/)).toBeVisible();
+  await expect(page.getByRole("region", { name: "知识引用" })).toContainText(
+    "模拟知识资料",
+  );
+  await expect(page.locator("body")).not.toContainText(/\d+\s*分钟/);
 });
 
 test("feedback and knowledge review never claim remote writes", async ({

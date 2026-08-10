@@ -16,6 +16,7 @@ import { useState, type FormEvent } from "react";
 
 import { AgentProgressList } from "@/components/chat/agent-progress-list";
 import { AgentResultCards } from "@/components/chat/agent-result-cards";
+import { KnowledgeCitationList } from "@/components/chat/knowledge-citation-list";
 import { useChatStream } from "@/components/chat/use-chat-stream";
 import { Button } from "@/components/ui/button";
 import { DemoNotice } from "@/components/ui/demo-notice";
@@ -206,6 +207,7 @@ export function ChatExperience({
         </section>
         <AgentProgressList items={progressItems} />
         <AgentResultCards cards={stream.cards} />
+        <KnowledgeCitationList citations={stream.citations} />
         {running && progressItems.length === 0 ? (
           <div
             role="status"
@@ -286,7 +288,10 @@ export function ChatExperience({
               stream.debugRuns.map((run) => (
                 <div key={run.id}>
                   <p>工具：{run.toolName}</p>
-                  <p>耗时：{run.durationMs ?? "进行中"}</p>
+                  <p>参数摘要：{JSON.stringify(run.inputSummary)}</p>
+                  <p>来源：{run.source}</p>
+                  <p>结果数：{run.resultCount}</p>
+                  <p>耗时：{run.durationMs ?? "进行中"} ms</p>
                   <p>错误码：{run.errorCode ?? "无"}</p>
                 </div>
               ))

@@ -9,6 +9,7 @@ import type {
   ProviderMessage,
   ProviderToolCall,
 } from "@/features/agent/provider";
+import { buildToolModelPayload } from "@/features/agent/result-synthesizer";
 import type { ToolExecutor } from "@/features/agent/tools/executor";
 import type {
   ToolContext,
@@ -58,11 +59,7 @@ function toolMessage(
     role: "tool",
     toolCallId: call.id,
     content: JSON.stringify({
-      ok: result.ok,
-      ...(result.data !== undefined && { data: result.data }),
-      ...(result.error && { error: result.error }),
-      source: result.source,
-      resultCount: result.resultCount,
+      ...buildToolModelPayload(call.name, result),
       ...(duplicate && { duplicate: true }),
       ...(repairAllowed !== undefined && { repairAllowed }),
     }),
@@ -347,6 +344,7 @@ export async function* runAgentToolLoop(
             completedAt: execution.completedAt,
             toolName: execution.toolName,
             inputSummary: execution.inputSummary,
+            resultCount: execution.result.resultCount,
             durationMs: execution.durationMs,
             errorCode: execution.result.error?.code ?? null,
           },

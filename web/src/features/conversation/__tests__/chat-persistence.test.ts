@@ -60,6 +60,7 @@ function repository(overrides: Partial<ConversationRepository> = {}) {
       ),
     ),
     listMessages: vi.fn(async () => [message("user", "之前的问题")]),
+    updateSummary: vi.fn(async () => {}),
     ...overrides,
   };
   return repo;
@@ -158,6 +159,40 @@ describe("chat persistence", () => {
         structuredPayload: { finishReason: "stop", cards },
       }),
     );
+  });
+
+  it("keeps recent messages intact and refreshes a redacted summary after 12 messages", async () => {
+    const history = Array.from({ length: 13 }, (_, index) =>
+      message(
+        index % 2 === 0 ? "user" : "assistant",
+        index === 0 ? "预算3500元，token=secret-value" : `第${index + 1}条消息`,
+        `72000000-0000-0000-0000-${String(index + 1).padStart(12, "0")}`,
+      ),
+    );
+    const repo = repository({
+      listMessages: vi.fn(async () => history),
+    });
+    const prepared = await createSupabaseChatPersistence({
+      repository: repo,
+      anonymousId,
+      modelName: "qwen-plus",
+    }).prepare({ message: "继续", debug: false });
+
+    expect(prepared.messages).toHaveLength(13);
+    expect(prepared.conversationSummary).toContain("预算3500元");
+    expect(prepared.conversationSummary).not.toContain("secret-value");
+
+    await prepared.persistAssistant({
+      assistantText: "请确认区域",
+      finishReason: "stop",
+    });
+    expect(repo.updateSummary).toHaveBeenCalledWith(
+      sessionId,
+      expect.stringContaining("请确认区域"),
+    );
+    expect(
+      String(vi.mocked(repo.updateSummary).mock.calls[0]?.[1]),
+    ).not.toContain("secret-value");
   });
 
   it("keeps demo persistence explicitly ephemeral", async () => {

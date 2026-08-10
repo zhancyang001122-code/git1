@@ -42,10 +42,12 @@ const citationSchema = z.object({
   effectiveFrom: z.string().nullable(),
   excerpt: z.string(),
   score: z.number().finite(),
+  isDemo: z.boolean().optional(),
 });
 const debugRunSchema = progressSchema.extend({
   toolName: z.string().min(1),
   inputSummary: z.record(z.string(), z.unknown()),
+  resultCount: z.number().int().nonnegative(),
   durationMs: z.number().int().nonnegative().nullable(),
   errorCode: z.string().nullable(),
 });

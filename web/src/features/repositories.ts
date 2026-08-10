@@ -74,6 +74,9 @@ function createReadOnlyDemoRepositories() {
     async listMessages() {
       return [];
     },
+    async updateSummary() {
+      return persistenceDisabled();
+    },
   };
   const aiOps: AIOpsRepository = {
     async recordToolRun() {

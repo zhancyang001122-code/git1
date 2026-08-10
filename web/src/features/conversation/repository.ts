@@ -27,6 +27,9 @@ const appendMessageSchema = z
 const listSchema = z
   .object({ limit: z.number().int().min(1).max(100).default(50) })
   .strict();
+const updateSummarySchema = z
+  .object({ sessionId: uuid, summary: z.string().trim().max(1_200) })
+  .strict();
 
 const sessionRowSchema = z
   .object({
@@ -102,6 +105,7 @@ export interface ConversationRepository {
     sessionId: string,
     options?: z.input<typeof listSchema>,
   ): Promise<readonly ConversationMessage[]>;
+  updateSummary(sessionId: string, summary: string): Promise<void>;
 }
 
 function invalidInput(cause: unknown): never {
@@ -250,6 +254,18 @@ export function createSupabaseConversationRepository(
         .limit(limit);
       if (result.error) queryFailed(result.error);
       return (result.data ?? []).map(mapMessage).reverse();
+    },
+
+    async updateSummary(inputSessionId, inputSummary) {
+      const value = parse(updateSummarySchema, {
+        sessionId: inputSessionId,
+        summary: inputSummary,
+      });
+      const result = await client
+        .from("conversation_sessions")
+        .update({ summary: value.summary })
+        .eq("id", value.sessionId);
+      if (result.error) queryFailed(result.error);
     },
   };
 }

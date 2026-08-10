@@ -141,4 +141,22 @@ describe("SupabaseConversationRepository", () => {
     ).rejects.toMatchObject({ code: "INVALID_CONVERSATION_INPUT" });
     expect(fake.calls).toHaveLength(0);
   });
+
+  it("updates a bounded conversation summary", async () => {
+    const fake = fakeClient({ data: null });
+
+    await createSupabaseConversationRepository(fake.client).updateSummary(
+      sessionId,
+      "用户预算 3500 元，仍需确认区域。",
+    );
+
+    expect(fake.calls).toContainEqual({
+      method: "update",
+      args: [{ summary: "用户预算 3500 元，仍需确认区域。" }],
+    });
+    expect(fake.calls).toContainEqual({
+      method: "eq",
+      args: ["id", sessionId],
+    });
+  });
 });

@@ -59,15 +59,15 @@ describe("DemoToolCallingProvider routing subset", () => {
         toolCallId: "search-1",
         content: JSON.stringify({
           ok: true,
-          data: {
-            items: [
-              {
-                id: "40000000-0000-0000-0000-000000000001",
-                name: "鲜牛奶 950ml",
-                inStock: true,
-              },
-            ],
-          },
+          itemIds: ["40000000-0000-0000-0000-000000000001"],
+          facts: [
+            {
+              kind: "product",
+              id: "40000000-0000-0000-0000-000000000001",
+              name: "鲜牛奶 950ml",
+              inStock: true,
+            },
+          ],
           resultCount: 1,
           source: "supabase_mock",
         }),

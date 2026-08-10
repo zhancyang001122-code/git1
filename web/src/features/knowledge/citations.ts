@@ -11,5 +11,6 @@ export function citationFromHit(hit: KnowledgeHit): KnowledgeCitation {
     effectiveFrom: hit.effectiveFrom,
     excerpt: hit.content.slice(0, 280),
     score: hit.score,
+    isDemo: hit.isDemo,
   };
 }
