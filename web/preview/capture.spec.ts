@@ -4,6 +4,7 @@ import path from "node:path";
 
 const outputDir = process.env.PREVIEW_DIR;
 if (!outputDir) throw new Error("PREVIEW_DIR is required");
+const demoAdminToken = "playwright-demo-admin-token-000001";
 
 const pages = [
   ["01-home", "/", "首页"],
@@ -51,7 +52,11 @@ const pages = [
   ["23-cart", "/cart", "购物车"],
   ["24-nearby", "/nearby", "周边服务"],
   ["25-knowledge-admin", "/knowledge-admin", "知识运营"],
-  ["26-knowledge-review", "/knowledge-admin/candidate-refund-001", "候选审核"],
+  [
+    "26-knowledge-review",
+    "/knowledge-admin/64000000-0000-4000-8000-000000000001",
+    "候选审核",
+  ],
 ] as const;
 
 test("capture every frontend route template", async ({ browser }) => {
@@ -62,6 +67,14 @@ test("capture every frontend route template", async ({ browser }) => {
   });
   for (const [slug, route] of pages) {
     const page = await context.newPage();
+    if (route.startsWith("/knowledge-admin")) {
+      await page.goto("/knowledge-admin/login");
+      await page.getByLabel("管理口令").fill(demoAdminToken);
+      await Promise.all([
+        page.waitForURL("**/knowledge-admin"),
+        page.getByRole("button", { name: "验证并进入" }).click(),
+      ]);
+    }
     const response = await page.goto(route, { waitUntil: "networkidle" });
     expect(response?.ok(), route).toBe(true);
     if (slug === "05-chat") {

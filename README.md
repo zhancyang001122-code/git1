@@ -1,49 +1,54 @@
-# git1｜小智本地生活 AI 服务助手
+# 小智｜本地生活 AI 服务助手
 
-这是一个面向 AI FDE / Solutions Engineer 面试的作品集项目。当前仓库已经纳入完整规格包，应用代码将在根目录的 `web/` 中逐步实现。
+面向 AI FDE / Solutions Engineer 面试的移动端 Web 作品集。产品以微信小程序式 430px 画布演示，将结构化业务查询、地图工具、可追溯 RAG、多工具编排和受控知识运营闭环组合在同一套 Agent 架构中。
 
-## 当前状态
+## 当前真实状态
 
-- 当前阶段：Task 1，建立可运行、可测试、可部署的工程基础。
-- 房源需求变更：后续接入用户已有的 2024 年真实历史房源数据，不再把房源查询统一视为 Mock。
-- 数据真实性边界：2024 年房源只能描述为历史数据，不能暗示为实时在售、实时价格或实时库存；在尚未接入前，相关页面不得伪造成功结果。
-- 团购与线上超市：在没有真实业务数据接口前继续使用显式标注的 Mock 数据。
-- 高德地图：POI、地址和路线来自外部实时 API 时，界面需要标注来源并处理超时、限流和失败状态。
+- 五个主页面、业务二级页、流式对话、工具进度、反馈与知识运营页面已经实现。
+- 当前默认运行在明确标注的 Demo 模式；房源、团购、商品、地图和知识内容均为确定性演示数据。
+- 尚未连接远程 Supabase、阿里云百炼千问或高德 Web Service，也没有用户提供的正式客服知识材料。
+- 代码已预留 Live Adapter、RLS 迁移、1024 维 RAG、超时、限流、熔断、日志脱敏和评测边界；外部配置完成前不会宣称生产可用。
+- 不创建发布标签，直到真实部署、迁移、Embedding 和线上冒烟全部通过。
 
-## 已锁定的技术方向
+## 技术栈
 
-- 运行形态：移动端 Web，小程序视觉风格
-- 前端：Next.js App Router + TypeScript + Tailwind CSS
-- 部署：Vercel，Root Directory 为 `web/`
-- 数据库：Supabase PostgreSQL
-- AI：阿里云百炼通义千问，使用 OpenAI 兼容接口与 Function Calling
-- RAG：独立 Knowledge Service；计划使用 Supabase pgvector，支持检索、引用、版本与评测
-- 地图：高德 Web 服务 API 2.0
-- 主导航：首页、推荐、小智、消息、我的
+- Next.js App Router、React、TypeScript strict、Tailwind CSS
+- Supabase PostgreSQL、RLS、pgvector
+- 百炼 OpenAI 兼容 API、Function Calling、Embedding、Rerank
+- 高德 Web Service API
+- Zod、Vitest、Testing Library、Playwright
+- pnpm、Vercel
 
-## 仓库目录
+## 快速开始
 
-- `web/`：实际应用代码（Task 1 创建）
-- `docs/`：需求、页面、架构、开发规范、配置和面试材料
-- `codex/`：分阶段实施提示
-- `contracts/`：TypeScript、API、SSE 与工具契约
-- `supabase/migrations/`：数据库迁移和演示数据
-- `design/prototypes/`：原型图与设计说明
-- `qa/`：演示脚本、评测案例和测试矩阵
-- `scripts/`：规格包辅助脚本
-- `MANIFEST.md`：原始规格包文件清单与摘要
+```powershell
+cd web
+pnpm install --frozen-lockfile
+Copy-Item .env.example .env.local
+pnpm dev
+```
 
-## 项目决策记录
+保持 `NEXT_PUBLIC_DEMO_MODE=true` 即可运行不依赖外部账号的作品集 Demo。知识管理页还需要在 `.env.local` 设置至少 32 位的 `DEMO_ADMIN_TOKEN`。
 
-- [Task 1 启动设计](docs/superpowers/specs/2026-08-10-xiaozhi-task1-start-design.md)
-- [房源 API 服务设计](docs/superpowers/specs/2026-08-10-housing-api-design.md)
-- [Git 提交与版本规范](docs/superpowers/specs/2026-08-09-git-commit-release-conventions-design.md)
+完整质量门：
 
-## 真实性与安全边界
+```powershell
+pnpm lint
+pnpm typecheck
+pnpm test
+$env:PLAYWRIGHT_PORT='3310'; pnpm test:e2e
+pnpm build
+```
 
-- 价格、库存、政策、状态、距离不得由模型编造。
-- 用户对话只能生成候选知识，不能自动进入正式知识库。
-- `SUPABASE_SERVICE_ROLE_KEY`、`DASHSCOPE_API_KEY`、`AMAP_WEB_SERVICE_KEY` 只能在服务端使用。
-- 商业 Mock 数据必须显式标注；外部实时数据必须标注来源。
+## 关键文档
 
-完整验收标准见 `docs/11-acceptance-criteria.md`。
+- [应用说明](web/README.md)
+- [三分钟演示脚本](qa/demo-script.md)
+- [部署手册](web/docs/deployment.md)
+- [故障运行手册](web/docs/runbook.md)
+- [配置与账号接入](docs/14-configuration-guide.md)
+- [验收标准](docs/11-acceptance-criteria.md)
+- [Task 10 知识闭环报告](docs/task-reports/2026-08-11-task-10-governed-knowledge-loop.md)
+- [Task 11 安全加固报告](docs/task-reports/2026-08-11-task-11-service-hardening.md)
+
+Vercel Root Directory 固定为 `web/`。
