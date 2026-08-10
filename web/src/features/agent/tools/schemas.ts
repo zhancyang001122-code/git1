@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+import {
+  nearbySearchInputSchema,
+  walkingRouteInputSchema,
+} from "@/features/maps/schemas";
+
 export const taskSixToolNames = [
   "search_houses",
   "get_house_detail",
@@ -8,6 +13,8 @@ export const taskSixToolNames = [
   "get_product_stock",
   "get_user_preferences",
   "save_user_preference",
+  "search_nearby_places",
+  "calculate_walking_route",
 ] as const;
 
 export type ToolName = (typeof taskSixToolNames)[number];
@@ -93,6 +100,8 @@ export const toolInputSchemas = {
   get_product_stock: getProductStockSchema,
   get_user_preferences: getUserPreferencesSchema,
   save_user_preference: saveUserPreferenceSchema,
+  search_nearby_places: nearbySearchInputSchema,
+  calculate_walking_route: walkingRouteInputSchema,
 } as const;
 
 export type ToolInputs = {
@@ -248,6 +257,77 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
         consent_confirmed: { type: "boolean", const: true },
       },
       required: ["key", "value", "consent_confirmed"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "search_nearby_places",
+    description:
+      "Use AMap to search real nearby POIs around a coordinate or a named center. Return source-labelled external results.",
+    strict: true,
+    parameters: {
+      type: "object",
+      properties: {
+        keyword: { type: "string", minLength: 1 },
+        city: { type: "string" },
+        center_name: { type: ["string", "null"] },
+        longitude: { type: ["number", "null"], minimum: -180, maximum: 180 },
+        latitude: { type: ["number", "null"], minimum: -90, maximum: 90 },
+        radius_m: {
+          type: "integer",
+          minimum: 100,
+          maximum: 5000,
+          default: 2000,
+        },
+        limit: { type: "integer", minimum: 1, maximum: 10, default: 5 },
+      },
+      required: [
+        "keyword",
+        "city",
+        "center_name",
+        "longitude",
+        "latitude",
+        "radius_m",
+        "limit",
+      ],
+      additionalProperties: false,
+      allOf: [
+        {
+          anyOf: [
+            { required: ["center_name"] },
+            { required: ["longitude", "latitude"] },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    name: "calculate_walking_route",
+    description:
+      "Use AMap walking route service to calculate distance and duration between two coordinate pairs.",
+    strict: true,
+    parameters: {
+      type: "object",
+      properties: {
+        origin_longitude: { type: "number", minimum: -180, maximum: 180 },
+        origin_latitude: { type: "number", minimum: -90, maximum: 90 },
+        destination_longitude: {
+          type: "number",
+          minimum: -180,
+          maximum: 180,
+        },
+        destination_latitude: {
+          type: "number",
+          minimum: -90,
+          maximum: 90,
+        },
+      },
+      required: [
+        "origin_longitude",
+        "origin_latitude",
+        "destination_longitude",
+        "destination_latitude",
+      ],
       additionalProperties: false,
     },
   },

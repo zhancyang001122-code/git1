@@ -8,6 +8,7 @@ import { createInMemoryToolAudit } from "@/features/agent/tools/audit";
 import { ToolExecutor } from "@/features/agent/tools/executor";
 import { createDemoRepository } from "@/features/business/demo-repository";
 import { createEphemeralChatPersistence } from "@/features/conversation/chat-persistence";
+import { FakeMapsService } from "@/features/maps/fake-adapter";
 
 function handler() {
   return createChatHandler(async () => ({
@@ -94,6 +95,7 @@ describe("POST /api/chat handler", () => {
         executor: new ToolExecutor(),
         context: {
           business: createDemoRepository(),
+          maps: new FakeMapsService(),
           memory: {
             getPreferences: async () => null,
             upsertPreferences: async () => {

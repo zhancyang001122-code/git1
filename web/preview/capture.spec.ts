@@ -68,6 +68,10 @@ test("capture every frontend route template", async ({ browser }) => {
       await page.getByRole("button", { name: "发送" }).click();
       await expect(page.getByText(/已从演示房源数据查询到/)).toBeVisible();
     }
+    if (slug === "24-nearby") {
+      await page.getByRole("button", { name: "使用武林广场" }).click();
+      await expect(page.getByText("武林生活超市（演示）")).toBeVisible();
+    }
     await page.screenshot({
       path: path.join(outputDir, `${slug}.png`),
       fullPage: true,

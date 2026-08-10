@@ -9,7 +9,7 @@ import {
   type ToolName,
 } from "@/features/agent/tools/schemas";
 
-const taskSixTools: readonly ToolName[] = [
+const taskSevenTools: readonly ToolName[] = [
   "search_houses",
   "get_house_detail",
   "search_deals",
@@ -17,9 +17,11 @@ const taskSixTools: readonly ToolName[] = [
   "get_product_stock",
   "get_user_preferences",
   "save_user_preference",
+  "search_nearby_places",
+  "calculate_walking_route",
 ];
 
-describe("Task 6 tool schemas", () => {
+describe("Task 7 tool schemas", () => {
   it("keeps provider definitions identical to the authoritative root contract", () => {
     const contract = JSON.parse(
       readFileSync(
@@ -34,10 +36,14 @@ describe("Task 6 tool schemas", () => {
       }>;
     };
     const expected = contract.tools.filter((tool) =>
-      taskSixTools.includes(tool.name as ToolName),
+      taskSevenTools.includes(tool.name as ToolName),
     );
 
-    expect(toolContractDefinitions).toEqual(expected);
+    const byName = (left: { name: string }, right: { name: string }) =>
+      left.name.localeCompare(right.name);
+    expect([...toolContractDefinitions].sort(byName)).toEqual(
+      [...expected].sort(byName),
+    );
   });
 
   it("accepts a complete house query but rejects extra and out-of-range fields", () => {

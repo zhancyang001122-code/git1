@@ -117,6 +117,37 @@ test("chat resolves exact demo stock without exposing internal tool names", asyn
   await expect(page.locator("body")).not.toContainText("get_product_stock");
 });
 
+test("nearby search and walking route stay explicitly labelled in demo mode", async ({
+  page,
+}) => {
+  await page.goto("/nearby");
+  await expect(
+    page.getByRole("heading", { name: "选择定位方式" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "使用武林广场" }).click();
+  await expect(page.getByText("武林生活超市（演示）")).toBeVisible();
+  await expect(page.getByText("接口演示数据", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "计算步行路线" }).click();
+  await expect(page.getByRole("button", { name: /步行 \d+ 米/ })).toBeVisible();
+});
+
+test("chat composes housing and AMap tools without inventing current availability", async ({
+  page,
+}) => {
+  await page.goto(
+    "/xiaozhi/chat?q=找武林广场附近3500元以内允许养猫的一居室&debug=true",
+  );
+  await page.getByRole("button", { name: "发送" }).click();
+  await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
+    "正在查询房源",
+  );
+  await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
+    "正在查询周边地点",
+  );
+  await expect(page.getByText("武林生活超市（演示）")).toBeVisible();
+  await expect(page.locator("body")).toContainText("演示房源数据");
+});
+
 test("feedback and knowledge review never claim remote writes", async ({
   page,
 }) => {

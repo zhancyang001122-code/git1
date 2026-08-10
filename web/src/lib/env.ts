@@ -33,6 +33,17 @@ const integerFromString = (
     return value;
   }, z.number().int().min(minimum).max(maximum));
 
+const numberFromString = (
+  defaultValue: number,
+  minimum: number,
+  maximum: number,
+) =>
+  z.preprocess((value) => {
+    if (value === undefined || value === "") return defaultValue;
+    if (typeof value === "string" && value.trim() !== "") return Number(value);
+    return value;
+  }, z.number().finite().min(minimum).max(maximum));
+
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_APP_NAME: z.string().min(1).default("小智"),
   NEXT_PUBLIC_APP_DESCRIPTION: z
@@ -45,6 +56,8 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_DEMO_MODE: stringBoolean(true),
   NEXT_PUBLIC_DEFAULT_CITY: z.string().min(1).default("杭州"),
   NEXT_PUBLIC_DEFAULT_LOCATION_NAME: z.string().min(1).default("武林广场"),
+  NEXT_PUBLIC_DEFAULT_LONGITUDE: numberFromString(120.163102, -180, 180),
+  NEXT_PUBLIC_DEFAULT_LATITUDE: numberFromString(30.274085, -90, 90),
 });
 
 const serverEnvSchema = z.object({

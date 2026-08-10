@@ -47,6 +47,16 @@ const productSchema = z.object({
   isDemo: z.boolean(),
 });
 
+const placeSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  address: z.string(),
+  category: z.string(),
+  distanceM: z.number().nonnegative(),
+  source: z.literal("amap"),
+  isDemo: z.boolean(),
+});
+
 function HouseResult({ data }: { data: z.infer<typeof houseSchema> }) {
   return (
     <Link
@@ -154,6 +164,32 @@ function ProductResult({ data }: { data: z.infer<typeof productSchema> }) {
   );
 }
 
+function PlaceResult({ data }: { data: z.infer<typeof placeSchema> }) {
+  return (
+    <article className="rounded-card border border-border bg-surface p-4 shadow-card">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <Tag>{data.category}</Tag>
+          <h3 className="mt-2 text-base font-semibold text-text">
+            {data.name}
+          </h3>
+        </div>
+        <strong className="shrink-0 text-sm text-brand">
+          {data.distanceM} 米
+        </strong>
+      </div>
+      <p className="mt-2 flex items-center gap-1 text-xs text-text-muted">
+        <MapPin aria-hidden="true" className="size-3.5 shrink-0" />
+        <span>{data.address}</span>
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <SourceBadge source="amap" />
+        {data.isDemo ? <Tag>接口演示数据</Tag> : null}
+      </div>
+    </article>
+  );
+}
+
 export function AgentResultCards({ cards }: { cards: readonly ResultCard[] }) {
   const content = cards.flatMap((card, index) => {
     if (card.kind === "house") {
@@ -177,6 +213,12 @@ export function AgentResultCards({ cards }: { cards: readonly ResultCard[] }) {
               data={parsed.data}
             />,
           ]
+        : [];
+    }
+    if (card.kind === "place") {
+      const parsed = placeSchema.safeParse(card.data);
+      return parsed.success
+        ? [<PlaceResult key={`place-${parsed.data.id}`} data={parsed.data} />]
         : [];
     }
     return [];

@@ -12,7 +12,6 @@ const businessPages = [
   "market/page.tsx",
   "market/stores/[id]/page.tsx",
   "market/products/[id]/page.tsx",
-  "nearby/page.tsx",
   "discover/page.tsx",
   "discover/[id]/page.tsx",
   "cart/page.tsx",
@@ -31,4 +30,14 @@ describe("business page data boundaries", () => {
       );
     },
   );
+});
+
+describe("map page data boundaries", () => {
+  it("nearby/page.tsx uses validated public defaults and never exposes the AMap key", async () => {
+    const source = await readFile(`${appDirectory}/nearby/page.tsx`, "utf8");
+
+    expect(source).toContain("publicEnv");
+    expect(source).not.toContain("AMAP_WEB_SERVICE_KEY");
+    expect(source).not.toContain("createDemoRepository");
+  });
 });

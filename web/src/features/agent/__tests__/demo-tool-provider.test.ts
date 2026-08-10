@@ -176,7 +176,50 @@ describe("DemoToolCallingProvider routing subset", () => {
       ...toolMessages,
     ]);
 
-    expect(JSON.stringify(nearby)).toContain("周边条件尚未通过高德核验");
+    expect(firstCall(nearby)).toMatchObject({ name: "search_nearby_places" });
     expect(JSON.stringify(plain)).not.toContain("周边条件尚未通过高德核验");
+  });
+
+  it("routes a direct nearby request to AMap instead of the demo product repository", async () => {
+    const values = await events([
+      { role: "user", content: "帮我找武林广场附近的超市" },
+    ]);
+    const routed = firstCall(values);
+
+    expect(routed?.name).toBe("search_nearby_places");
+    expect(JSON.parse(routed?.arguments ?? "{}")).toMatchObject({
+      keyword: "超市",
+      city: "杭州",
+      center_name: "武林广场",
+      longitude: null,
+      latitude: null,
+    });
+  });
+
+  it("summarizes map failures as unverified instead of estimating distance", async () => {
+    const values = await events([
+      { role: "user", content: "找武林广场附近3500以内的房子" },
+      {
+        role: "assistant",
+        content: "",
+        toolCalls: [
+          { id: "map-1", name: "search_nearby_places", arguments: "{}" },
+        ],
+      },
+      {
+        role: "tool",
+        toolCallId: "map-1",
+        content: JSON.stringify({
+          ok: false,
+          error: { code: "AMAP_TIMEOUT", message: "高德地图响应超时" },
+          resultCount: 0,
+          source: "amap",
+        }),
+      },
+    ]);
+
+    const serialized = JSON.stringify(values);
+    expect(serialized).toContain("周边条件尚未通过高德核验");
+    expect(serialized).not.toContain("约500米");
   });
 });

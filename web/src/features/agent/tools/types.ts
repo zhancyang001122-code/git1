@@ -4,9 +4,10 @@ import type { ResultCard } from "@/features/agent/chat-events";
 import type { ToolContractDefinition } from "@/features/agent/tools/schemas";
 import type { BusinessRepository } from "@/features/business/repository";
 import type { MemoryRepository } from "@/features/memory/repository";
+import type { MapsService } from "@/features/maps/types";
 
 export type ToolSource =
-  "housing_history_2024" | "supabase_mock" | "user_memory";
+  "housing_history_2024" | "supabase_mock" | "amap" | "user_memory";
 
 export type ToolRunStatus =
   "queued" | "running" | "succeeded" | "failed" | "timed_out";
@@ -48,6 +49,7 @@ export interface ToolAuditSink {
 
 export interface ToolContext {
   business: BusinessRepository;
+  maps: MapsService;
   memory: MemoryRepository;
   audit: ToolAuditSink;
   businessSource: "housing_history_2024" | "supabase_mock";

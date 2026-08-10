@@ -99,7 +99,7 @@ describe("agent tool loop", () => {
       cardEvent?.type === "result_cards" &&
         cardEvent.cards.every((card) => card.kind === "house"),
     ).toBe(true);
-    expect(provider.turns[0]?.tools).toHaveLength(7);
+    expect(provider.turns[0]?.tools).toHaveLength(9);
     expect(provider.turns[1]?.messages.at(-2)).toMatchObject({
       role: "assistant",
       toolCalls: [{ id: "call-house", name: "search_houses" }],

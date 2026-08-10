@@ -67,4 +67,29 @@ describe("AgentResultCards", () => {
     expect(screen.getByText("演示有货")).toBeInTheDocument();
     expect(screen.getByText("演示库存 19")).toBeInTheDocument();
   });
+
+  it("shows AMap place distance while keeping fixture status visible", () => {
+    render(
+      <AgentResultCards
+        cards={[
+          {
+            kind: "place",
+            data: {
+              id: "amap-demo-market-1",
+              name: "武林生活超市（演示）",
+              address: "体育场路演示地址 1 号",
+              category: "购物服务",
+              distanceM: 180,
+              source: "amap",
+              isDemo: true,
+            },
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("180 米")).toBeInTheDocument();
+    expect(screen.getByText("高德地图")).toBeInTheDocument();
+    expect(screen.getByText("接口演示数据")).toBeInTheDocument();
+  });
 });

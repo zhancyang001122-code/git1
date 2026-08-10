@@ -81,6 +81,31 @@ function productQuery(text: string): string | null {
   );
 }
 
+function nearbyKeyword(text: string): string {
+  return (
+    ["超市", "便利店", "咖啡", "餐饮", "医院", "地铁站", "公园"].find(
+      (keyword) => text.includes(keyword),
+    ) ?? "生活服务"
+  );
+}
+
+function hasNamedMapCenter(text: string): boolean {
+  return /武林广场|绍兴/.test(text);
+}
+
+function nearbyCall(text: string): ProviderToolCall {
+  const namedCenter = text.includes("绍兴") ? "绍兴市政府" : "武林广场";
+  return call("search_nearby_places", {
+    keyword: nearbyKeyword(text),
+    city: text.includes("绍兴") ? "绍兴" : "杭州",
+    center_name: namedCenter,
+    longitude: null,
+    latitude: null,
+    radius_m: 2000,
+    limit: 5,
+  });
+}
+
 function call(name: string, args: Record<string, unknown>): ProviderToolCall {
   return {
     id: crypto.randomUUID(),
@@ -106,6 +131,13 @@ function route(text: string): ProviderToolCall | null {
   }
   if (/(?:我的|读取|查看).*(?:偏好|预算)/.test(text)) {
     return call("get_user_preferences", { scope: "housing" });
+  }
+  if (
+    /(?:附近|周边)/.test(text) &&
+    hasNamedMapCenter(text) &&
+    !/(?:房|租房|一居室|两居室|开间|合租)/.test(text)
+  ) {
+    return nearbyCall(text);
   }
   if (/(?:房|租房|一居室|两居室|开间|合租)/.test(text)) {
     const maximum = amount(text);
@@ -181,6 +213,8 @@ function summarizeTool(
   if (!payload.ok) {
     if (payload.error?.code === "USER_AUTH_REQUIRED")
       return "长期偏好没有保存：请先登录，再明确确认要长期记住该偏好。";
+    if (name === "search_nearby_places" || name === "calculate_walking_route")
+      return `${payload.error?.message ?? "地图查询失败"}，本次周边条件尚未通过高德核验；我不会估算距离或路线。`;
     return payload.error?.message ?? "本次工具查询失败，请稍后重试。";
   }
   if ((payload.resultCount ?? 0) === 0)
@@ -204,6 +238,15 @@ function summarizeTool(
   if (name === "get_user_preferences") return "已读取你明确授权的长期偏好。";
   if (name === "save_user_preference")
     return "已保存你刚才明确确认的长期偏好。";
+  if (name === "search_nearby_places") {
+    const demo = JSON.stringify(payload.data).includes('"isDemo":true');
+    const housingNotice = /(?:房|租房|一居室|两居室|开间|合租)/.test(userText)
+      ? " 房源卡是演示房源数据，不代表当前可租。"
+      : "";
+    return `已查询到 ${payload.resultCount} 个周边地点，请查看结果卡。${demo ? " 当前为明确标注的高德接口演示数据。" : " 地点与距离来自高德地图工具。"}${housingNotice}`;
+  }
+  if (name === "calculate_walking_route")
+    return "步行距离和耗时已由高德地图工具计算，请查看路线结果。";
   return "工具查询已完成。";
 }
 
@@ -213,7 +256,7 @@ function directReply(text: string): string {
   if (requiresKnowledge(text))
     return "这个问题需要正式知识库依据。当前阶段尚未接入知识检索，所以我不能给出确定结论。";
   if (/(?:附近|路线|距离|步行)/.test(text))
-    return "附近地点、距离和路线必须由高德工具核验；当前阶段尚未接入，不能估算精确结果。";
+    return "请先告诉我要以哪个地点为中心；也可以在“周边服务”页主动授权定位。拿到中心点后，我会用高德工具核验地点、距离和路线。";
   if (/(?:记住|以后都).*(?:预算|租金)/.test(text))
     return "请告诉我需要记住的具体预算金额，并明确确认是否长期保存。";
   return "当前演示路由支持结构化查询房源、团购、商品和库存；地图与正式知识库将在后续阶段接入。";
@@ -229,6 +272,17 @@ export class DemoToolCallingProvider implements AIProvider {
     const exchange = latestToolExchange(input.messages);
 
     if (exchange) {
+      if (
+        exchange.name === "search_houses" &&
+        /(?:附近|周边|路线|距离|步行)/.test(userText) &&
+        hasNamedMapCenter(userText) &&
+        exchange.payload.ok &&
+        (exchange.payload.resultCount ?? 0) > 0
+      ) {
+        yield { type: "tool_calls", calls: [nearbyCall(userText)] };
+        yield { type: "finish", reason: "tool_calls" };
+        return;
+      }
       if (
         exchange.name === "search_products" &&
         /(?:库存|还有|有货)/.test(userText) &&

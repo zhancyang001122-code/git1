@@ -8,12 +8,15 @@ import { DemoToolCallingProvider } from "@/features/agent/demo-tool-provider";
 import { runAgentToolLoop } from "@/features/agent/tool-loop";
 import { ToolExecutor } from "@/features/agent/tools/executor";
 import { createDemoRepository } from "@/features/business/demo-repository";
+import type { MapsService } from "@/features/maps/types";
+import { AppError } from "@/lib/errors";
 
 import { createToolTestContext } from "../../agent/tools/__tests__/helpers";
 
 interface EvaluationCase {
   id: string;
   input: string;
+  fault?: { service: string; mode: string };
   expected: {
     requiredTools?: string[];
     forbiddenTools?: string[];
@@ -47,14 +50,33 @@ const selectedIds = [
   "degradation-amap-001",
 ] as const;
 
-async function run(input: string) {
+function timedOutMaps(): MapsService {
+  const timeout = async (): Promise<never> => {
+    throw new AppError({
+      code: "AMAP_TIMEOUT",
+      message: "高德地图响应超时",
+      retryable: true,
+    });
+  };
+  return {
+    convertGps: timeout,
+    geocode: timeout,
+    searchNearby: timeout,
+    walkingRoute: timeout,
+  };
+}
+
+async function run(evaluation: EvaluationCase) {
   const events: ChatStreamEvent[] = [];
   for await (const event of runAgentToolLoop({
     provider: new DemoToolCallingProvider(),
-    messages: [{ role: "user", content: input }],
+    messages: [{ role: "user", content: evaluation.input }],
     signal: new AbortController().signal,
     executor: new ToolExecutor(),
-    toolContext: createToolTestContext({ business: createDemoRepository() }),
+    toolContext: createToolTestContext({
+      business: createDemoRepository(),
+      ...(evaluation.fault?.service === "amap" && { maps: timedOutMaps() }),
+    }),
     debug: true,
   })) {
     events.push(event);
@@ -68,7 +90,7 @@ describe("Task 6 routing evaluation subset", () => {
     if (!evaluation) throw new Error(`Missing evaluation case: ${id}`);
 
     it(id, async () => {
-      const events = await run(evaluation.input);
+      const events = await run(evaluation);
       const tools = events.flatMap((event) =>
         event.type === "debug_tool_run" ? [event.run.toolName] : [],
       );

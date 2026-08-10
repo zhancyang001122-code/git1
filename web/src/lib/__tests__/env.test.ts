@@ -11,6 +11,17 @@ describe("environment contract", () => {
     const value = parsePublicEnv({ NEXT_PUBLIC_DEMO_MODE: "true" });
 
     expect(value.NEXT_PUBLIC_DEMO_MODE).toBe(true);
+    expect(value.NEXT_PUBLIC_DEFAULT_LONGITUDE).toBe(120.163102);
+    expect(value.NEXT_PUBLIC_DEFAULT_LATITUDE).toBe(30.274085);
+  });
+
+  it("validates public fallback coordinates", () => {
+    expect(() =>
+      parsePublicEnv({ NEXT_PUBLIC_DEFAULT_LONGITUDE: "181" }),
+    ).toThrow();
+    expect(() =>
+      parsePublicEnv({ NEXT_PUBLIC_DEFAULT_LATITUDE: "north" }),
+    ).toThrow();
   });
 
   it("rejects malformed public URLs", () => {

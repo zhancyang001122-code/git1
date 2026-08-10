@@ -4,6 +4,7 @@ import type { ToolAuditSink, ToolSource } from "@/features/agent/tools/types";
 const sourceLabels: Record<ToolSource, string> = {
   housing_history_2024: "2024 历史房源数据",
   supabase_mock: "演示业务数据",
+  amap: "高德地图",
   user_memory: "用户授权偏好",
 };
 

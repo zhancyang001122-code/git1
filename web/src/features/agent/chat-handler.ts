@@ -30,6 +30,7 @@ import {
 } from "@/features/conversation/chat-persistence";
 import { createSupabaseConversationRepository } from "@/features/conversation/repository";
 import { createRepositories } from "@/features/repositories";
+import { createMapsRuntime } from "@/features/maps/runtime";
 import { AppError, toPublicError } from "@/lib/errors";
 import { parsePublicEnv, parseServerEnv } from "@/lib/env";
 
@@ -86,6 +87,7 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
 
   if (publicConfiguration.NEXT_PUBLIC_DEMO_MODE) {
     const repositories = await createRepositories({ environment: process.env });
+    const maps = createMapsRuntime(process.env);
     return {
       provider: new DemoToolCallingProvider(),
       persistence: createEphemeralChatPersistence(),
@@ -101,6 +103,7 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
         }),
         context: {
           business: repositories.business,
+          maps: maps.service,
           memory: repositories.memory,
           audit: createInMemoryToolAudit(),
           businessSource: "supabase_mock",
@@ -166,6 +169,7 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
   const serverClient = await createServerSupabaseClient();
   const repository = createSupabaseConversationRepository(adminClient);
   const repositories = await createRepositories({ serverClient, adminClient });
+  const maps = createMapsRuntime(process.env);
   const authenticated = await serverClient.auth.getUser();
   return {
     provider: createQwenProvider(),
@@ -181,6 +185,7 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
       }),
       context: {
         business: repositories.business,
+        maps: maps.service,
         memory: repositories.memory,
         audit: createAIOpsToolAudit(repositories.aiOps),
         businessSource:
