@@ -50,6 +50,7 @@ pnpm build
 - [部署手册](web/docs/deployment.md)
 - [故障运行手册](web/docs/runbook.md)
 - [配置与账号接入](docs/14-configuration-guide.md)
+- [知识库材料准备清单](docs/15-knowledge-material-intake.md)
 - [验收标准](docs/11-acceptance-criteria.md)
 - [Task 10 知识闭环报告](docs/task-reports/2026-08-11-task-10-governed-knowledge-loop.md)
 - [Task 11 安全加固报告](docs/task-reports/2026-08-11-task-11-service-hardening.md)
