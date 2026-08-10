@@ -14,6 +14,7 @@ describe("GET /api/health", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("x-request-id")).toMatch(/^[0-9a-f-]{36}$/);
     expect(body).toEqual({
       app: "xiaozhi",
       mode: "demo",

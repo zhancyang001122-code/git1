@@ -6,6 +6,7 @@ import type {
   WalkingRouteResult,
 } from "@/features/maps/types";
 import { AppError, toPublicError } from "@/lib/errors";
+import { requestIdFor } from "@/lib/request-id";
 
 type MapsRuntimeFactory = () => Promise<MapsRuntime> | MapsRuntime;
 
@@ -22,7 +23,7 @@ export function createNearbyMapsHandler(
   runtimeFactory: MapsRuntimeFactory = createMapsRuntime,
 ) {
   return async function POST(request: Request): Promise<Response> {
-    const requestId = crypto.randomUUID();
+    const requestId = requestIdFor(request);
     let body: unknown;
     try {
       body = await request.json();
@@ -79,14 +80,17 @@ export function createNearbyMapsHandler(
           request.signal,
         );
       }
-      return Response.json({
-        data,
-        ...(center !== undefined && { center }),
-        mode: runtime.mode,
-        ...(runtime.mode === "demo" && {
-          warning: "当前为高德接口演示数据，未发起实时调用",
-        }),
-      });
+      return Response.json(
+        {
+          data,
+          ...(center !== undefined && { center }),
+          mode: runtime.mode,
+          ...(runtime.mode === "demo" && {
+            warning: "当前为高德接口演示数据，未发起实时调用",
+          }),
+        },
+        { headers: { "x-request-id": requestId } },
+      );
     } catch (error) {
       return errorResponse(error, requestId);
     }

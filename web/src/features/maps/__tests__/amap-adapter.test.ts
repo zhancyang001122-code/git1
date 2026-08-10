@@ -120,4 +120,17 @@ describe("AmapAdapter", () => {
       code: "AMAP_TIMEOUT",
     } satisfies Partial<AppError>);
   });
+
+  it("retries one transient GET failure and then returns the result", async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockRejectedValueOnce(new Error("temporary network error"))
+      .mockResolvedValueOnce(response(geocodeSuccess));
+    const adapter = new AmapAdapter({ key: "server-key", fetcher });
+
+    await expect(
+      adapter.geocode({ address: "武林广场", city: "杭州" }),
+    ).resolves.toMatchObject({ longitude: 120.163102, latitude: 30.274085 });
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
 });

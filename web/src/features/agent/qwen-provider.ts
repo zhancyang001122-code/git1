@@ -13,6 +13,12 @@ import type {
 } from "@/features/agent/provider";
 import { AppError } from "@/lib/errors";
 import { serverEnv } from "@/lib/env";
+import { createCircuitBreaker, type CircuitBreaker } from "@/lib/resilience";
+
+const sharedQwenCircuitBreaker = createCircuitBreaker({
+  failureThreshold: 3,
+  cooldownMs: 30_000,
+});
 
 const chunkSchema = z.object({
   choices: z.array(
@@ -62,6 +68,7 @@ export type QwenStreamFactory = (
 interface QwenProviderOptions {
   model: string;
   streamFactory: QwenStreamFactory;
+  circuitBreaker?: CircuitBreaker;
 }
 
 interface ToolCallAccumulator {
@@ -120,7 +127,11 @@ function normalizedError(error: unknown, signal: AbortSignal): AppError {
 }
 
 export class QwenProvider implements AIProvider {
-  constructor(private readonly options: QwenProviderOptions) {}
+  private readonly circuitBreaker: CircuitBreaker;
+
+  constructor(private readonly options: QwenProviderOptions) {
+    this.circuitBreaker = options.circuitBreaker ?? sharedQwenCircuitBreaker;
+  }
 
   async *streamTurn(
     input: ProviderTurnInput,
@@ -147,7 +158,13 @@ export class QwenProvider implements AIProvider {
 
     try {
       signal.throwIfAborted();
-      const stream = await this.options.streamFactory(request, signal);
+      const stream = await this.circuitBreaker.execute(async () => {
+        try {
+          return await this.options.streamFactory(request, signal);
+        } catch (error) {
+          throw normalizedError(error, signal);
+        }
+      });
       for await (const rawChunk of stream) {
         signal.throwIfAborted();
         const parsed = chunkSchema.safeParse(rawChunk);
@@ -197,8 +214,7 @@ export class QwenProvider implements AIProvider {
         }
       }
     } catch (error) {
-      if (error instanceof AppError && error.code === "QWEN_RESPONSE_INVALID")
-        throw error;
+      if (error instanceof AppError) throw error;
       throw normalizedError(error, signal);
     }
   }

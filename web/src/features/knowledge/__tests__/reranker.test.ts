@@ -47,4 +47,23 @@ describe("QwenReranker", () => {
       code: "RERANK_INVALID_RESPONSE",
     });
   });
+
+  it("retries one transient rerank failure", async () => {
+    const post = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("temporary"))
+      .mockResolvedValueOnce({
+        results: [{ index: 0, relevance_score: 0.8 }],
+      });
+    const reranker = new QwenReranker({
+      client: { post },
+      model: "qwen3-rerank",
+      retryJitterMs: () => 0,
+    });
+
+    await expect(reranker.rerank("退款", ["规则"])).resolves.toEqual([
+      { index: 0, score: 0.8 },
+    ]);
+    expect(post).toHaveBeenCalledTimes(2);
+  });
 });

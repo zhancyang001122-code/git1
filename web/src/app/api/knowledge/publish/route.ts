@@ -6,16 +6,31 @@ import { createKnowledgeOpsRuntime } from "@/features/knowledge-ops/runtime";
 import type { KnowledgeOpsRuntime } from "@/features/knowledge-ops/runtime";
 import { publishInputSchema } from "@/features/knowledge-ops/schemas";
 import { AppError } from "@/lib/errors";
+import { requestIdFor } from "@/lib/request-id";
+import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
+import {
+  createFixedWindowRateLimiter,
+  requestClientKey,
+} from "@/lib/rate-limit";
+
+const publishRateLimiter = createFixedWindowRateLimiter({
+  limit: 20,
+  windowMs: 60_000,
+});
 
 export function createKnowledgePublishHandler(
   runtimeFactory: () => Promise<KnowledgeOpsRuntime> = createKnowledgeOpsRuntime,
 ) {
   return async function POST(request: Request): Promise<Response> {
-    const requestId = crypto.randomUUID();
+    const requestId = requestIdFor(request);
     try {
+      const rateLimit = publishRateLimiter.check(requestClientKey(request));
+      if (!rateLimit.allowed) return rateLimitResponse(rateLimit, requestId);
       const runtime = await runtimeFactory();
       requireKnowledgeAdmin(request, runtime);
-      const parsed = publishInputSchema.safeParse(await request.json());
+      const parsed = publishInputSchema.safeParse(
+        await readJsonWithLimit(request, 4_096),
+      );
       if (!parsed.success) {
         throw new AppError({
           code: "KNOWLEDGE_PUBLISH_INPUT_INVALID",

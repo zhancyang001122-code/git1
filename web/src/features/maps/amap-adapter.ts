@@ -13,6 +13,16 @@ import type {
   WalkingRouteResult,
 } from "@/features/maps/types";
 import { AppError } from "@/lib/errors";
+import {
+  createCircuitBreaker,
+  retryTransient,
+  type CircuitBreaker,
+} from "@/lib/resilience";
+
+const sharedAmapCircuitBreaker = createCircuitBreaker({
+  failureThreshold: 3,
+  cooldownMs: 30_000,
+});
 
 const envelopeSchema = z.object({
   status: z.string(),
@@ -73,6 +83,7 @@ interface AmapAdapterOptions {
   baseUrl?: string;
   timeoutMs?: number;
   fetcher?: typeof fetch;
+  circuitBreaker?: CircuitBreaker;
 }
 
 function serviceError(infocode: string): AppError {
@@ -116,6 +127,7 @@ export class AmapAdapter implements MapsService {
   private readonly baseUrl: string;
   private readonly timeoutMs: number;
   private readonly fetcher: typeof fetch;
+  private readonly circuitBreaker: CircuitBreaker;
 
   constructor(options: AmapAdapterOptions) {
     if (!options.key.trim()) {
@@ -129,6 +141,7 @@ export class AmapAdapter implements MapsService {
     this.baseUrl = options.baseUrl ?? "https://restapi.amap.com";
     this.timeoutMs = options.timeoutMs ?? 8_000;
     this.fetcher = options.fetcher ?? fetch;
+    this.circuitBreaker = options.circuitBreaker ?? sharedAmapCircuitBreaker;
   }
 
   private async request(
@@ -148,14 +161,39 @@ export class AmapAdapter implements MapsService {
     const url = new URL(path, this.baseUrl);
     url.search = params.toString();
     try {
-      const response = await this.fetcher(url, {
-        method: "GET",
-        signal: controller.signal,
-        headers: { accept: "application/json" },
-        cache: "no-store",
-      });
-      if (!response.ok) throw serviceError(String(response.status));
-      return await response.json();
+      return await this.circuitBreaker.execute(() =>
+        retryTransient(
+          async () => {
+            try {
+              const response = await this.fetcher(url, {
+                method: "GET",
+                signal: controller.signal,
+                headers: { accept: "application/json" },
+                cache: "no-store",
+              });
+              if (!response.ok) throw serviceError(String(response.status));
+              return await response.json();
+            } catch (error) {
+              if (error instanceof AppError) throw error;
+              if (controller.signal.aborted) {
+                throw new AppError({
+                  code: "AMAP_ABORTED",
+                  message: "高德地图请求已取消",
+                  cause: error,
+                });
+              }
+              throw new AppError({
+                code: "AMAP_INVALID_RESPONSE",
+                message: "高德地图服务暂时不可用",
+                status: 502,
+                retryable: true,
+                cause: error,
+              });
+            }
+          },
+          { retries: 1 },
+        ),
+      );
     } catch (error) {
       if (signal?.aborted) throw error;
       if (timedOut) {

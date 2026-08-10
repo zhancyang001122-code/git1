@@ -5,6 +5,17 @@ import { createDemoKnowledgeOpsService } from "@/features/knowledge-ops/demo-sto
 import type { CandidateInput } from "@/features/knowledge-ops/schemas";
 import { AppError, toPublicError } from "@/lib/errors";
 import { parsePublicEnv } from "@/lib/env";
+import { requestIdFor } from "@/lib/request-id";
+import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
+import {
+  createFixedWindowRateLimiter,
+  requestClientKey,
+} from "@/lib/rate-limit";
+
+const feedbackRateLimiter = createFixedWindowRateLimiter({
+  limit: 30,
+  windowMs: 60_000,
+});
 
 const feedbackRequestSchema = z
   .object({
@@ -131,9 +142,13 @@ export function createFeedbackHandler(
   runtimeFactory: () => Promise<FeedbackRuntime> = defaultRuntime,
 ) {
   return async function POST(request: Request): Promise<Response> {
-    const requestId = crypto.randomUUID();
+    const requestId = requestIdFor(request);
     try {
-      const parsed = feedbackRequestSchema.safeParse(await request.json());
+      const rateLimit = feedbackRateLimiter.check(requestClientKey(request));
+      if (!rateLimit.allowed) return rateLimitResponse(rateLimit, requestId);
+      const parsed = feedbackRequestSchema.safeParse(
+        await readJsonWithLimit(request, 8_192),
+      );
       if (!parsed.success) {
         throw new AppError({
           code: "FEEDBACK_INPUT_INVALID",

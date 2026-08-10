@@ -6,12 +6,13 @@ import { createKnowledgeOpsRuntime } from "@/features/knowledge-ops/runtime";
 import type { KnowledgeOpsRuntime } from "@/features/knowledge-ops/runtime";
 import { rollbackInputSchema } from "@/features/knowledge-ops/schemas";
 import { AppError } from "@/lib/errors";
+import { requestIdFor } from "@/lib/request-id";
 
 export function createKnowledgeRollbackHandler(
   runtimeFactory: () => Promise<KnowledgeOpsRuntime> = createKnowledgeOpsRuntime,
 ) {
   return async function POST(request: Request): Promise<Response> {
-    const requestId = crypto.randomUUID();
+    const requestId = requestIdFor(request);
     try {
       const runtime = await runtimeFactory();
       requireKnowledgeAdmin(request, runtime);

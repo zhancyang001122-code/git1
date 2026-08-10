@@ -4,6 +4,7 @@ import { knowledgeDomains } from "@/features/knowledge/types";
 import type { KnowledgeService } from "@/features/knowledge/types";
 import { createRequestKnowledgeService } from "@/features/knowledge/runtime";
 import { AppError, toPublicError } from "@/lib/errors";
+import { requestIdFor } from "@/lib/request-id";
 
 const requestSchema = z
   .object({
@@ -32,7 +33,7 @@ export function createKnowledgeSearchHandler(
   runtimeFactory: RuntimeFactory = () => createRequestKnowledgeService(),
 ) {
   return async function POST(request: Request): Promise<Response> {
-    const requestId = crypto.randomUUID();
+    const requestId = requestIdFor(request);
     try {
       const body = requestSchema.safeParse(await request.json());
       if (!body.success) {

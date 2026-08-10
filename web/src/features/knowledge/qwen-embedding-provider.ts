@@ -4,6 +4,16 @@ import { z } from "zod";
 
 import type { EmbeddingProvider } from "@/features/knowledge/types";
 import { AppError } from "@/lib/errors";
+import {
+  createCircuitBreaker,
+  retryTransient,
+  type CircuitBreaker,
+} from "@/lib/resilience";
+
+const sharedEmbeddingCircuitBreaker = createCircuitBreaker({
+  failureThreshold: 3,
+  cooldownMs: 30_000,
+});
 
 export interface EmbeddingClient {
   embeddings: {
@@ -23,6 +33,8 @@ export interface QwenEmbeddingProviderOptions {
   client: EmbeddingClient;
   model: string;
   dimensions: number;
+  circuitBreaker?: CircuitBreaker;
+  retryJitterMs?: () => number;
 }
 
 const responseSchema = z.object({
@@ -38,11 +50,16 @@ export class QwenEmbeddingProvider implements EmbeddingProvider {
   private readonly client: EmbeddingClient;
   private readonly model: string;
   private readonly dimensions: number;
+  private readonly circuitBreaker: CircuitBreaker;
+  private readonly retryJitterMs?: () => number;
 
   constructor(options: QwenEmbeddingProviderOptions) {
     this.client = options.client;
     this.model = options.model;
     this.dimensions = options.dimensions;
+    this.circuitBreaker =
+      options.circuitBreaker ?? sharedEmbeddingCircuitBreaker;
+    this.retryJitterMs = options.retryJitterMs;
   }
 
   async embed(
@@ -55,14 +72,33 @@ export class QwenEmbeddingProvider implements EmbeddingProvider {
       for (let offset = 0; offset < texts.length; offset += 10) {
         signal?.throwIfAborted();
         const batch = texts.slice(offset, offset + 10);
-        const raw = await this.client.embeddings.create(
-          {
-            model: this.model,
-            input: [...batch],
-            dimensions: this.dimensions,
-            encoding_format: "float",
-          },
-          { signal },
+        const raw = await this.circuitBreaker.execute(() =>
+          retryTransient(
+            async () => {
+              try {
+                return await this.client.embeddings.create(
+                  {
+                    model: this.model,
+                    input: [...batch],
+                    dimensions: this.dimensions,
+                    encoding_format: "float",
+                  },
+                  { signal },
+                );
+              } catch (error) {
+                throw new AppError({
+                  code: "EMBEDDING_FAILED",
+                  message: "Embedding 服务暂时不可用",
+                  retryable: true,
+                  cause: error,
+                });
+              }
+            },
+            {
+              retries: 1,
+              ...(this.retryJitterMs && { jitterMs: this.retryJitterMs }),
+            },
+          ),
         );
         const parsed = responseSchema.safeParse(raw);
         if (!parsed.success || parsed.data.data.length !== batch.length) {

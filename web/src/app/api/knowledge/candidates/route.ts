@@ -11,6 +11,7 @@ import {
   reviewInputSchema,
 } from "@/features/knowledge-ops/schemas";
 import { AppError } from "@/lib/errors";
+import { requestIdFor } from "@/lib/request-id";
 
 const actionSchema = z.discriminatedUnion("action", [
   z
@@ -35,7 +36,7 @@ export function createKnowledgeCandidatesHandlers(
 ) {
   return {
     async GET(request: Request): Promise<Response> {
-      const requestId = crypto.randomUUID();
+      const requestId = requestIdFor(request);
       try {
         const runtime = await runtimeFactory();
         requireKnowledgeAdmin(request, runtime);
@@ -52,7 +53,7 @@ export function createKnowledgeCandidatesHandlers(
     },
 
     async POST(request: Request): Promise<Response> {
-      const requestId = crypto.randomUUID();
+      const requestId = requestIdFor(request);
       try {
         const runtime = await runtimeFactory();
         requireKnowledgeAdmin(request, runtime);

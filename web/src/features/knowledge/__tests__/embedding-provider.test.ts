@@ -48,4 +48,20 @@ describe("QwenEmbeddingProvider", () => {
       code: "EMBEDDING_INVALID_RESPONSE",
     });
   });
+
+  it("retries one transient embedding failure", async () => {
+    const create = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("temporary"))
+      .mockResolvedValueOnce({ data: [{ index: 0, embedding: vector() }] });
+    const provider = new QwenEmbeddingProvider({
+      client: { embeddings: { create } },
+      model: "text-embedding-v4",
+      dimensions: 1024,
+      retryJitterMs: () => 0,
+    });
+
+    await expect(provider.embed(["退款规则"])).resolves.toHaveLength(1);
+    expect(create).toHaveBeenCalledTimes(2);
+  });
 });

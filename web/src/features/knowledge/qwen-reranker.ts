@@ -7,6 +7,16 @@ import type {
   RerankResult,
 } from "@/features/knowledge/types";
 import { AppError } from "@/lib/errors";
+import {
+  createCircuitBreaker,
+  retryTransient,
+  type CircuitBreaker,
+} from "@/lib/resilience";
+
+const sharedRerankCircuitBreaker = createCircuitBreaker({
+  failureThreshold: 3,
+  cooldownMs: 30_000,
+});
 
 export interface RerankClient {
   post(
@@ -19,6 +29,8 @@ export interface RerankClient {
 export interface QwenRerankerOptions {
   client: RerankClient;
   model: string;
+  circuitBreaker?: CircuitBreaker;
+  retryJitterMs?: () => number;
 }
 
 const responseSchema = z.object({
@@ -33,10 +45,14 @@ const responseSchema = z.object({
 export class QwenReranker implements KnowledgeReranker {
   private readonly client: RerankClient;
   private readonly model: string;
+  private readonly circuitBreaker: CircuitBreaker;
+  private readonly retryJitterMs?: () => number;
 
   constructor(options: QwenRerankerOptions) {
     this.client = options.client;
     this.model = options.model;
+    this.circuitBreaker = options.circuitBreaker ?? sharedRerankCircuitBreaker;
+    this.retryJitterMs = options.retryJitterMs;
   }
 
   async rerank(
@@ -47,21 +63,41 @@ export class QwenReranker implements KnowledgeReranker {
     if (documents.length === 0) return [];
     let raw: unknown;
     try {
-      raw = await this.client.post(
-        "/reranks",
-        {
-          body: {
-            model: this.model,
-            query,
-            documents: [...documents],
-            top_n: documents.length,
-            instruct:
-              "Given a customer service question, retrieve passages that directly answer it.",
+      raw = await this.circuitBreaker.execute(() =>
+        retryTransient(
+          async () => {
+            try {
+              return await this.client.post(
+                "/reranks",
+                {
+                  body: {
+                    model: this.model,
+                    query,
+                    documents: [...documents],
+                    top_n: documents.length,
+                    instruct:
+                      "Given a customer service question, retrieve passages that directly answer it.",
+                  },
+                },
+                { signal },
+              );
+            } catch (error) {
+              throw new AppError({
+                code: "RERANK_FAILED",
+                message: "重排服务暂时不可用",
+                retryable: true,
+                cause: error,
+              });
+            }
           },
-        },
-        { signal },
+          {
+            retries: 1,
+            ...(this.retryJitterMs && { jitterMs: this.retryJitterMs }),
+          },
+        ),
       );
     } catch (error) {
+      if (error instanceof AppError) throw error;
       throw new AppError({
         code: "RERANK_FAILED",
         message: "重排服务暂时不可用",

@@ -72,6 +72,7 @@ function knowledgePayload(data: unknown): Record<string, unknown> | undefined {
     : [];
 
   return {
+    instructionPolicy: "evidence_only",
     lowConfidence: value.lowConfidence === true,
     conflict: value.conflict === true,
     isDemo: value.isDemo === true,

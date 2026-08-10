@@ -36,8 +36,21 @@ import { createMapsRuntime } from "@/features/maps/runtime";
 import { createKnowledgeRuntime } from "@/features/knowledge/runtime";
 import { createSupabaseKnowledgeCandidateSink } from "@/features/knowledge/candidate-sink";
 import { createDemoKnowledgeCandidateSink } from "@/features/knowledge-ops/demo-store";
+import { metrics } from "@/features/observability/metrics";
 import { AppError, toPublicError } from "@/lib/errors";
 import { parsePublicEnv, parseServerEnv } from "@/lib/env";
+import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
+import {
+  createFixedWindowRateLimiter,
+  requestClientKey,
+} from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
+import { requestIdFor } from "@/lib/request-id";
+
+const chatRateLimiter = createFixedWindowRateLimiter({
+  limit: 60,
+  windowMs: 60_000,
+});
 
 export interface ChatRuntime {
   provider: AIProvider;
@@ -77,8 +90,10 @@ function jsonError(error: unknown, requestId: string): Response {
 async function parseRequest(request: Request): Promise<ChatRequest> {
   let body: unknown;
   try {
-    body = await request.json();
+    body = await readJsonWithLimit(request, 16_384);
   } catch (error) {
+    if (error instanceof AppError && error.code === "REQUEST_BODY_TOO_LARGE")
+      throw error;
     throw invalidRequest(error);
   }
   const result = chatRequestSchema.safeParse(body);
@@ -222,7 +237,16 @@ export function createChatHandler(
   runtimeFactory: ChatRuntimeFactory = defaultChatRuntime,
 ) {
   return async function POST(request: Request): Promise<Response> {
-    const requestId = crypto.randomUUID();
+    const requestId = requestIdFor(request);
+    const startedAt = Date.now();
+    const rateLimit = chatRateLimiter.check(requestClientKey(request));
+    if (!rateLimit.allowed) {
+      logger.warn("chat.rate_limited", {
+        requestId,
+        errorCode: "RATE_LIMITED",
+      });
+      return rateLimitResponse(rateLimit, requestId);
+    }
     let chatRequest: ChatRequest;
     let runtime: ChatRuntime;
     let prepared: Awaited<ReturnType<ChatPersistence["prepare"]>>;
@@ -232,6 +256,12 @@ export function createChatHandler(
       runtime = await runtimeFactory(chatRequest);
       prepared = await runtime.persistence.prepare(chatRequest);
     } catch (error) {
+      const normalized = toPublicError(error, requestId);
+      logger.warn("chat.rejected", {
+        requestId,
+        durationMs: Date.now() - startedAt,
+        errorCode: normalized.code,
+      });
       return jsonError(error, requestId);
     }
 
@@ -242,6 +272,7 @@ export function createChatHandler(
     const encoder = new TextEncoder();
     const body = new ReadableStream<Uint8Array>({
       async start(controller) {
+        let errorCode: string | undefined;
         try {
           const contextWindow = buildContextWindow({
             systemPrompt: XIAOZHI_SYSTEM_PROMPT,
@@ -282,6 +313,7 @@ export function createChatHandler(
         } catch (error) {
           if (!streamController.signal.aborted) {
             const normalized = toPublicError(error, requestId);
+            errorCode = normalized.code;
             controller.enqueue(
               encoder.encode(
                 encodeSseEvent({
@@ -294,6 +326,13 @@ export function createChatHandler(
             );
           }
         } finally {
+          metrics.observe("chat_duration_ms", Date.now() - startedAt);
+          logger.info("chat.completed", {
+            requestId,
+            sessionId: prepared.sessionId,
+            durationMs: Date.now() - startedAt,
+            ...(errorCode && { errorCode }),
+          });
           request.signal.removeEventListener("abort", abortFromRequest);
           controller.close();
         }

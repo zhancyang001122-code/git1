@@ -5,6 +5,17 @@ import { createRequestKnowledgeService } from "@/features/knowledge/runtime";
 import { isKnowledgeAdminRequestAuthorized } from "@/features/knowledge-ops/admin-session";
 import { AppError, toPublicError } from "@/lib/errors";
 import { parseServerEnv } from "@/lib/env";
+import { requestIdFor } from "@/lib/request-id";
+import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
+import {
+  createFixedWindowRateLimiter,
+  requestClientKey,
+} from "@/lib/rate-limit";
+
+const indexRateLimiter = createFixedWindowRateLimiter({
+  limit: 20,
+  windowMs: 60_000,
+});
 
 const requestSchema = z.object({ versionId: z.string().uuid() }).strict();
 
@@ -37,8 +48,10 @@ export function createKnowledgeIndexHandler(
   runtimeFactory: RuntimeFactory = defaultRuntime,
 ) {
   return async function POST(request: Request): Promise<Response> {
-    const requestId = crypto.randomUUID();
+    const requestId = requestIdFor(request);
     try {
+      const rateLimit = indexRateLimiter.check(requestClientKey(request));
+      if (!rateLimit.allowed) return rateLimitResponse(rateLimit, requestId);
       const runtime = await runtimeFactory();
       if (!runtime.adminToken) {
         throw new AppError({
@@ -54,7 +67,9 @@ export function createKnowledgeIndexHandler(
           status: 401,
         });
       }
-      const body = requestSchema.safeParse(await request.json());
+      const body = requestSchema.safeParse(
+        await readJsonWithLimit(request, 4_096),
+      );
       if (!body.success) {
         throw new AppError({
           code: "KNOWLEDGE_INDEX_INPUT_INVALID",

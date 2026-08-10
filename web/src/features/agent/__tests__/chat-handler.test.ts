@@ -61,6 +61,25 @@ describe("POST /api/chat handler", () => {
     expect(runtimeCreated).toBe(false);
   });
 
+  it("rejects an oversized body before creating the runtime", async () => {
+    let runtimeCreated = false;
+    const post = createChatHandler(async () => {
+      runtimeCreated = true;
+      throw new Error("not reached");
+    });
+    const response = await post(
+      new Request("http://localhost/api/chat", {
+        method: "POST",
+        body: JSON.stringify({ message: "x".repeat(17_000) }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+
+    expect(response.status).toBe(413);
+    expect((await response.json()).error.code).toBe("REQUEST_BODY_TOO_LARGE");
+    expect(runtimeCreated).toBe(false);
+  });
+
   it("streams session first, a visible demo warning, Unicode text and done", async () => {
     const response = await handler()(
       new Request("http://localhost/api/chat", {
