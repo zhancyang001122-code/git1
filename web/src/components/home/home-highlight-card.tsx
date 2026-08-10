@@ -17,6 +17,7 @@ export function HomeHighlightCard({ item }: HomeHighlightCardProps) {
           src={item.imageSrc}
           alt={item.imageAlt}
           sizes="(max-width: 430px) calc((100vw - 44px) / 2), 193px"
+          loading={item.kind === "housing" ? "eager" : "lazy"}
           className="object-cover"
         />
       </div>

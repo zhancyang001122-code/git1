@@ -7,9 +7,15 @@ for (const width of [360, 390, 430]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto("/");
 
-    await expect(
-      page.getByRole("navigation", { name: "主导航" }),
-    ).toBeVisible();
+    const navigation = page.getByRole("navigation", { name: "主导航" });
+    await expect(navigation).toBeVisible();
+    await expect(navigation).toHaveCount(1);
+
+    const navigationBox = await navigation.boundingBox();
+    expect(navigationBox).not.toBeNull();
+    expect(navigationBox!.x).toBeGreaterThanOrEqual(0);
+    expect(navigationBox!.x + navigationBox!.width).toBeLessThanOrEqual(width);
+
     const sizes = await page.evaluate(() => ({
       documentWidth: document.documentElement.scrollWidth,
       viewportWidth: window.innerWidth,
