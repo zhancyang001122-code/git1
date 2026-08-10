@@ -7,6 +7,7 @@ import {
   MapPin,
   MapPinned,
   Navigation,
+  RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -66,6 +67,12 @@ export function NearbyExperience({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [routes, setRoutes] = useState<Record<string, string>>({});
+  const [lastSearch, setLastSearch] = useState<{
+    point: GeoPoint;
+    label: string;
+    category: (typeof categories)[number];
+    coordinateSystem: "gps" | "amap";
+  } | null>(null);
 
   async function search(
     point: GeoPoint,
@@ -73,6 +80,12 @@ export function NearbyExperience({
     nextCategory = category,
     coordinateSystem: "gps" | "amap" = "amap",
   ) {
+    setLastSearch({
+      point,
+      label,
+      category: nextCategory,
+      coordinateSystem,
+    });
     setLoading(true);
     setError(null);
     setLocationLabel(label);
@@ -219,14 +232,14 @@ export function NearbyExperience({
       </section>
 
       <section aria-label="周边分类">
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1">
           {categories.map((item) => (
             <button
               type="button"
               key={item}
               onClick={() => void changeCategory(item)}
               aria-pressed={category === item}
-              className={`min-h-10 shrink-0 rounded-full px-4 text-sm font-medium ${category === item ? "bg-brand text-white" : "bg-surface-tint text-text-muted"}`}
+              className={`min-h-11 shrink-0 rounded-full px-4 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand ${category === item ? "bg-brand text-white" : "bg-surface-tint text-text-muted"}`}
             >
               {item}
             </button>
@@ -254,7 +267,24 @@ export function NearbyExperience({
           role="alert"
           className="rounded-card border border-danger/20 bg-danger/5 p-4 text-sm text-danger"
         >
-          {error}
+          <p>{error}</p>
+          {lastSearch ? (
+            <button
+              type="button"
+              onClick={() =>
+                void search(
+                  lastSearch.point,
+                  lastSearch.label,
+                  lastSearch.category,
+                  lastSearch.coordinateSystem,
+                )
+              }
+              className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-control border border-danger/20 bg-surface px-3 font-medium outline-none focus-visible:ring-2 focus-visible:ring-danger"
+            >
+              <RotateCcw aria-hidden="true" className="size-4" />
+              重试周边查询
+            </button>
+          ) : null}
         </div>
       ) : places.length > 0 ? (
         <div className="space-y-3">
@@ -282,7 +312,7 @@ export function NearbyExperience({
               <button
                 type="button"
                 onClick={() => void calculateRoute(place)}
-                className="mt-3 flex min-h-10 w-full items-center justify-center gap-2 rounded-card bg-surface-tint text-sm font-medium text-brand"
+                className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-control bg-surface-tint text-sm font-medium text-brand outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <Navigation className="size-4" />
                 {routes[place.id] ?? "计算步行路线"}

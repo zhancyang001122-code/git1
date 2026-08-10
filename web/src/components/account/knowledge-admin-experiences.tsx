@@ -12,8 +12,10 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { Tag } from "@/components/ui/tag";
+import { Toast } from "@/components/ui/toast";
 import {
   demoKnowledgeCandidates,
   type DemoKnowledgeCandidate,
@@ -40,15 +42,15 @@ export function KnowledgeAdminList() {
           当前只演示工作流，不执行数据库写入或向量化。
         </p>
       </section>
-      <section aria-label="知识候选" className="space-y-3">
+      <section
+        aria-label="知识候选"
+        className="divide-y divide-border overflow-hidden rounded-card bg-surface"
+      >
         {demoKnowledgeCandidates.map((candidate) => (
-          <article
-            key={candidate.id}
-            className="rounded-card border border-border bg-surface shadow-card"
-          >
+          <article key={candidate.id} className="bg-surface">
             <Link
               href={`/knowledge-admin/${candidate.id}`}
-              className="flex min-h-24 items-center gap-3 p-4"
+              className="flex min-h-20 items-center gap-3 p-4 outline-none hover:bg-page focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
             >
               <span className="inline-flex size-10 items-center justify-center rounded-control bg-brand-soft text-brand">
                 <ShieldCheck className="size-5" />
@@ -81,6 +83,14 @@ export function KnowledgeAdminDetail({
   const [draft, setDraft] = useState(candidate.draft);
   const [state, setState] = useState<string>(statusLabels[candidate.status]);
   const [notice, setNotice] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<{
+    title: string;
+    description: string;
+    confirmLabel: string;
+    next: string;
+    message: string;
+    danger?: boolean;
+  } | null>(null);
   function act(next: string, text: string) {
     setState(next);
     setNotice(text);
@@ -133,7 +143,15 @@ export function KnowledgeAdminDetail({
       <div className="grid grid-cols-2 gap-2">
         <Button
           aria-label="批准草稿"
-          onClick={() => act("已批准", "本地状态已更新为“已批准”，尚未发布。")}
+          onClick={() =>
+            setPendingAction({
+              title: "批准这份草稿？",
+              description: "请先核对证据。确认后只更新当前页面的演示状态。",
+              confirmLabel: "确认批准",
+              next: "已批准",
+              message: "本地状态已更新为“已批准”，尚未发布。",
+            })
+          }
         >
           <CheckCircle2 className="size-4" />
           批准草稿
@@ -141,14 +159,31 @@ export function KnowledgeAdminDetail({
         <Button
           variant="danger"
           aria-label="驳回草稿"
-          onClick={() => act("已驳回", "本地状态已更新为“已驳回”。")}
+          onClick={() =>
+            setPendingAction({
+              title: "驳回这份草稿？",
+              description: "确认后只更新当前页面，不会删除候选知识。",
+              confirmLabel: "确认驳回",
+              next: "已驳回",
+              message: "本地状态已更新为“已驳回”。",
+              danger: true,
+            })
+          }
         >
           <XCircle className="size-4" />
           驳回草稿
         </Button>
         <Button
           variant="secondary"
-          onClick={() => act("发布演示", "仅演示发布步骤，没有生成正式版本。")}
+          onClick={() =>
+            setPendingAction({
+              title: "发布这个演示版本？",
+              description: "不会生成正式知识版本，也不会影响线上回答。",
+              confirmLabel: "确认发布",
+              next: "发布演示",
+              message: "仅演示发布步骤，没有生成正式版本。",
+            })
+          }
         >
           <ShieldCheck className="size-4" />
           发布演示
@@ -156,7 +191,13 @@ export function KnowledgeAdminDetail({
         <Button
           variant="secondary"
           onClick={() =>
-            act("索引演示", "未调用 embedding 模型，索引状态没有写入数据库。")
+            setPendingAction({
+              title: "开始演示索引？",
+              description: "不会调用 Embedding 模型，也不会写入数据库。",
+              confirmLabel: "确认索引",
+              next: "索引演示",
+              message: "未调用 embedding 模型，索引状态没有写入数据库。",
+            })
           }
         >
           <DatabaseZap className="size-4" />
@@ -176,7 +217,29 @@ export function KnowledgeAdminDetail({
         <FlaskConical className="size-4" />
         运行演示评测
       </Button>
-      {notice ? <DemoNotice>{notice}</DemoNotice> : null}
+      <Toast
+        open={Boolean(notice)}
+        onOpenChange={(open) => {
+          if (!open) setNotice(null);
+        }}
+        message={notice ?? ""}
+        duration={0}
+        tone="neutral"
+      />
+      <ConfirmDialog
+        open={Boolean(pendingAction)}
+        onOpenChange={(open) => {
+          if (!open) setPendingAction(null);
+        }}
+        title={pendingAction?.title ?? "确认操作"}
+        description={pendingAction?.description ?? ""}
+        confirmLabel={pendingAction?.confirmLabel ?? "确认"}
+        danger={pendingAction?.danger}
+        onConfirm={() => {
+          if (!pendingAction) return;
+          act(pendingAction.next, pendingAction.message);
+        }}
+      />
       <section className="grid grid-cols-2 gap-3 text-sm">
         <div className="rounded-card bg-surface-tint p-4">
           <p className="text-text-subtle">Embedding</p>

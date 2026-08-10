@@ -52,7 +52,9 @@ for (const route of routes) {
 
 test("housing filters and local favorite work", async ({ page }) => {
   await page.goto("/houses");
+  await page.getByRole("button", { name: "筛选房源" }).click();
   await page.getByRole("button", { name: "允许宠物" }).click();
+  await page.getByRole("button", { name: "完成筛选" }).click();
   await expect(page.getByText(/找到 7 条演示记录/)).toBeVisible();
   await page.getByRole("button", { name: "收藏房源" }).first().click();
   await expect(
@@ -159,6 +161,7 @@ test("feedback and knowledge review never claim remote writes", async ({
   ).toBeVisible();
   await page.goto("/knowledge-admin/candidate-refund-001");
   await page.getByRole("button", { name: "批准草稿" }).click();
+  await page.getByRole("button", { name: "确认批准" }).click();
   await expect(
     page.getByText(/本地状态已更新为“已批准”，尚未发布/),
   ).toBeVisible();

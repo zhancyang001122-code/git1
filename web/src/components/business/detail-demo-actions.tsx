@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { DemoNotice } from "@/components/ui/demo-notice";
+import { Toast } from "@/components/ui/toast";
 
 interface DetailDemoActionsProps {
   entityId: string;
@@ -69,7 +69,15 @@ export function DetailDemoActions({
           {isHouse ? "预约演示" : "模拟购买"}
         </Button>
       </div>
-      {notice ? <DemoNotice>{notice}</DemoNotice> : null}
+      <Toast
+        open={Boolean(notice)}
+        onOpenChange={(open) => {
+          if (!open) setNotice(null);
+        }}
+        message={notice ?? ""}
+        duration={0}
+        tone="neutral"
+      />
     </div>
   );
 }

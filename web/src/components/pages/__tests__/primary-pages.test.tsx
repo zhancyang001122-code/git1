@@ -22,6 +22,8 @@ describe("primary product pages", () => {
     expect(
       screen.getByRole("heading", { name: "带猫租房前我会确认的 6 件事" }),
     ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /收藏 带猫租房/ }));
+    expect(screen.getByText(/收藏状态仅保存在当前页面/)).toBeInTheDocument();
   });
 
   it("offers Xiaozhi tasks without claiming a model request was sent", () => {
@@ -30,7 +32,8 @@ describe("primary product pages", () => {
     expect(
       screen.getByRole("heading", { name: "你好，我是小智" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/当前为前端演示/)).toBeInTheDocument();
+    expect(screen.getByText(/当前为可验证演示模式/)).toBeInTheDocument();
+    expect(screen.queryByText(/后续会连接/)).not.toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /找宠物友好房源/ }),
     ).toHaveAttribute("href", expect.stringContaining("/xiaozhi/chat"));
@@ -59,10 +62,11 @@ describe("primary product pages", () => {
     expect(
       screen.getByRole("link", { name: /知识纠错与反馈/ }),
     ).toHaveAttribute("href", "/me/feedback");
+    expect(screen.getByRole("group", { name: "账户功能" })).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: "帮助" }));
     expect(
-      screen.getByText("帮助中心将在后续阶段接入，当前没有发起真实客服请求。"),
+      screen.getByText("帮助中心为演示入口，当前没有发起真实客服请求。"),
     ).toBeInTheDocument();
   });
 });

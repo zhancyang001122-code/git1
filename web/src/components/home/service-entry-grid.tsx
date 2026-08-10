@@ -39,7 +39,7 @@ const serviceEntries = [
 
 export function ServiceEntryGrid() {
   return (
-    <section aria-labelledby="service-entry-title" className="space-y-3">
+    <section aria-labelledby="service-entry-title" className="space-y-2.5">
       <SectionHeader id="service-entry-title" title="常用服务" />
       <div className="grid grid-cols-4 gap-2">
         {serviceEntries.map(({ description, href, icon: Icon, label }) => (
@@ -47,13 +47,17 @@ export function ServiceEntryGrid() {
             key={label}
             href={href}
             aria-label={label}
-            className="flex min-h-24 min-w-0 flex-col items-center justify-center rounded-card border border-border bg-surface px-1.5 py-3 text-center shadow-card outline-none transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 active:translate-y-0"
+            className="flex min-h-20 min-w-0 flex-col items-center justify-center rounded-card bg-surface px-1 py-2.5 text-center outline-none transition-colors motion-reduce:transition-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
           >
-            <span className="mb-2 inline-flex size-10 items-center justify-center rounded-control bg-brand-soft text-brand">
-              <Icon aria-hidden="true" className="size-5" strokeWidth={2} />
+            <span className="mb-1.5 inline-flex size-9 items-center justify-center rounded-control bg-brand-soft text-brand">
+              <Icon
+                aria-hidden="true"
+                className="size-[18px]"
+                strokeWidth={2}
+              />
             </span>
             <span className="text-sm font-semibold text-text">{label}</span>
-            <span className="mt-0.5 whitespace-nowrap text-xs text-text-subtle">
+            <span className="mt-0.5 hidden whitespace-nowrap text-xs text-text-subtle min-[390px]:block">
               {description}
             </span>
           </Link>

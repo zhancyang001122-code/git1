@@ -17,6 +17,10 @@ describe("account and knowledge admin demo flows", () => {
     render(<FavoritesExperience />);
     expect(screen.getAllByRole("article")).toHaveLength(3);
     fireEvent.click(screen.getAllByRole("button", { name: "移除收藏" })[0]!);
+    expect(
+      screen.getByRole("alertdialog", { name: "移除这条收藏？" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "确认移除" }));
     expect(screen.getAllByRole("article")).toHaveLength(2);
     expect(screen.getByText(/仅从当前页面移除/)).toBeInTheDocument();
   });
@@ -49,6 +53,10 @@ describe("account and knowledge admin demo flows", () => {
       screen.getByText("候选 → 审核 → 发布 → 索引 → 评测"),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "批准草稿" }));
+    expect(
+      screen.getByRole("alertdialog", { name: "批准这份草稿？" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "确认批准" }));
     expect(screen.getByText(/本地状态已更新为“已批准”/)).toBeInTheDocument();
   });
 });

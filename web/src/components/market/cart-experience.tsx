@@ -4,14 +4,17 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { EmptyState } from "@/components/ui/states";
+import { Toast } from "@/components/ui/toast";
 import type { Product } from "@/features/business/domain";
 import { useDemoCart } from "@/features/cart/demo-cart";
 
 export function CartExperience({ products }: { products: readonly Product[] }) {
   const { add, clear, decrease, itemCount, quantities } = useDemoCart();
   const [notice, setNotice] = useState<string | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
   const lines = products.filter((product) => (quantities[product.id] ?? 0) > 0);
   const total = lines.reduce(
     (sum, product) => sum + product.price * (quantities[product.id] ?? 0),
@@ -55,7 +58,7 @@ export function CartExperience({ products }: { products: readonly Product[] }) {
               <button
                 aria-label={`减少 ${product.name}`}
                 onClick={() => decrease(product.id)}
-                className="inline-flex size-9 items-center justify-center rounded-full border border-border"
+                className="inline-flex size-11 items-center justify-center rounded-full border border-border outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <Minus className="size-4" />
               </button>
@@ -63,7 +66,7 @@ export function CartExperience({ products }: { products: readonly Product[] }) {
               <button
                 aria-label={`增加 ${product.name}`}
                 onClick={() => add(product.id)}
-                className="inline-flex size-9 items-center justify-center rounded-full border border-border"
+                className="inline-flex size-11 items-center justify-center rounded-full border border-border outline-none focus-visible:ring-2 focus-visible:ring-brand"
               >
                 <Plus className="size-4" />
               </button>
@@ -82,7 +85,7 @@ export function CartExperience({ products }: { products: readonly Product[] }) {
           <Button
             variant="secondary"
             aria-label="清空购物车"
-            onClick={clear}
+            onClick={() => setConfirmClear(true)}
             className="px-0"
           >
             <Trash2 className="size-4" />
@@ -97,7 +100,24 @@ export function CartExperience({ products }: { products: readonly Product[] }) {
           </Button>
         </div>
       </section>
-      {notice ? <DemoNotice>{notice}</DemoNotice> : null}
+      <Toast
+        open={Boolean(notice)}
+        onOpenChange={(open) => {
+          if (!open) setNotice(null);
+        }}
+        message={notice ?? ""}
+        duration={0}
+        tone="neutral"
+      />
+      <ConfirmDialog
+        open={confirmClear}
+        onOpenChange={setConfirmClear}
+        title="清空购物车？"
+        description="这只会清空当前浏览器会话中的演示商品。"
+        confirmLabel="确认清空"
+        danger
+        onConfirm={clear}
+      />
     </div>
   );
 }

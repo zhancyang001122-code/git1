@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, CircleAlert, X } from "lucide-react";
+import { CheckCircle2, CircleAlert, Info, X } from "lucide-react";
 import { useEffect } from "react";
 
 import { cn } from "@/lib/cn";
@@ -27,10 +27,12 @@ export function Toast({
   }, [duration, onOpenChange, open]);
 
   if (!open) return null;
-  const Icon = tone === "error" ? CircleAlert : CheckCircle2;
+  const Icon =
+    tone === "error" ? CircleAlert : tone === "neutral" ? Info : CheckCircle2;
   return (
     <div
       role={tone === "error" ? "alert" : "status"}
+      aria-label={message}
       aria-live={tone === "error" ? "assertive" : "polite"}
       className="fixed left-1/2 top-[calc(64px+env(safe-area-inset-top))] z-[90] flex min-h-11 w-[calc(100%-32px)] max-w-[398px] -translate-x-1/2 items-center gap-2 rounded-control bg-black/80 px-3 py-2 text-sm text-white shadow-floating"
     >

@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { SourceBadge } from "@/components/ui/source-badge";
+import { Toast } from "@/components/ui/toast";
 import {
   demoDeals,
   demoHouses,
@@ -42,6 +44,7 @@ export function FavoritesExperience() {
   ];
   const [items, setItems] = useState(initial);
   const [notice, setNotice] = useState(false);
+  const [pendingId, setPendingId] = useState<string | null>(null);
   return (
     <div className="space-y-4 px-4 py-4">
       <DemoNotice>收藏列表为固定演示数据，尚未读取用户账户。</DemoNotice>
@@ -59,23 +62,37 @@ export function FavoritesExperience() {
             variant="ghost"
             aria-label="移除收藏"
             className="mt-3"
-            onClick={() => {
-              setItems((current) =>
-                current.filter((entry) => entry.id !== item.id),
-              );
-              setNotice(true);
-            }}
+            onClick={() => setPendingId(item.id)}
           >
             <Trash2 className="size-4" />
             移除
           </Button>
         </article>
       ))}
-      {notice ? (
-        <DemoNotice>
-          该条目仅从当前页面移除，没有修改 Supabase 数据。
-        </DemoNotice>
-      ) : null}
+      <Toast
+        open={notice}
+        onOpenChange={setNotice}
+        message="该条目仅从当前页面移除，没有修改 Supabase 数据。"
+        duration={0}
+        tone="neutral"
+      />
+      <ConfirmDialog
+        open={Boolean(pendingId)}
+        onOpenChange={(open) => {
+          if (!open) setPendingId(null);
+        }}
+        title="移除这条收藏？"
+        description="只会修改当前页面状态，不会写入 Supabase。"
+        confirmLabel="确认移除"
+        danger
+        onConfirm={() => {
+          if (!pendingId) return;
+          setItems((current) =>
+            current.filter((entry) => entry.id !== pendingId),
+          );
+          setNotice(true);
+        }}
+      />
     </div>
   );
 }

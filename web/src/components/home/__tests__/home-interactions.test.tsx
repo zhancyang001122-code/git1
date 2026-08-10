@@ -9,6 +9,10 @@ describe("HomePage", () => {
 
     expect(screen.getByText("杭州 · 武林广场")).toBeInTheDocument();
     expect(
+      screen.getByRole("heading", { name: "小智本地生活", level: 1 }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "更多功能" })).toBeEnabled();
+    expect(
       screen.getByRole("heading", {
         name: "小智本地生活 AI 服务助手",
       }),
@@ -20,6 +24,7 @@ describe("HomePage", () => {
     expect(
       screen.getByRole("navigation", { name: "主导航" }),
     ).toBeInTheDocument();
+    expect(screen.queryByText(/后续将/)).not.toBeInTheDocument();
   });
 
   it("submits quick prompts through the validated chat route", () => {

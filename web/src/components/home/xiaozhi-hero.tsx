@@ -7,23 +7,23 @@ export function XiaozhiHero() {
   return (
     <section
       aria-labelledby="xiaozhi-home-title"
-      className="relative overflow-hidden rounded-feature bg-gradient-to-br from-brand-soft to-accent/10 p-5"
+      className="relative overflow-hidden rounded-feature bg-gradient-to-br from-brand-soft to-accent/10 p-4"
     >
       <div
         aria-hidden="true"
         className="absolute -right-8 -top-8 size-32 rounded-full bg-white/45 blur-2xl"
       />
-      <div className="relative grid grid-cols-[1fr_92px] items-center gap-3">
+      <div className="relative grid grid-cols-[1fr_84px] items-center gap-3">
         <div className="min-w-0">
-          <Tag className="mb-3 bg-white/75">能力预览</Tag>
-          <h1
+          <Tag className="mb-2 bg-white/75">AI 生活助手</Tag>
+          <h2
             id="xiaozhi-home-title"
-            className="text-2xl font-bold leading-8 text-text"
+            className="text-lg font-bold leading-7 text-text"
           >
             小智本地生活 AI 服务助手
-          </h1>
-          <p className="mt-2 text-sm leading-[22px] text-text-muted">
-            后续将把找房、周边和规则查询串成一次可核验的对话。
+          </h2>
+          <p className="mt-1 text-sm leading-[22px] text-text-muted">
+            查询房源、地图和规则，每项结果都保留可核验来源。
           </p>
         </div>
 
@@ -32,7 +32,7 @@ export function XiaozhiHero() {
             fill
             src="/images/home/xiaozhi-mascot.png"
             alt=""
-            sizes="92px"
+            sizes="84px"
             loading="eager"
             className="object-contain"
           />

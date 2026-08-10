@@ -34,14 +34,17 @@ export function MessagesPage() {
 
   return (
     <AppShell activeNav="messages" header={<PageHeader title="消息" />}>
-      <div className="space-y-4 px-4 py-4">
-        <div aria-label="消息分类" className="grid grid-cols-4 gap-2">
+      <div className="space-y-4 py-4">
+        <div
+          aria-label="消息分类"
+          className="grid grid-cols-4 border-b border-border bg-surface px-4"
+        >
           {tabs.map(({ key, label }) => (
             <button
               key={key}
               type="button"
               aria-pressed={tab === key}
-              className={`min-h-11 rounded-full text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand ${tab === key ? "bg-brand text-white" : "bg-surface text-text-muted"}`}
+              className={`relative min-h-11 text-sm font-medium outline-none after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand ${tab === key ? "text-brand after:bg-brand" : "text-text-muted after:bg-transparent"}`}
               onClick={() => setTab(key)}
             >
               {label}
@@ -49,14 +52,14 @@ export function MessagesPage() {
           ))}
         </div>
 
-        <section aria-label="消息列表" className="space-y-3">
+        <section
+          aria-label="消息列表"
+          className="mx-4 divide-y divide-border overflow-hidden rounded-card bg-surface"
+        >
           {messages.map((message) => {
             const Icon = messageIcons[message.category];
             return (
-              <article
-                key={message.id}
-                className="flex gap-3 rounded-card border border-border bg-surface p-4 shadow-card"
-              >
+              <article key={message.id} className="flex gap-3 p-4">
                 <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
                   <Icon aria-hidden="true" className="size-5" />
                 </span>
@@ -86,7 +89,7 @@ export function MessagesPage() {
           })}
         </section>
 
-        <p className="flex items-center justify-center gap-2 py-3 text-xs text-text-subtle">
+        <p className="flex items-center justify-center gap-2 px-4 py-3 text-xs text-text-subtle">
           <TicketPercent aria-hidden="true" className="size-4" />
           以上均为演示消息
         </p>

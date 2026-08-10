@@ -18,7 +18,7 @@
 | 页面水平边距 | 16px |
 | 顶部导航 | 48px + `env(safe-area-inset-top)` |
 | 右侧功能胶囊 | 84 × 32px |
-| 搜索框 | 40px |
+| 搜索框 | 44px |
 | 底部导航 | 56px + `env(safe-area-inset-bottom)` |
 | 区块间距 | 16px |
 | 卡片间距 | 10px |

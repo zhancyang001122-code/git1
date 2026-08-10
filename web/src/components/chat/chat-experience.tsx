@@ -123,8 +123,8 @@ export function ChatExperience({
   const progressItems = Object.values(stream.progress);
 
   return (
-    <div className="flex min-h-[calc(100dvh-56px)] flex-col">
-      <div className="flex-1 space-y-4 px-4 py-4">
+    <div className="flex min-h-[calc(100dvh-48px)] flex-col bg-page">
+      <div className="flex-1 space-y-4 px-4 py-3">
         <DemoNotice>
           回答通过服务端流式 API
           生成；演示模式、未接通能力和保存失败都会明确标注。
@@ -156,7 +156,7 @@ export function ChatExperience({
                 )}
               </span>
               <div
-                className={`max-w-[82%] rounded-card px-4 py-3 text-sm leading-6 ${message.role === "user" ? "bg-brand text-white" : "border border-border bg-surface text-text"}`}
+                className={`max-w-[82%] px-4 py-2.5 text-sm leading-6 shadow-card ${message.role === "user" ? "rounded-[12px_4px_12px_12px] bg-brand text-white" : "rounded-[4px_12px_12px_12px] bg-surface text-text"}`}
               >
                 <p className="whitespace-pre-wrap">{message.text}</p>
                 {message.role === "assistant" ? (
@@ -197,7 +197,7 @@ export function ChatExperience({
               <span className="mt-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
                 <Bot className="size-4" />
               </span>
-              <div className="max-w-[82%] rounded-card border border-border bg-surface px-4 py-3 text-sm leading-6 text-text">
+              <div className="max-w-[82%] rounded-[4px_12px_12px_12px] bg-surface px-4 py-2.5 text-sm leading-6 text-text shadow-card">
                 <p className="whitespace-pre-wrap">{stream.assistantText}</p>
                 <span className="ml-1 inline-block h-4 w-0.5 animate-pulse bg-brand" />
               </div>
@@ -300,7 +300,7 @@ export function ChatExperience({
       </div>
       <form
         onSubmit={submit}
-        className="sticky bottom-0 border-t border-border bg-surface p-3 pb-[calc(12px+env(safe-area-inset-bottom))]"
+        className="sticky bottom-0 border-t border-border bg-surface p-2.5 pb-[calc(10px+env(safe-area-inset-bottom))]"
       >
         <label htmlFor="chat-input" className="sr-only">
           输入消息
@@ -313,7 +313,7 @@ export function ChatExperience({
             rows={1}
             maxLength={4_000}
             placeholder="问问小智……"
-            className="min-h-12 flex-1 resize-none rounded-control border border-border px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
+            className="min-h-11 flex-1 resize-none rounded-control border border-border bg-page px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand"
           />
           {running ? (
             <Button
@@ -321,7 +321,7 @@ export function ChatExperience({
               aria-label="取消"
               onClick={cancel}
               variant="secondary"
-              className="size-12 px-0"
+              className="size-11 px-0"
             >
               <Square className="size-4" />
             </Button>
@@ -330,7 +330,7 @@ export function ChatExperience({
               type="submit"
               aria-label="发送"
               disabled={!input.trim()}
-              className="size-12 px-0"
+              className="size-11 px-0"
             >
               <Send className="size-4" />
             </Button>

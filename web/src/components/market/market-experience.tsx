@@ -9,6 +9,7 @@ import { StoreCard } from "@/components/business/store-card";
 import { Button } from "@/components/ui/button";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { SearchBar } from "@/components/ui/search-bar";
+import { Toast } from "@/components/ui/toast";
 import type { Product, Store } from "@/features/business/domain";
 import { useDemoCart } from "@/features/cart/demo-cart";
 
@@ -23,6 +24,7 @@ export function MarketExperience({
   const [queryInput, setQueryInput] = useState("");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("全部");
+  const [notice, setNotice] = useState<string | null>(null);
   const categories = [
     "全部",
     ...new Set(products.map((product) => product.category)),
@@ -38,11 +40,11 @@ export function MarketExperience({
   );
 
   return (
-    <div className="space-y-5 px-4 py-4">
+    <div className="space-y-4 px-4 py-4">
       <DemoNotice>
         价格、库存和配送均为演示业务数据，不连接真实超市。
       </DemoNotice>
-      <section className="rounded-feature bg-gradient-to-br from-brand to-brand-strong p-5 text-white shadow-floating">
+      <section className="rounded-feature bg-gradient-to-br from-brand to-brand-strong p-4 text-white">
         <p className="text-sm opacity-80">今日演示采购</p>
         <h2 className="mt-1 text-2xl font-semibold">把一周食材交给小智</h2>
         <Link
@@ -60,13 +62,13 @@ export function MarketExperience({
         onSubmit={setQuery}
         placeholder="搜索商品"
       />
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1">
         {categories.map((value) => (
           <button
             key={value}
             type="button"
             onClick={() => setCategory(value)}
-            className={`min-h-9 shrink-0 rounded-full border px-3 text-xs ${category === value ? "border-brand bg-brand text-white" : "border-border bg-surface text-text-muted"}`}
+            className={`min-h-11 shrink-0 rounded-full border px-3 text-xs outline-none focus-visible:ring-2 focus-visible:ring-brand ${category === value ? "border-brand bg-brand text-white" : "border-border bg-surface text-text-muted"}`}
           >
             {value}
           </button>
@@ -106,7 +108,10 @@ export function MarketExperience({
                   aria-label={
                     product.availableStock > 0 ? "加入购物车" : "演示缺货"
                   }
-                  onClick={() => add(product.id)}
+                  onClick={() => {
+                    add(product.id);
+                    setNotice("已加入购物车");
+                  }}
                 >
                   {product.availableStock > 0 ? "加入购物车" : "演示缺货"}
                 </Button>
@@ -115,6 +120,14 @@ export function MarketExperience({
           ))}
         </div>
       </section>
+      <Toast
+        open={Boolean(notice)}
+        onOpenChange={(open) => {
+          if (!open) setNotice(null);
+        }}
+        message={notice ?? ""}
+        duration={0}
+      />
     </div>
   );
 }

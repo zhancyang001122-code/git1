@@ -20,8 +20,18 @@ describe("demo cart", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "加入购物车" })[0]!);
     expect(screen.getAllByText("购物车 1 件")).toHaveLength(2);
     expect(
+      screen.getByRole("status", { name: "已加入购物车" }),
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole("button", { name: "模拟结算" }),
     ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "清空购物车" }));
+    expect(
+      screen.getByRole("alertdialog", { name: "清空购物车？" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "确认清空" }));
+    expect(screen.getByText("购物车还是空的")).toBeInTheDocument();
   });
 
   it("blocks out-of-stock products and explains demo boundaries", () => {

@@ -70,4 +70,36 @@ describe("NearbyExperience", () => {
       ),
     );
   });
+
+  it("retries only the failed nearby search", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            error: { message: "高德服务暂时不可用" },
+          }),
+          { status: 503 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            mode: "demo",
+            center: defaultLocation.point,
+            data: [],
+          }),
+        ),
+      );
+
+    render(<NearbyExperience defaultLocation={defaultLocation} />);
+    await user.click(screen.getByRole("button", { name: "使用武林广场" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "高德服务暂时不可用",
+    );
+
+    await user.click(screen.getByRole("button", { name: "重试周边查询" }));
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
 });

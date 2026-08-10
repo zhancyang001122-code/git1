@@ -7,9 +7,9 @@ import { useMemo, useState } from "react";
 import { CommunityPostCard } from "@/components/business/community-post-card";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
-import { DemoNotice } from "@/components/ui/demo-notice";
 import { RepositoryModeNotice } from "@/components/ui/repository-mode-notice";
 import { SearchBar } from "@/components/ui/search-bar";
+import { Toast } from "@/components/ui/toast";
 import type { CommunityPost } from "@/features/business/domain";
 import type { RepositoryMode } from "@/features/repositories";
 
@@ -71,7 +71,10 @@ export function DiscoverPage({
           placeholder="搜索周末、租房、美食……"
         />
 
-        <div aria-label="推荐分类" className="flex gap-2 overflow-x-auto pb-1">
+        <div
+          aria-label="推荐分类"
+          className="hide-scrollbar flex gap-2 overflow-x-auto pb-1"
+        >
           {categories.map((item) => (
             <button
               key={item}
@@ -85,7 +88,15 @@ export function DiscoverPage({
           ))}
         </div>
 
-        {notice ? <DemoNotice>{notice}</DemoNotice> : null}
+        <Toast
+          open={Boolean(notice)}
+          onOpenChange={(open) => {
+            if (!open) setNotice(null);
+          }}
+          message={notice ?? ""}
+          duration={0}
+          tone="neutral"
+        />
 
         <section aria-label="社区推荐" className="grid grid-cols-2 gap-3">
           {posts.map((post, index) => {

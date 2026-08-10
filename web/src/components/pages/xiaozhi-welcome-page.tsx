@@ -44,15 +44,15 @@ const tasks = [
 export function XiaozhiWelcomePage() {
   return (
     <AppShell activeNav="xiaozhi" header={<PageHeader title="小智" />}>
-      <div className="space-y-5 px-4 py-4">
-        <section className="grid grid-cols-[1fr_112px] items-center gap-3 overflow-hidden rounded-feature bg-gradient-to-br from-brand-soft to-accent/10 p-5">
+      <div className="space-y-4 px-4 py-3">
+        <section className="grid grid-cols-[1fr_88px] items-center gap-3 overflow-hidden rounded-feature bg-gradient-to-br from-brand-soft to-accent/10 p-4">
           <div>
             <p className="text-xs font-semibold text-brand">AI 生活助手</p>
             <h2 className="mt-2 text-2xl font-bold leading-8 text-text">
               你好，我是小智
             </h2>
-            <p className="mt-2 text-sm leading-[22px] text-text-muted">
-              后续会连接房源、地图、商品和正式知识来源。
+            <p className="mt-1 text-sm leading-[22px] text-text-muted">
+              我会调用业务、地图和知识工具，并明确标注结果来源。
             </p>
           </div>
           <div className="relative aspect-square overflow-hidden rounded-feature bg-white/70 shadow-floating">
@@ -60,7 +60,7 @@ export function XiaozhiWelcomePage() {
               fill
               src="/images/home/xiaozhi-mascot.png"
               alt=""
-              sizes="112px"
+              sizes="88px"
               loading="eager"
               className="object-contain"
             />
@@ -68,17 +68,18 @@ export function XiaozhiWelcomePage() {
         </section>
 
         <DemoNotice>
-          当前为前端演示：快捷任务只携带问题进入本地对话壳，尚未调用真实模型或工具。
+          当前为可验证演示模式：对话会调用本地确定性工具；配置密钥后可切换真实千问、高德和
+          Supabase。
         </DemoNotice>
 
         <section aria-labelledby="xiaozhi-tasks" className="space-y-3">
           <SectionHeader id="xiaozhi-tasks" title="我可以帮你" />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5">
             {tasks.map(({ icon: Icon, label, prompt }, index) => (
               <Link
                 key={label}
                 href={`/xiaozhi/chat?q=${encodeURIComponent(prompt)}`}
-                className={`flex min-h-24 items-center gap-3 rounded-card border border-border bg-surface p-3 shadow-card outline-none focus-visible:ring-2 focus-visible:ring-brand ${index === tasks.length - 1 ? "col-span-2" : ""}`}
+                className={`flex min-h-20 items-center gap-2.5 rounded-card bg-surface p-3 outline-none transition-colors motion-reduce:transition-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand ${index === tasks.length - 1 ? "col-span-2" : ""}`}
               >
                 <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand">
                   <Icon aria-hidden="true" className="size-5" />
@@ -102,7 +103,7 @@ export function XiaozhiWelcomePage() {
               <Link
                 key={question}
                 href={`/xiaozhi/chat?q=${encodeURIComponent(question)}`}
-                className="flex min-h-12 items-center justify-between rounded-control border border-border bg-surface px-4 text-sm text-text outline-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
+                className="flex min-h-12 items-center justify-between rounded-control bg-surface px-4 text-sm text-text outline-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
               >
                 {question}
                 <span aria-hidden="true">›</span>
@@ -113,7 +114,7 @@ export function XiaozhiWelcomePage() {
 
         <Link
           href="/xiaozhi/chat"
-          className="flex min-h-12 items-center justify-center rounded-control bg-brand px-4 text-sm font-semibold text-white shadow-floating outline-none hover:bg-brand-strong focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+          className="flex min-h-11 items-center justify-center rounded-control bg-brand px-4 text-sm font-semibold text-white outline-none hover:bg-brand-strong focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         >
           开始演示对话
         </Link>

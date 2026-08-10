@@ -2,11 +2,13 @@
 
 import { MapPin, ShoppingCart } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 import { ProductCard } from "@/components/business/product-card";
 import { Button } from "@/components/ui/button";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { SourceBadge } from "@/components/ui/source-badge";
+import { Toast } from "@/components/ui/toast";
 import type { Product, Store } from "@/features/business/domain";
 import { useDemoCart } from "@/features/cart/demo-cart";
 
@@ -18,6 +20,7 @@ export function StoreDetail({
   store: Store;
 }) {
   const { add, itemCount } = useDemoCart();
+  const [notice, setNotice] = useState(false);
   return (
     <div className="space-y-5 px-4 py-4">
       <section className="rounded-feature bg-brand-soft p-5">
@@ -55,7 +58,10 @@ export function StoreDetail({
               <Button
                 className="w-full px-2"
                 disabled={product.availableStock <= 0}
-                onClick={() => add(product.id)}
+                onClick={() => {
+                  add(product.id);
+                  setNotice(true);
+                }}
               >
                 {product.availableStock > 0 ? "加入购物车" : "演示缺货"}
               </Button>
@@ -63,6 +69,12 @@ export function StoreDetail({
           />
         ))}
       </div>
+      <Toast
+        open={notice}
+        onOpenChange={setNotice}
+        message="已加入购物车"
+        duration={0}
+      />
     </div>
   );
 }

@@ -58,7 +58,7 @@ export function SearchBar({
       method={action ? "get" : undefined}
       aria-busy={loading}
       className={cn(
-        "flex min-h-12 items-center gap-2 rounded-control border border-border bg-surface p-1.5 pl-3 shadow-card transition-colors focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15",
+        "flex h-11 items-center gap-2 rounded-control border border-border bg-surface pl-3 shadow-card transition-colors motion-reduce:transition-none focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15",
         className,
       )}
       onSubmit={handleSubmit}
@@ -79,14 +79,14 @@ export function SearchBar({
         value={value}
         placeholder={placeholder}
         disabled={unavailable}
-        className="h-9 min-w-0 flex-1 bg-transparent text-sm text-text outline-none placeholder:text-text-subtle disabled:cursor-not-allowed"
+        className="h-10 min-w-0 flex-1 bg-transparent text-sm text-text outline-none placeholder:text-text-subtle disabled:cursor-not-allowed"
         onChange={(event) => onValueChange(event.target.value)}
       />
       <button
         type="submit"
         aria-label={submitLabel}
         disabled={unavailable || value.trim().length === 0}
-        className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand text-white transition-colors outline-none hover:bg-brand-strong focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex size-11 shrink-0 items-center justify-center rounded-r-control bg-brand text-white outline-none transition-colors motion-reduce:transition-none hover:bg-brand-strong focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading ? (
           <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />

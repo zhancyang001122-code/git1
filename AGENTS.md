@@ -47,7 +47,7 @@
 
 - 画布最大宽度 430px，桌面居中
 - 页面水平边距 16px
-- 顶部导航 48px + top safe area；搜索框 40px；底部导航 56px + bottom safe area
+- 顶部导航 48px + top safe area；搜索框 44px；底部导航 56px + bottom safe area
 - 底部五栏必须扁平等分，小智通过品牌色选中态突出，禁止中央按钮上浮
 - 字号只允许 12/13/14/16/18/24/28px
 - 原生 Cell 圆角 0–12px，普通卡片 12px，大模块 16px

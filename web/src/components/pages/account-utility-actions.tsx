@@ -3,18 +3,18 @@
 import { HelpCircle, Settings } from "lucide-react";
 import { useState } from "react";
 
-import { DemoNotice } from "@/components/ui/demo-notice";
+import { Toast } from "@/components/ui/toast";
 
 const notices = {
-  help: "帮助中心将在后续阶段接入，当前没有发起真实客服请求。",
-  settings: "设置中心将在后续阶段接入，当前不会修改任何账户配置。",
+  help: "帮助中心为演示入口，当前没有发起真实客服请求。",
+  settings: "设置中心为演示入口，当前不会修改账户配置。",
 } as const;
 
 export function AccountUtilityActions() {
   const [notice, setNotice] = useState<string | null>(null);
 
   return (
-    <div className="space-y-3">
+    <div>
       <section aria-label="帮助与设置" className="grid grid-cols-2 gap-3">
         <button
           type="button"
@@ -33,7 +33,15 @@ export function AccountUtilityActions() {
           设置
         </button>
       </section>
-      {notice ? <DemoNotice>{notice}</DemoNotice> : null}
+      <Toast
+        open={Boolean(notice)}
+        onOpenChange={(open) => {
+          if (!open) setNotice(null);
+        }}
+        message={notice ?? ""}
+        duration={0}
+        tone="neutral"
+      />
     </div>
   );
 }

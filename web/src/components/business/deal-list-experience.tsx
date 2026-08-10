@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { SearchBar } from "@/components/ui/search-bar";
 import { EmptyState } from "@/components/ui/states";
+import { Toast } from "@/components/ui/toast";
 import type { Deal } from "@/features/business/domain";
 import { cn } from "@/lib/cn";
 
@@ -64,14 +65,14 @@ export function DealListExperience({ deals }: DealListExperienceProps) {
       />
 
       <section aria-label="团购筛选" className="space-y-3">
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1">
           {categories.map((value) => (
             <button
               key={value}
               type="button"
               onClick={() => setCategory(value)}
               className={cn(
-                "min-h-9 shrink-0 rounded-full border px-3 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                "min-h-11 shrink-0 rounded-full border px-3 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand",
                 category === value
                   ? "border-brand bg-brand text-white"
                   : "border-border bg-surface text-text-muted",
@@ -86,7 +87,7 @@ export function DealListExperience({ deals }: DealListExperienceProps) {
           aria-pressed={refundableOnly}
           onClick={() => setRefundableOnly((value) => !value)}
           className={cn(
-            "min-h-9 rounded-full border px-3 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand",
+            "min-h-11 rounded-full border px-3 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand",
             refundableOnly
               ? "border-brand bg-brand text-white"
               : "border-border bg-surface text-text-muted",
@@ -99,7 +100,15 @@ export function DealListExperience({ deals }: DealListExperienceProps) {
       <p className="text-sm text-text-muted">
         共 {filteredDeals.length} 个演示团购
       </p>
-      {notice ? <DemoNotice>{notice}</DemoNotice> : null}
+      <Toast
+        open={Boolean(notice)}
+        onOpenChange={(open) => {
+          if (!open) setNotice(null);
+        }}
+        message={notice ?? ""}
+        duration={0}
+        tone="neutral"
+      />
 
       {filteredDeals.length > 0 ? (
         <div className="grid grid-cols-2 gap-3">

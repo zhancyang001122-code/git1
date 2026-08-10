@@ -10,6 +10,12 @@ describe("home page smoke test", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
+        name: "小智本地生活",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
         name: "小智本地生活 AI 服务助手",
       }),
     ).toBeInTheDocument();

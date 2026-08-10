@@ -1,12 +1,14 @@
 "use client";
 
 import { PackageCheck, PackageX, Store as StoreIcon } from "lucide-react";
+import { useState } from "react";
 
 import { BusinessCardImage } from "@/components/business/business-card-image";
 import { Button } from "@/components/ui/button";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { SourceBadge } from "@/components/ui/source-badge";
 import { Tag } from "@/components/ui/tag";
+import { Toast } from "@/components/ui/toast";
 import type { Product, Store } from "@/features/business/domain";
 import { useDemoCart } from "@/features/cart/demo-cart";
 
@@ -18,6 +20,7 @@ export function ProductDetail({
   store: Store;
 }) {
   const { add } = useDemoCart();
+  const [notice, setNotice] = useState(false);
   const inStock = product.availableStock > 0;
   return (
     <div className="space-y-5 pb-6">
@@ -67,10 +70,19 @@ export function ProductDetail({
           className="w-full"
           disabled={!inStock}
           aria-label={inStock ? "加入购物车" : "演示缺货"}
-          onClick={() => add(product.id)}
+          onClick={() => {
+            add(product.id);
+            setNotice(true);
+          }}
         >
           {inStock ? "加入购物车" : "演示缺货"}
         </Button>
+        <Toast
+          open={notice}
+          onOpenChange={setNotice}
+          message="已加入购物车"
+          duration={0}
+        />
       </div>
     </div>
   );
