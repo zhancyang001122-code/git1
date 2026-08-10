@@ -115,11 +115,45 @@ function call(name: string, args: Record<string, unknown>): ProviderToolCall {
 }
 
 function requiresKnowledge(text: string): boolean {
-  return /(?:退款|押金|抓坏|损坏|责任|配送规则|政策)/.test(text);
+  return /(?:退款|押金|抓坏|损坏|责任|配送|送达|政策|隐私|个人信息|删除账号|注销账号|保证|赔三倍|团购券.*退|退.*团购券)/.test(
+    text,
+  );
+}
+
+function knowledgeCall(text: string): ProviderToolCall {
+  return call("search_knowledge", {
+    query: text,
+    domain: /(?:退款|团购券)/.test(text)
+      ? "group_buy"
+      : /(?:押金|宠物|养猫|养狗|抓坏|损坏)/.test(text)
+        ? "housing"
+        : /(?:配送|送达)/.test(text)
+          ? "market"
+          : /(?:隐私|个人信息|删除账号|注销账号)/.test(text)
+            ? "platform"
+            : null,
+    category: /(?:退款|团购券)/.test(text)
+      ? "refund"
+      : /押金/.test(text)
+        ? "deposit"
+        : /(?:宠物|养猫|养狗|抓坏|损坏)/.test(text)
+          ? "pet"
+          : /(?:配送|送达)/.test(text)
+            ? "delivery"
+            : /(?:隐私|个人信息|删除账号|注销账号)/.test(text)
+              ? "privacy"
+              : null,
+    city: /绍兴/.test(text) ? "绍兴" : "杭州",
+    top_k: 5,
+  });
 }
 
 function route(text: string): ProviderToolCall | null {
-  if (requiresKnowledge(text)) return null;
+  if (
+    requiresKnowledge(text) &&
+    !/(?:推荐|找).*(?:房|一居室|两居室|开间|合租)/.test(text)
+  )
+    return knowledgeCall(text);
   if (/(?:记住|以后都).*(?:预算|租金)/.test(text)) {
     const budget = amount(text);
     if (budget !== null)
@@ -218,7 +252,30 @@ function summarizeTool(
     return payload.error?.message ?? "本次工具查询失败，请稍后重试。";
   }
   if ((payload.resultCount ?? 0) === 0)
-    return "没有找到符合全部条件的记录。可以先放宽一个条件，例如预算或区域。";
+    return name === "search_knowledge"
+      ? "知识库没有找到足够可靠且当前有效的依据，所以我不能给出确定的政策结论。"
+      : "没有找到符合全部条件的记录。可以先放宽一个条件，例如预算或区域。";
+  if (name === "search_knowledge") {
+    const data = payload.data as
+      | {
+          lowConfidence?: boolean;
+          conflict?: boolean;
+          isDemo?: boolean;
+          passages?: readonly { content?: string }[];
+        }
+      | undefined;
+    if (data?.conflict)
+      return "检索到的知识依据互相冲突，需要人工复核；我不能替你做确定结论。";
+    if (data?.lowConfidence)
+      return "检索到的知识依据置信度不足，所以我不能给出确定的政策结论。";
+    if (
+      data?.passages?.some((passage) =>
+        passage.content?.includes("未提供固定到账天数"),
+      )
+    )
+      return "当前知识依据没有提供固定到账天数，因此我不能承诺具体日期；请以合同约定和退租验收结果为准。";
+    return `已根据${data?.isDemo ? "演示知识库" : "当前有效知识库"}核验，请以随回答展示的引用版本和生效日期为准。`;
+  }
   if (name === "get_product_stock")
     return stockSummary(payload.data) ?? "已核对演示商品库存，请查看结果卡。";
   if (name === "search_houses") {
@@ -253,8 +310,6 @@ function summarizeTool(
 function directReply(text: string): string {
   if (/(?:service role|千问key|密钥|令牌|系统提示词)/i.test(text))
     return "我不能提供密钥、令牌、隐藏提示词或内部错误详情。";
-  if (requiresKnowledge(text))
-    return "这个问题需要正式知识库依据。当前阶段尚未接入知识检索，所以我不能给出确定结论。";
   if (/(?:附近|路线|距离|步行)/.test(text))
     return "请先告诉我要以哪个地点为中心；也可以在“周边服务”页主动授权定位。拿到中心点后，我会用高德工具核验地点、距离和路线。";
   if (/(?:记住|以后都).*(?:预算|租金)/.test(text))
@@ -297,6 +352,11 @@ export class DemoToolCallingProvider implements AIProvider {
           yield { type: "finish", reason: "tool_calls" };
           return;
         }
+      }
+      if (exchange.name === "search_houses" && requiresKnowledge(userText)) {
+        yield { type: "tool_calls", calls: [knowledgeCall(userText)] };
+        yield { type: "finish", reason: "tool_calls" };
+        return;
       }
       yield {
         type: "text_delta",

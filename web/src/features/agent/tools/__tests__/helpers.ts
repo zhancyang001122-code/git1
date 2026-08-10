@@ -3,6 +3,7 @@ import { vi } from "vitest";
 import type { ToolAuditEntry, ToolContext } from "@/features/agent/tools/types";
 import { createDemoRepository } from "@/features/business/demo-repository";
 import { FakeMapsService } from "@/features/maps/fake-adapter";
+import { FakeKnowledgeService } from "@/features/knowledge/fake-service";
 
 export function createToolTestContext(
   overrides: Partial<ToolContext> = {},
@@ -10,6 +11,7 @@ export function createToolTestContext(
   return {
     business: createDemoRepository(),
     maps: new FakeMapsService(),
+    knowledge: new FakeKnowledgeService(),
     memory: {
       getPreferences: vi.fn(async () => null),
       upsertPreferences: vi.fn(async () => {

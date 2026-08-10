@@ -15,6 +15,7 @@ export const taskSixToolNames = [
   "save_user_preference",
   "search_nearby_places",
   "calculate_walking_route",
+  "search_knowledge",
 ] as const;
 
 export type ToolName = (typeof taskSixToolNames)[number];
@@ -92,6 +93,16 @@ const saveUserPreferenceSchema = z
     }
   });
 
+const searchKnowledgeSchema = z
+  .object({
+    query: z.string().trim().min(2).max(500),
+    domain: z.enum(["housing", "group_buy", "market", "platform"]).nullable(),
+    category: z.string().trim().min(1).max(80).nullable(),
+    city: z.string().trim().min(1).max(40).nullable(),
+    top_k: z.number().int().min(1).max(8),
+  })
+  .strict();
+
 export const toolInputSchemas = {
   search_houses: searchHousesSchema,
   get_house_detail: getHouseDetailSchema,
@@ -102,6 +113,7 @@ export const toolInputSchemas = {
   save_user_preference: saveUserPreferenceSchema,
   search_nearby_places: nearbySearchInputSchema,
   calculate_walking_route: walkingRouteInputSchema,
+  search_knowledge: searchKnowledgeSchema,
 } as const;
 
 export type ToolInputs = {
@@ -328,6 +340,27 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
         "destination_longitude",
         "destination_latitude",
       ],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "search_knowledge",
+    description:
+      "Retrieve published and currently effective customer-service knowledge. Use for policies, contracts, refunds, deposits, pets and delivery rules. Cite returned chunks.",
+    strict: true,
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string", minLength: 2, maxLength: 500 },
+        domain: {
+          type: ["string", "null"],
+          enum: ["housing", "group_buy", "market", "platform", null],
+        },
+        category: { type: ["string", "null"] },
+        city: { type: ["string", "null"] },
+        top_k: { type: "integer", minimum: 1, maximum: 8, default: 5 },
+      },
+      required: ["query", "domain", "category", "city", "top_k"],
       additionalProperties: false,
     },
   },

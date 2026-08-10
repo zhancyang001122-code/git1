@@ -1,13 +1,24 @@
 import type { z } from "zod";
 
-import type { ResultCard } from "@/features/agent/chat-events";
+import type {
+  KnowledgeCitation,
+  ResultCard,
+} from "@/features/agent/chat-events";
 import type { ToolContractDefinition } from "@/features/agent/tools/schemas";
 import type { BusinessRepository } from "@/features/business/repository";
 import type { MemoryRepository } from "@/features/memory/repository";
 import type { MapsService } from "@/features/maps/types";
+import type {
+  KnowledgeCandidateSink,
+  KnowledgeService,
+} from "@/features/knowledge/types";
 
 export type ToolSource =
-  "housing_history_2024" | "supabase_mock" | "amap" | "user_memory";
+  | "housing_history_2024"
+  | "supabase_mock"
+  | "amap"
+  | "knowledge_base"
+  | "user_memory";
 
 export type ToolRunStatus =
   "queued" | "running" | "succeeded" | "failed" | "timed_out";
@@ -24,6 +35,7 @@ export interface ToolResult<T = unknown> {
   error?: ToolError;
   source: ToolSource;
   cards?: readonly ResultCard[];
+  citations?: readonly KnowledgeCitation[];
   resultCount: number;
 }
 
@@ -50,6 +62,8 @@ export interface ToolAuditSink {
 export interface ToolContext {
   business: BusinessRepository;
   maps: MapsService;
+  knowledge: KnowledgeService;
+  knowledgeCandidates?: KnowledgeCandidateSink;
   memory: MemoryRepository;
   audit: ToolAuditSink;
   businessSource: "housing_history_2024" | "supabase_mock";

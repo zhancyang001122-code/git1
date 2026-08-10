@@ -55,18 +55,37 @@ describe("environment contract", () => {
       SUPABASE_FALLBACK_TO_DEMO: "true",
     });
 
-    expect(value).toEqual({
+    expect(value).toMatchObject({
       SUPABASE_SERVICE_ROLE_KEY: "supabase-secret",
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
       SUPABASE_FALLBACK_TO_DEMO: true,
       DASHSCOPE_MODEL: "qwen-plus",
+      DASHSCOPE_EMBEDDING_MODEL: "text-embedding-v4",
+      DASHSCOPE_EMBEDDING_DIMENSIONS: 1024,
+      DASHSCOPE_RERANK_MODEL: "qwen3-rerank",
+      RAG_RERANK_ENABLED: false,
+      RAG_VECTOR_WEIGHT: 0.65,
+      RAG_TEXT_WEIGHT: 0.35,
+      RAG_LOW_CONFIDENCE_THRESHOLD: 0.45,
+      RAG_TOP_K: 12,
+      RAG_FINAL_K: 5,
       AI_REQUEST_TIMEOUT_MS: 30000,
       TOOL_TIMEOUT_MS: 8000,
       AI_MAX_TOOL_ROUNDS: 8,
       DASHSCOPE_BASE_URL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
       AMAP_BASE_URL: "https://restapi.amap.com",
     });
+  });
+
+  it("rejects invalid RAG dimensions, weights and rerank configuration", () => {
+    expect(() =>
+      parseServerEnv({ DASHSCOPE_EMBEDDING_DIMENSIONS: "1536" }),
+    ).toThrow();
+    expect(() =>
+      parseServerEnv({ RAG_VECTOR_WEIGHT: "0.8", RAG_TEXT_WEIGHT: "0.3" }),
+    ).toThrow();
+    expect(() => parseServerEnv({ RAG_RERANK_ENABLED: "true" })).toThrow();
   });
 
   it("bounds configurable tool timeouts and rounds", () => {

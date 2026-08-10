@@ -1,4 +1,8 @@
-import type { ChatStreamEvent, ResultCard } from "@/features/agent/chat-events";
+import type {
+  ChatStreamEvent,
+  KnowledgeCitation,
+  ResultCard,
+} from "@/features/agent/chat-events";
 import type { ChatTurnCompletion } from "@/features/agent/completion";
 import type {
   AIProvider,
@@ -126,6 +130,7 @@ export async function* runAgentToolLoop(
   let outputTokens: number | undefined;
   let auditWarningEmitted = false;
   const resultCards: NonNullable<ChatTurnCompletion["cards"]>[number][] = [];
+  const citations: KnowledgeCitation[] = [];
 
   for (let round = 1; round <= maxRounds; round += 1) {
     let roundText = "";
@@ -174,6 +179,7 @@ export async function* runAgentToolLoop(
         outputTokens,
       );
       if (resultCards.length > 0) final.cards = resultCards;
+      if (citations.length > 0) final.citations = citations;
       if (await persistenceFailed(input.onComplete, final)) {
         yield {
           type: "warning",
@@ -193,6 +199,7 @@ export async function* runAgentToolLoop(
         outputTokens,
       );
       if (resultCards.length > 0) final.cards = resultCards;
+      if (citations.length > 0) final.citations = citations;
       yield {
         type: "warning",
         code: "TOOLS_NOT_AVAILABLE",
@@ -308,6 +315,18 @@ export async function* runAgentToolLoop(
         }
         yield { type: "result_cards", cards: [...execution.result.cards] };
       }
+      if (execution.result.ok && execution.result.citations?.length) {
+        const incoming: KnowledgeCitation[] = [];
+        for (const citation of execution.result.citations) {
+          if (citations.some((item) => item.chunkId === citation.chunkId))
+            continue;
+          if (citations.length >= 20) break;
+          citations.push(citation);
+          incoming.push(citation);
+        }
+        if (incoming.length > 0)
+          yield { type: "citations", citations: incoming };
+      }
       if (execution.auditFailed && !auditWarningEmitted) {
         auditWarningEmitted = true;
         yield {
@@ -343,6 +362,7 @@ export async function* runAgentToolLoop(
         outputTokens,
       );
       if (resultCards.length > 0) final.cards = resultCards;
+      if (citations.length > 0) final.citations = citations;
       yield {
         type: "warning",
         code: "TOOL_ROUND_LIMIT",

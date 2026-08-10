@@ -91,15 +91,11 @@ describe("DemoToolCallingProvider routing subset", () => {
     });
   });
 
-  it("refuses policy certainty before keyword-based business routing", async () => {
+  it("routes policy questions to the registered knowledge tool", async () => {
     const values = await events([
       { role: "user", content: "允许养猫的房子如果猫抓坏家具怎么办" },
     ]);
-    const serialized = JSON.stringify(values);
-
-    expect(firstCall(values)).toBeUndefined();
-    expect(serialized).toContain("需要正式知识库依据");
-    expect(serialized).toContain("不能给出确定结论");
+    expect(firstCall(values)).toMatchObject({ name: "search_knowledge" });
   });
 
   it("saves only explicit remember requests and refuses secret extraction", async () => {

@@ -38,6 +38,13 @@ DASHSCOPE_MODEL=qwen-plus
 DASHSCOPE_EMBEDDING_MODEL=text-embedding-v4
 DASHSCOPE_EMBEDDING_DIMENSIONS=1024
 DASHSCOPE_RERANK_MODEL=qwen3-rerank
+DASHSCOPE_RERANK_BASE_URL=<工作空间专属 compatible-api/v1 地址>
+RAG_RERANK_ENABLED=false
+RAG_VECTOR_WEIGHT=0.65
+RAG_TEXT_WEIGHT=0.35
+RAG_LOW_CONFIDENCE_THRESHOLD=0.45
+RAG_TOP_K=12
+RAG_FINAL_K=5
 ```
 
 模型名通过环境变量可替换。首次接入先用百炼控制台当前模型清单验证模型可用；API Key、地域 Host 和业务空间必须匹配。不要把 Key 写成 `NEXT_PUBLIC_*`。
@@ -63,6 +70,10 @@ DASHSCOPE_RERANK_MODEL=qwen3-rerank
 5. 运行 RAG eval，确认退款、宠物、押金、配送和拒答案例。
 
 `RAG_RERANK_ENABLED=false` 时使用混合融合排序；验证 rerank 模型和预算后再启用。
+
+索引入口为 `POST /api/knowledge/index`，请求体只接受 `versionId`，并要求 `Authorization: Bearer <DEMO_ADMIN_TOKEN>`。Token 必须是至少 32 位的随机值，只能放在服务端环境变量或请求头中，禁止放入 URL、浏览器代码或日志。该入口只建立索引，不负责发布知识版本。
+
+`POST /api/knowledge/search` 提供经过 Zod 校验的服务端检索边界，单次最多返回 8 条结果。正式公网部署仍需在网关增加分布式限流和滥用防护，不能依赖单实例内存计数器。
 
 ## 6. Vercel
 

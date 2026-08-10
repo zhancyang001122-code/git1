@@ -2,6 +2,7 @@ import type { ProviderToolDefinition } from "@/features/agent/provider";
 import { businessToolDefinitions } from "@/features/agent/tools/business-tools";
 import { memoryToolDefinitions } from "@/features/agent/tools/memory-tools";
 import { mapToolDefinitions } from "@/features/agent/tools/maps-tools";
+import { knowledgeToolDefinitions } from "@/features/agent/tools/knowledge-tools";
 import type { ToolName } from "@/features/agent/tools/schemas";
 import type { ErasedToolDefinition } from "@/features/agent/tools/types";
 import { AppError } from "@/lib/errors";
@@ -53,5 +54,6 @@ export function createTaskSixToolRegistry(): ToolRegistry {
     ...businessToolDefinitions,
     ...memoryToolDefinitions,
     ...mapToolDefinitions,
+    ...knowledgeToolDefinitions,
   ]);
 }

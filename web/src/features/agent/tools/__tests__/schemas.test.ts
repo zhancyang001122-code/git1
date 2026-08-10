@@ -19,6 +19,7 @@ const taskSevenTools: readonly ToolName[] = [
   "save_user_preference",
   "search_nearby_places",
   "calculate_walking_route",
+  "search_knowledge",
 ];
 
 describe("Task 7 tool schemas", () => {

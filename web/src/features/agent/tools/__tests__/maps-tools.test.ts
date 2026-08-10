@@ -9,7 +9,7 @@ describe("map tools", () => {
   it("registers the two strict AMap tools", () => {
     const definitions = createTaskSixToolRegistry().providerDefinitions();
 
-    expect(definitions).toHaveLength(9);
+    expect(definitions).toHaveLength(10);
     expect(definitions.map((item) => item.name)).toEqual(
       expect.arrayContaining([
         "search_nearby_places",

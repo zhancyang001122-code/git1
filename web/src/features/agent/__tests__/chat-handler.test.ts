@@ -9,6 +9,7 @@ import { ToolExecutor } from "@/features/agent/tools/executor";
 import { createDemoRepository } from "@/features/business/demo-repository";
 import { createEphemeralChatPersistence } from "@/features/conversation/chat-persistence";
 import { FakeMapsService } from "@/features/maps/fake-adapter";
+import { FakeKnowledgeService } from "@/features/knowledge/fake-service";
 
 function handler() {
   return createChatHandler(async () => ({
@@ -96,6 +97,7 @@ describe("POST /api/chat handler", () => {
         context: {
           business: createDemoRepository(),
           maps: new FakeMapsService(),
+          knowledge: new FakeKnowledgeService(),
           memory: {
             getPreferences: async () => null,
             upsertPreferences: async () => {
@@ -128,5 +130,54 @@ describe("POST /api/chat handler", () => {
     expect(events.some((event) => event.type === "result_cards")).toBe(true);
     expect(events.at(-1)).toEqual({ type: "done", finishReason: "stop" });
     expect(responseText).not.toContain("search_houses");
+  });
+
+  it("streams knowledge citations before the grounded answer", async () => {
+    const post = createChatHandler(async () => ({
+      provider: new DemoToolCallingProvider(),
+      persistence: createEphemeralChatPersistence(),
+      timeoutMs: 1_000,
+      tools: {
+        executor: new ToolExecutor(),
+        context: {
+          business: createDemoRepository(),
+          maps: new FakeMapsService(),
+          knowledge: new FakeKnowledgeService(),
+          memory: {
+            getPreferences: async () => null,
+            upsertPreferences: async () => {
+              throw new Error("not available");
+            },
+          },
+          audit: createInMemoryToolAudit(),
+          businessSource: "supabase_mock",
+          userId: null,
+        },
+        debugEnabled: false,
+        maxRounds: 8,
+      },
+    }));
+
+    const response = await post(
+      new Request("http://localhost/api/chat", {
+        method: "POST",
+        body: JSON.stringify({ message: "团购券没核销可以退吗" }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    const events = new SseEventParser().push(await response.text());
+    const citationIndex = events.findIndex(
+      (event) => event.type === "citations",
+    );
+    const answerIndex = events.findIndex(
+      (event) => event.type === "assistant_delta",
+    );
+
+    expect(citationIndex).toBeGreaterThan(0);
+    expect(answerIndex).toBeGreaterThan(citationIndex);
+    expect(events[citationIndex]).toMatchObject({
+      type: "citations",
+      citations: [expect.objectContaining({ title: "团购券退款规则" })],
+    });
   });
 });
