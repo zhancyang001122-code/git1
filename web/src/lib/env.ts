@@ -22,6 +22,17 @@ const stringBoolean = (defaultValue: boolean) =>
     return value;
   }, z.boolean().default(defaultValue));
 
+const integerFromString = (
+  defaultValue: number,
+  minimum: number,
+  maximum: number,
+) =>
+  z.preprocess((value) => {
+    if (value === undefined || value === "") return defaultValue;
+    if (typeof value === "string" && /^\d+$/.test(value)) return Number(value);
+    return value;
+  }, z.number().int().min(minimum).max(maximum));
+
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_APP_NAME: z.string().min(1).default("小智"),
   NEXT_PUBLIC_APP_DESCRIPTION: z
@@ -39,7 +50,13 @@ const publicEnvSchema = z.object({
 const serverEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: optionalString,
   SUPABASE_FALLBACK_TO_DEMO: stringBoolean(false),
+  ANONYMOUS_COOKIE_SECRET: z.preprocess(
+    emptyStringToUndefined,
+    z.string().min(32).optional(),
+  ),
   DASHSCOPE_API_KEY: optionalString,
+  DASHSCOPE_MODEL: z.string().min(1).default("qwen-plus"),
+  AI_REQUEST_TIMEOUT_MS: integerFromString(30_000, 1_000, 120_000),
   AMAP_WEB_SERVICE_KEY: optionalString,
   DASHSCOPE_BASE_URL: z.preprocess(
     emptyStringToUndefined,

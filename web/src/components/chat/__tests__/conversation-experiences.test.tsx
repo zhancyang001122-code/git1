@@ -1,14 +1,41 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ChatExperience } from "@/components/chat/chat-experience";
 import { CommunityPostDetail } from "@/components/chat/community-post-detail";
 import { ConversationHistory } from "@/components/chat/conversation-history";
 import { demoCommunityPosts } from "@/features/business/demo-data";
+import { encodeSseEvent } from "@/features/agent/sse";
 
-describe("scripted conversation experiences", () => {
-  it("runs and labels a local multi-step housing demonstration", async () => {
-    vi.useFakeTimers();
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe("conversation experiences", () => {
+  it("renders the server SSE warning and streamed answer", async () => {
+    const responseText = [
+      encodeSseEvent({
+        type: "session",
+        sessionId: "71000000-0000-0000-0000-000000000001",
+        messageId: "72000000-0000-0000-0000-000000000001",
+      }),
+      encodeSseEvent({
+        type: "warning",
+        code: "DEMO_MODE",
+        message: "当前为演示模式，未调用真实千问或外部工具",
+      }),
+      encodeSseEvent({ type: "assistant_delta", delta: "这是流式回答" }),
+      encodeSseEvent({ type: "done", finishReason: "stop" }),
+    ].join("");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(responseText, {
+            headers: { "content-type": "text/event-stream; charset=utf-8" },
+          }),
+      ),
+    );
     render(
       <ChatExperience
         initialContext={{
@@ -20,14 +47,70 @@ describe("scripted conversation experiences", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "发送" }));
-    expect(screen.getByText("正在查询演示房源")).toBeInTheDocument();
-    expect(screen.getByText(/未调用真实模型或外部工具/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText("这是流式回答")).toBeInTheDocument(),
+    );
+    expect(
+      screen.getByText("当前为演示模式，未调用真实千问或外部工具"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("本轮未执行外部工具。")).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/chat",
+      expect.objectContaining({ method: "POST" }),
+    );
 
-    await act(async () => vi.advanceTimersByTime(600));
-    expect(screen.getByText(/本地脚本演示已完成/)).toBeInTheDocument();
-    expect(screen.getByText("2024 历史房源数据")).toBeInTheDocument();
-    expect(screen.getByText("工具：local_demo_search")).toBeInTheDocument();
-    vi.useRealTimers();
+    fireEvent.click(screen.getByRole("button", { name: "新对话" }));
+    expect(screen.queryByText("这是流式回答")).not.toBeInTheDocument();
+    expect(screen.getByText("从一个真实需求开始")).toBeInTheDocument();
+  });
+
+  it("cancels the browser request instead of leaving it running", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        (_url: string, init?: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            init?.signal?.addEventListener("abort", () =>
+              reject(new DOMException("Aborted", "AbortError")),
+            );
+          }),
+      ),
+    );
+    render(
+      <ChatExperience
+        initialContext={{ prompt: "帮我看看附近", debug: false }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    fireEvent.click(await screen.findByRole("button", { name: "取消" }));
+    await waitFor(() =>
+      expect(screen.getByText("本轮请求已取消。")).toBeInTheDocument(),
+    );
+  });
+
+  it("does not report a truncated SSE response as completed", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            encodeSseEvent({
+              type: "session",
+              sessionId: "71000000-0000-0000-0000-000000000001",
+              messageId: "72000000-0000-0000-0000-000000000001",
+            }) + encodeSseEvent({ type: "assistant_delta", delta: "未完成" }),
+          ),
+      ),
+    );
+    render(
+      <ChatExperience initialContext={{ prompt: "测试中断", debug: false }} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+    await waitFor(() =>
+      expect(screen.getByText("聊天响应意外中断，请重试")).toBeInTheDocument(),
+    );
   });
 
   it("carries a community post through the allowlisted chat context", () => {

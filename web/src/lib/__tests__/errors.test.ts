@@ -7,6 +7,7 @@ describe("public error contract", () => {
     const error = new AppError({
       code: "SERVICE_TIMEOUT",
       message: "服务暂时响应较慢，请稍后重试",
+      status: 504,
       retryable: true,
       cause: new Error("upstream-secret-detail"),
     });
@@ -17,6 +18,7 @@ describe("public error contract", () => {
       retryable: true,
       requestId: "request-123",
     });
+    expect(error.status).toBe(504);
   });
 
   it("sanitizes unknown errors instead of exposing their messages", () => {

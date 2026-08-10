@@ -64,6 +64,10 @@ test("capture every frontend route template", async ({ browser }) => {
     const page = await context.newPage();
     const response = await page.goto(route, { waitUntil: "networkidle" });
     expect(response?.ok(), route).toBe(true);
+    if (slug === "05-chat") {
+      await page.getByRole("button", { name: "发送" }).click();
+      await expect(page.getByText(/当前为聊天链路演示模式/)).toBeVisible();
+    }
     await page.screenshot({
       path: path.join(outputDir, `${slug}.png`),
       fullPage: true,

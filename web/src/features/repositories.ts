@@ -62,6 +62,9 @@ function createReadOnlyDemoRepositories() {
     async createSession() {
       return persistenceDisabled();
     },
+    async getSession() {
+      return null;
+    },
     async listSessions() {
       return [];
     },

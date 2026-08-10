@@ -71,14 +71,18 @@ test("cart state survives client-side navigation", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("scripted chat exposes progress and a sourced result", async ({
+test("chat streams through the server API and labels demo mode", async ({
   page,
 }) => {
   await page.goto("/xiaozhi/chat?q=找3500元以内允许养猫的房源&debug=true");
   await page.getByRole("button", { name: "发送" }).click();
-  await expect(page.getByText("正在查询演示房源")).toBeVisible();
-  await expect(page.getByText(/本地脚本演示已完成/)).toBeVisible();
-  await expect(page.getByText("2024 历史房源数据")).toBeVisible();
+  await expect(page.getByText(/当前为聊天链路演示模式/)).toBeVisible();
+  await expect(
+    page.getByText(
+      "当前为演示模式，对话不会写入云端，也未调用真实千问或外部工具",
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("本轮未执行外部工具。")).toBeVisible();
 });
 
 test("feedback and knowledge review never claim remote writes", async ({

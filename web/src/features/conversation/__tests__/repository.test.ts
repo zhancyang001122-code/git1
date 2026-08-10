@@ -46,6 +46,7 @@ describe("SupabaseConversationRepository", () => {
     const row = {
       id: sessionId,
       user_id: userId,
+      anonymous_id: null,
       title: "找房",
       summary: "",
       last_location_label: null,
@@ -63,6 +64,42 @@ describe("SupabaseConversationRepository", () => {
     expect(
       fake.calls.find((call) => call.method === "insert")?.args[0],
     ).toEqual({ user_id: userId, title: "找房" });
+  });
+
+  it("creates and reads a server-authorized anonymous session owner", async () => {
+    const row = {
+      id: sessionId,
+      user_id: null,
+      anonymous_id: "anonymous-owner-token",
+      title: "匿名对话",
+      summary: "",
+      last_location_label: null,
+      last_longitude: null,
+      last_latitude: null,
+      created_at: "2026-08-11T00:00:00.000Z",
+      updated_at: "2026-08-11T00:00:00.000Z",
+    };
+    const fake = fakeClient({ data: row });
+    const repository = createSupabaseConversationRepository(fake.client);
+    const session = await repository.createSession({
+      anonymousId: "anonymous-owner-token",
+      title: "匿名对话",
+    });
+
+    expect(session).toMatchObject({
+      userId: null,
+      anonymousId: "anonymous-owner-token",
+    });
+    expect(
+      fake.calls.find((call) => call.method === "insert")?.args[0],
+    ).toEqual({ anonymous_id: "anonymous-owner-token", title: "匿名对话" });
+
+    const restored = await repository.getSession(sessionId);
+    expect(restored?.anonymousId).toBe("anonymous-owner-token");
+    expect(fake.calls).toContainEqual({
+      method: "eq",
+      args: ["id", sessionId],
+    });
   });
 
   it("lists messages in stable chronological order using explicit fields", async () => {
@@ -88,7 +125,7 @@ describe("SupabaseConversationRepository", () => {
     ).not.toContain("*");
     expect(fake.calls).toContainEqual({
       method: "order",
-      args: ["created_at", { ascending: true }],
+      args: ["created_at", { ascending: false }],
     });
     expect(fake.calls).toContainEqual({ method: "limit", args: [20] });
   });

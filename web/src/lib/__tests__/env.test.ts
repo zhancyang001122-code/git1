@@ -49,6 +49,8 @@ describe("environment contract", () => {
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
       SUPABASE_FALLBACK_TO_DEMO: true,
+      DASHSCOPE_MODEL: "qwen-plus",
+      AI_REQUEST_TIMEOUT_MS: 30000,
       DASHSCOPE_BASE_URL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
       AMAP_BASE_URL: "https://restapi.amap.com",
     });

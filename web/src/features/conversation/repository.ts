@@ -6,12 +6,12 @@ import { AppError } from "@/lib/errors";
 const uuid = z
   .string()
   .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
-const createSessionSchema = z
-  .object({
-    userId: uuid,
-    title: z.string().trim().min(1).max(120).default("新对话"),
-  })
-  .strict();
+const sessionTitle = z.string().trim().min(1).max(120).default("新对话");
+const anonymousId = z.string().regex(/^[A-Za-z0-9_-]{16,128}$/);
+const createSessionSchema = z.union([
+  z.object({ userId: uuid, title: sessionTitle }).strict(),
+  z.object({ anonymousId, title: sessionTitle }).strict(),
+]);
 const messageRole = z.enum(["system", "user", "assistant", "tool"]);
 const appendMessageSchema = z
   .object({
@@ -28,17 +28,23 @@ const listSchema = z
   .object({ limit: z.number().int().min(1).max(100).default(50) })
   .strict();
 
-const sessionRowSchema = z.object({
-  id: uuid,
-  user_id: uuid,
-  title: z.string(),
-  summary: z.string(),
-  last_location_label: z.string().nullable(),
-  last_longitude: z.coerce.number().nullable(),
-  last_latitude: z.coerce.number().nullable(),
-  created_at: z.string(),
-  updated_at: z.string(),
-});
+const sessionRowSchema = z
+  .object({
+    id: uuid,
+    user_id: uuid.nullable(),
+    anonymous_id: anonymousId.nullable(),
+    title: z.string(),
+    summary: z.string(),
+    last_location_label: z.string().nullable(),
+    last_longitude: z.coerce.number().nullable(),
+    last_latitude: z.coerce.number().nullable(),
+    created_at: z.string(),
+    updated_at: z.string(),
+  })
+  .refine(
+    (value) => (value.user_id === null) !== (value.anonymous_id === null),
+    "会话必须且只能有一个所有者",
+  );
 const messageRowSchema = z.object({
   id: uuid,
   session_id: uuid,
@@ -52,13 +58,14 @@ const messageRowSchema = z.object({
 });
 
 const SESSION_COLUMNS =
-  "id,user_id,title,summary,last_location_label,last_longitude,last_latitude,created_at,updated_at";
+  "id,user_id,anonymous_id,title,summary,last_location_label,last_longitude,last_latitude,created_at,updated_at";
 const MESSAGE_COLUMNS =
   "id,session_id,role,content,structured_payload,model_name,input_tokens,output_tokens,created_at";
 
 export interface ConversationSession {
   id: string;
-  userId: string;
+  userId: string | null;
+  anonymousId: string | null;
   title: string;
   summary: string;
   lastLocationLabel: string | null;
@@ -83,6 +90,7 @@ export interface ConversationRepository {
   createSession(
     input: z.input<typeof createSessionSchema>,
   ): Promise<ConversationSession>;
+  getSession(sessionId: string): Promise<ConversationSession | null>;
   listSessions(
     userId: string,
     options?: z.input<typeof listSchema>,
@@ -135,6 +143,7 @@ function mapSession(row: unknown): ConversationSession {
   return {
     id: value.id,
     userId: value.user_id,
+    anonymousId: value.anonymous_id,
     title: value.title,
     summary: value.summary,
     lastLocationLabel: value.last_location_label,
@@ -174,11 +183,26 @@ export function createSupabaseConversationRepository(
       const value = parse(createSessionSchema, input);
       const result = await client
         .from("conversation_sessions")
-        .insert({ user_id: value.userId, title: value.title })
+        .insert(
+          "userId" in value
+            ? { user_id: value.userId, title: value.title }
+            : { anonymous_id: value.anonymousId, title: value.title },
+        )
         .select(SESSION_COLUMNS)
         .single();
       if (result.error) queryFailed(result.error);
       return mapSession(result.data);
+    },
+
+    async getSession(inputSessionId) {
+      const sessionId = parse(uuid, inputSessionId);
+      const result = await client
+        .from("conversation_sessions")
+        .select(SESSION_COLUMNS)
+        .eq("id", sessionId)
+        .maybeSingle();
+      if (result.error) queryFailed(result.error);
+      return result.data ? mapSession(result.data) : null;
     },
 
     async listSessions(inputUserId, options = {}) {
@@ -221,11 +245,11 @@ export function createSupabaseConversationRepository(
         .from("conversation_messages")
         .select(MESSAGE_COLUMNS)
         .eq("session_id", sessionId)
-        .order("created_at", { ascending: true })
-        .order("id", { ascending: true })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
         .limit(limit);
       if (result.error) queryFailed(result.error);
-      return (result.data ?? []).map(mapMessage);
+      return (result.data ?? []).map(mapMessage).reverse();
     },
   };
 }
