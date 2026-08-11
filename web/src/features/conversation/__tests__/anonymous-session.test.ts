@@ -20,11 +20,15 @@ describe("anonymous session cookie", () => {
 
   it("rejects a modified id or signature", () => {
     const created = createAnonymousSessionCookie(secret);
+    const replacement = created.value.startsWith("x") ? "y" : "x";
     expect(
       readAnonymousSessionCookie(`${created.value.slice(0, -1)}x`, secret),
     ).toBeNull();
     expect(
-      readAnonymousSessionCookie(`x${created.value.slice(1)}`, secret),
+      readAnonymousSessionCookie(
+        `${replacement}${created.value.slice(1)}`,
+        secret,
+      ),
     ).toBeNull();
   });
 
