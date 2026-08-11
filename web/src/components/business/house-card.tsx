@@ -1,4 +1,4 @@
-import { MapPin, PawPrint } from "lucide-react";
+import { MapPin } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -38,8 +38,7 @@ export function HouseCard({ actions, eager, house }: HouseCardProps) {
             {house.name}
           </h2>
           <p className="text-xs leading-5 text-text-muted">
-            {house.roomType} · {house.areaSqm}㎡ · 地铁约{" "}
-            {house.subwayDistanceM}m
+            {house.roomType} · {house.areaSqm}㎡
           </p>
           <p className="flex items-center gap-1 text-xs text-text-subtle">
             <MapPin aria-hidden="true" className="size-3.5" />
@@ -47,12 +46,6 @@ export function HouseCard({ actions, eager, house }: HouseCardProps) {
               {house.district} · {house.address}
             </span>
           </p>
-          {house.petsAllowed ? (
-            <p className="flex items-center gap-1 text-xs font-medium text-success">
-              <PawPrint aria-hidden="true" className="size-3.5" />
-              允许宠物记录
-            </p>
-          ) : null}
           <SourceBadge
             source={house.isDemo ? "supabase_mock" : "housing_history_2024"}
           />

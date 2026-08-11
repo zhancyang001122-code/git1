@@ -15,8 +15,8 @@ import { SectionHeader } from "@/components/ui/section-header";
 
 const tasks = [
   {
-    label: "找宠物友好房源",
-    prompt: "找3500以内允许养猫的一居室",
+    label: "找预算内一居室",
+    prompt: "找武林广场附近3500以内的一居室",
     icon: Building2,
   },
   {

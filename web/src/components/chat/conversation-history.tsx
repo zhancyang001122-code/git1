@@ -6,8 +6,8 @@ import { DemoNotice } from "@/components/ui/demo-notice";
 const conversations = [
   {
     id: "demo-housing",
-    title: "宠物友好房源",
-    preview: "3500 元以内的一居室演示筛选",
+    title: "武林广场附近房源",
+    preview: "3500 元以内的一居室历史筛选",
     time: "今天 10:24",
   },
   {

@@ -123,7 +123,6 @@ describe("HistoricalHousingSupabaseAdapter", () => {
         areaSqm: null,
         floor: null,
         location: { longitude: 120.1552, latitude: 30.2742 },
-        petsPolicy: "unknown",
       }),
     );
   });

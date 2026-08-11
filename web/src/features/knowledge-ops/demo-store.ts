@@ -16,7 +16,7 @@ const now = "2026-08-11T00:00:00.000Z";
 
 export const DEMO_KNOWLEDGE_CANDIDATE_IDS = {
   refund: "64000000-0000-4000-8000-000000000001",
-  pet: "64000000-0000-4000-8000-000000000002",
+  deposit: "64000000-0000-4000-8000-000000000002",
   delivery: "64000000-0000-4000-8000-000000000003",
 } as const;
 
@@ -47,25 +47,25 @@ const seed: readonly KnowledgeCandidateRecord[] = [
     updatedAt: now,
   },
   {
-    id: DEMO_KNOWLEDGE_CANDIDATE_IDS.pet,
+    id: DEMO_KNOWLEDGE_CANDIDATE_IDS.deposit,
     sourceType: "human_correction",
     sourceSessionId: null,
     sourceMessageId: null,
-    normalizedQuestion: "宠物友好房源核验清单",
+    normalizedQuestion: "押金扣款证据如何核验",
     domain: "housing",
     reason: "field_contract_difference",
     evidence: [],
     status: "drafted",
     occurrenceCount: 1,
     draft: {
-      title: "宠物友好房源核验清单（模拟）",
+      title: "押金扣款证据清单（模拟）",
       answerMarkdown:
-        "模拟规则：宠物字段仅作初筛，签约前需核验合同、品种限制和公共区域规则。",
-      changeSummary: "补充签约前核验边界",
+        "模拟规则：发生押金扣款时需核对合同条款、退租验收记录和费用凭证，不能仅凭口头说明确定金额。",
+      changeSummary: "补充押金扣款证据边界",
       sourceReference: "DEMO-EVIDENCE-02",
       owner: "知识运营演示负责人",
       domain: "housing",
-      category: "pet",
+      category: "deposit",
       effectiveFrom: "2026-08-11",
     },
     createdAt: now,

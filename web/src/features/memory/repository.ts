@@ -16,7 +16,6 @@ const preferencesPatchSchema = z
       .max(200_000)
       .nullable()
       .optional(),
-    pets: stringList.optional(),
     preferredAreas: stringList.optional(),
     dietaryRestrictions: stringList.optional(),
     transportModes: stringList.optional(),
@@ -28,7 +27,6 @@ const authorizationTimeSchema = z.string().datetime({ offset: true });
 const preferencesRowSchema = z.object({
   user_id: uuid,
   max_housing_budget: z.coerce.number().int().nonnegative().nullable(),
-  pets: z.array(z.string()),
   preferred_areas: z.array(z.string()),
   dietary_restrictions: z.array(z.string()),
   transport_modes: z.array(z.string()),
@@ -39,12 +37,11 @@ const preferencesRowSchema = z.object({
 });
 
 const PREFERENCE_COLUMNS =
-  "user_id,max_housing_budget,pets,preferred_areas,dietary_restrictions,transport_modes,family_profile,allow_long_term_memory,consented_at,updated_at";
+  "user_id,max_housing_budget,preferred_areas,dietary_restrictions,transport_modes,family_profile,allow_long_term_memory,consented_at,updated_at";
 
 export interface UserPreferences {
   userId: string;
   maxHousingBudget: number | null;
-  pets: readonly string[];
   preferredAreas: readonly string[];
   dietaryRestrictions: readonly string[];
   transportModes: readonly string[];
@@ -93,7 +90,6 @@ function mapPreferences(row: unknown): UserPreferences {
   return {
     userId: value.user_id,
     maxHousingBudget: value.max_housing_budget,
-    pets: value.pets,
     preferredAreas: value.preferred_areas,
     dietaryRestrictions: value.dietary_restrictions,
     transportModes: value.transport_modes,
@@ -142,7 +138,6 @@ export function createSupabaseMemoryRepository(
         ...(value.maxHousingBudget !== undefined && {
           max_housing_budget: value.maxHousingBudget,
         }),
-        ...(value.pets !== undefined && { pets: value.pets }),
         ...(value.preferredAreas !== undefined && {
           preferred_areas: value.preferredAreas,
         }),

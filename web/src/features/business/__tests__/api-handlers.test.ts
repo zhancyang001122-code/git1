@@ -22,7 +22,7 @@ describe("public business API handlers", () => {
   it("validates and applies exact house filters with an honest source envelope", async () => {
     const response = await createHousesHandler(demoRuntime)(
       request(
-        "/api/houses?city=杭州&district=拱墅区&maxPrice=3500&roomType=一居室&petsAllowed=true&sort=price_asc&limit=2",
+        "/api/houses?city=杭州&maxPrice=3500&roomType=一居室&sort=price_asc&limit=2",
       ),
     );
     const body = (await response.json()) as {
@@ -39,10 +39,8 @@ describe("public business API handlers", () => {
       body.items.every(
         (house) =>
           house.city === "杭州" &&
-          house.district === "拱墅区" &&
           Number(house.priceMonthly) <= 3_500 &&
-          house.roomType === "一居室" &&
-          house.petsAllowed === true,
+          house.roomType === "一居室",
       ),
     ).toBe(true);
     expect(body.source).toEqual({

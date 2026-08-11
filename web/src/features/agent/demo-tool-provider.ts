@@ -132,7 +132,7 @@ function knowledgeCall(text: string): ProviderToolCall {
     query: text,
     domain: /(?:退款|团购券)/.test(text)
       ? "group_buy"
-      : /(?:押金|宠物|养猫|养狗|抓坏|损坏)/.test(text)
+      : /(?:押金|退租|验房|损坏)/.test(text)
         ? "housing"
         : /(?:配送|送达)/.test(text)
           ? "market"
@@ -141,15 +141,13 @@ function knowledgeCall(text: string): ProviderToolCall {
             : null,
     category: /(?:退款|团购券)/.test(text)
       ? "refund"
-      : /押金/.test(text)
+      : /(?:押金|退租|验房|损坏)/.test(text)
         ? "deposit"
-        : /(?:宠物|养猫|养狗|抓坏|损坏)/.test(text)
-          ? "pet"
-          : /(?:配送|送达)/.test(text)
-            ? "delivery"
-            : /(?:隐私|个人信息|删除账号|注销账号)/.test(text)
-              ? "privacy"
-              : null,
+        : /(?:配送|送达)/.test(text)
+          ? "delivery"
+          : /(?:隐私|个人信息|删除账号|注销账号)/.test(text)
+            ? "privacy"
+            : null,
     city: /绍兴/.test(text) ? "绍兴" : "杭州",
     top_k: 5,
   });
@@ -182,17 +180,12 @@ function route(text: string): ProviderToolCall | null {
   if (/(?:房|租房|一居室|两居室|开间|合租)/.test(text)) {
     const maximum = amount(text);
     const roomType = /(一居室|两居室|开间|合租)/.exec(text)?.[1] ?? null;
-    const district = /(拱墅区|西湖区|上城区|滨江区|越城区|柯桥区)/.exec(
-      text,
-    )?.[1];
     return call("search_houses", {
       city: text.includes("绍兴") ? "绍兴" : "杭州",
-      district: district ?? null,
       near_location: text.includes("武林广场") ? "武林广场" : null,
       min_price: null,
       max_price: maximum,
       room_type: roomType,
-      pets_allowed: /(?:养猫|宠物|猫)/.test(text) ? true : null,
       limit: 5,
     });
   }

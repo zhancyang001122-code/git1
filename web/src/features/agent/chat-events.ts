@@ -53,13 +53,6 @@ export const preferenceProposalDataSchema = z.discriminatedUnion("key", [
   z
     .object({
       ...preferenceProposalBase,
-      key: z.literal("pets"),
-      value: preferenceListValueSchema,
-    })
-    .strict(),
-  z
-    .object({
-      ...preferenceProposalBase,
       key: z.literal("preferred_areas"),
       value: preferenceListValueSchema,
     })

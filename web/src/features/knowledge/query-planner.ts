@@ -6,7 +6,7 @@ import type {
 
 const categoriesByDomain: Readonly<Record<KnowledgeDomain, readonly string[]>> =
   {
-    housing: ["pet", "deposit"],
+    housing: ["deposit"],
     group_buy: ["refund"],
     market: ["delivery"],
     platform: ["faq", "privacy", "account"],
@@ -23,11 +23,10 @@ const routes: readonly {
     category: "refund",
   },
   {
-    pattern: /宠物|养猫|养狗|抓坏|损坏责任/,
+    pattern: /押金|退租|验房|房屋损坏/,
     domain: "housing",
-    category: "pet",
+    category: "deposit",
   },
-  { pattern: /押金|退租|验房/, domain: "housing", category: "deposit" },
   {
     pattern: /配送|送达|骑手|超时|补偿/,
     domain: "market",

@@ -6,16 +6,16 @@ describe("mergePreferences", () => {
   it("lets the current turn override long-term values without mutating them", () => {
     const longTerm = {
       maxHousingBudget: 3_500,
-      pets: ["猫"],
       preferredAreas: ["拱墅区"],
+      transportModes: ["地铁"],
     };
 
     const merged = mergePreferences(longTerm, { maxHousingBudget: 4_000 });
 
     expect(merged).toEqual({
       maxHousingBudget: 4_000,
-      pets: ["猫"],
       preferredAreas: ["拱墅区"],
+      transportModes: ["地铁"],
     });
     expect(longTerm.maxHousingBudget).toBe(3_500);
   });

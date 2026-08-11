@@ -39,7 +39,7 @@ describe("conversation experiences", () => {
     render(
       <ChatExperience
         initialContext={{
-          prompt: "找 3500 元以内允许养猫的房源",
+          prompt: "找武林广场附近 3500 元以内的房源",
           source: "home",
           debug: true,
         }}
@@ -170,9 +170,8 @@ describe("conversation experiences", () => {
   it("links every demo conversation history item to a stable route", () => {
     render(<ConversationHistory />);
     expect(screen.getAllByRole("article")).toHaveLength(4);
-    expect(screen.getByRole("link", { name: /宠物友好房源/ })).toHaveAttribute(
-      "href",
-      "/xiaozhi/chat/demo-housing",
-    );
+    expect(
+      screen.getByRole("link", { name: /武林广场附近房源/ }),
+    ).toHaveAttribute("href", "/xiaozhi/chat/demo-housing");
   });
 });

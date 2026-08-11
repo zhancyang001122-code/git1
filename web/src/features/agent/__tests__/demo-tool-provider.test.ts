@@ -22,16 +22,16 @@ function firstCall(values: readonly ProviderEvent[]) {
 describe("DemoToolCallingProvider routing subset", () => {
   it("routes the housing evaluation case to exact structured filters", async () => {
     const values = await events([
-      { role: "user", content: "找3500元以内允许养猫的一居室" },
+      { role: "user", content: "找武林广场附近3500元以内的一居室" },
     ]);
     const call = firstCall(values);
 
     expect(call?.name).toBe("search_houses");
     expect(JSON.parse(call?.arguments ?? "{}")).toMatchObject({
       city: "杭州",
+      near_location: "武林广场",
       max_price: 3_500,
       room_type: "一居室",
-      pets_allowed: true,
     });
   });
 
@@ -93,7 +93,7 @@ describe("DemoToolCallingProvider routing subset", () => {
 
   it("routes policy questions to the registered knowledge tool", async () => {
     const values = await events([
-      { role: "user", content: "允许养猫的房子如果猫抓坏家具怎么办" },
+      { role: "user", content: "退租验房后押金多久退回" },
     ]);
     expect(firstCall(values)).toMatchObject({ name: "search_knowledge" });
   });

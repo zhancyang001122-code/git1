@@ -23,12 +23,10 @@ describe("ToolExecutor", () => {
     const execution = await new ToolExecutor().execute(
       call("search_houses", {
         city: "杭州",
-        district: null,
         near_location: null,
         min_price: null,
         max_price: 3_500,
         room_type: null,
-        pets_allowed: true,
         limit: 50,
       }),
       createToolTestContext({ business }),
@@ -168,12 +166,10 @@ describe("ToolExecutor", () => {
       new ToolExecutor().execute(
         call("search_houses", {
           city: "杭州",
-          district: null,
           near_location: null,
           min_price: null,
           max_price: 3_500,
           room_type: "一居室",
-          pets_allowed: true,
           limit: 5,
         }),
         createToolTestContext({ business, signal: controller.signal }),

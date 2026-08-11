@@ -62,7 +62,7 @@ data: {"finishReason":"stop"}
 
 ## `GET /api/houses`
 
-查询参数：`city`、`district`、`minPrice`、`maxPrice`、`roomType`、`petsAllowed`、`sort`、`cursor`、`limit`。未知参数、重复参数、非法数字或布尔值返回 `BUSINESS_QUERY_INVALID`。
+查询参数：`city`、`minPrice`、`maxPrice`、`roomType`、`sort`、`cursor`、`limit`。未知参数、重复参数或非法数字返回 `BUSINESS_QUERY_INVALID`。
 
 返回：
 

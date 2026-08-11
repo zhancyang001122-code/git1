@@ -13,7 +13,7 @@ import type { BusinessRepository } from "@/features/business/repository";
 import { AppError } from "@/lib/errors";
 
 const HOUSE_COLUMNS =
-  "id,name,city,district,address,price_monthly,room_type,area_sqm,pets_allowed,available,subway_distance_m,longitude,latitude,description,image_urls,tags,is_demo";
+  "id,name,city,district,address,price_monthly,room_type,area_sqm,available,subway_distance_m,longitude,latitude,description,image_urls,tags,is_demo";
 const DEAL_COLUMNS =
   "id,store_id,title,merchant_name,category,original_price,sale_price,refundable,refund_policy_label,valid_until,address,longitude,latitude,description,image_url,tags,sales_count,is_demo";
 const STORE_COLUMNS =
@@ -31,11 +31,9 @@ const paging = {
 const houseFilterSchema = z
   .object({
     city: optionalText,
-    district: optionalText,
     minPrice: z.number().int().min(0).max(200000).optional(),
     maxPrice: z.number().int().min(0).max(200000).optional(),
     roomType: optionalText,
-    petsAllowed: z.boolean().optional(),
     sort: z.enum(["recommended", "price_asc", "price_desc"]).optional(),
     ...paging,
   })
@@ -116,14 +114,11 @@ export function createSupabaseBusinessRepository(
         .select(HOUSE_COLUMNS, { count: "exact" })
         .eq("available", true);
       if (filter.city) query = query.eq("city", filter.city);
-      if (filter.district) query = query.eq("district", filter.district);
       if (filter.minPrice !== undefined)
         query = query.gte("price_monthly", filter.minPrice);
       if (filter.maxPrice !== undefined)
         query = query.lte("price_monthly", filter.maxPrice);
       if (filter.roomType) query = query.eq("room_type", filter.roomType);
-      if (filter.petsAllowed !== undefined)
-        query = query.eq("pets_allowed", filter.petsAllowed);
       if (filter.sort === "price_asc")
         query = query.order("price_monthly", { ascending: true });
       else if (filter.sort === "price_desc")

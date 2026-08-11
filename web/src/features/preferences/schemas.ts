@@ -14,7 +14,6 @@ const preferenceValuesPatchSchema = z
       .max(200_000)
       .nullable()
       .optional(),
-    pets: normalizedList.optional(),
     preferredAreas: normalizedList.optional(),
     dietaryRestrictions: normalizedList.optional(),
     transportModes: normalizedList.optional(),
@@ -56,7 +55,6 @@ export type PreferenceValuesPatch = z.infer<typeof preferenceValuesPatchSchema>;
 
 export interface PreferenceValues {
   maxHousingBudget: number | null;
-  pets: readonly string[];
   preferredAreas: readonly string[];
   dietaryRestrictions: readonly string[];
   transportModes: readonly string[];

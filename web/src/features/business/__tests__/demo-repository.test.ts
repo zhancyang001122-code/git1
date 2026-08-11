@@ -27,7 +27,6 @@ describe("DemoBusinessRepository", () => {
     const result = await repository.listHouses({
       maxPrice: 3500,
       roomType: "一居室",
-      petsAllowed: true,
       sort: "price_asc",
     });
 
@@ -40,10 +39,7 @@ describe("DemoBusinessRepository", () => {
     expect(result.items.every((house) => house.available)).toBe(true);
     expect(
       result.items.every(
-        (house) =>
-          house.priceMonthly <= 3500 &&
-          house.roomType === "一居室" &&
-          house.petsAllowed,
+        (house) => house.priceMonthly <= 3500 && house.roomType === "一居室",
       ),
     ).toBe(true);
   });

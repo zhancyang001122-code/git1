@@ -1,11 +1,4 @@
-import {
-  Building2,
-  Map,
-  MapPin,
-  PawPrint,
-  Ruler,
-  TrainFront,
-} from "lucide-react";
+import { Building2, Map, MapPin, Ruler } from "lucide-react";
 
 import { BusinessCardImage } from "@/components/business/business-card-image";
 import { DetailDemoActions } from "@/components/business/detail-demo-actions";
@@ -68,16 +61,6 @@ export function HouseDetail({ house }: HouseDetailProps) {
               <Ruler aria-hidden="true" className="size-4 text-brand" />
               <span>{house.areaSqm}㎡</span>
             </p>
-            <p className="flex items-center gap-2 text-text-muted">
-              <TrainFront aria-hidden="true" className="size-4 text-brand" />
-              <span>地铁约 {house.subwayDistanceM}m</span>
-            </p>
-            <p className="flex items-center gap-2 text-text-muted">
-              <PawPrint aria-hidden="true" className="size-4 text-brand" />
-              <span>
-                {house.petsAllowed ? "记录允许宠物" : "记录不允许宠物"}
-              </span>
-            </p>
           </div>
           <p className="mt-4 text-sm leading-6 text-text-muted">
             {house.description}
@@ -103,9 +86,7 @@ export function HouseDetail({ house }: HouseDetailProps) {
                 className="mx-auto mb-2 size-6 text-brand"
               />
               <p>未请求高德实时地图</p>
-              <p className="mt-1 text-xs">
-                仅展示历史字段：距地铁约 {house.subwayDistanceM} 米
-              </p>
+              <p className="mt-1 text-xs">周边距离需通过高德地图核验</p>
             </div>
           </div>
         </section>

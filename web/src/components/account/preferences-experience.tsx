@@ -15,7 +15,6 @@ interface PreferencesExperienceProps {
 
 interface FormValues {
   budget: string;
-  pets: string;
   areas: string;
   dietary: string;
   transport: string;
@@ -29,7 +28,6 @@ interface RequestError {
 
 const emptyForm: FormValues = {
   budget: "",
-  pets: "",
   areas: "",
   dietary: "",
   transport: "",
@@ -66,7 +64,6 @@ function formFromResponse(response: PreferencesResponse): FormValues {
       response.preferences.maxHousingBudget === null
         ? ""
         : String(response.preferences.maxHousingBudget),
-    pets: response.preferences.pets.join(","),
     areas: response.preferences.preferredAreas.join(","),
     dietary: response.preferences.dietaryRestrictions.join(","),
     transport: response.preferences.transportModes.join(","),
@@ -144,7 +141,6 @@ export function PreferencesExperience({
 
   const saveSummary = [
     `住房月预算上限：${form.budget ? `¥${Number(form.budget).toLocaleString("zh-CN")}` : "未设置"}`,
-    `宠物偏好：${form.pets || "未设置"}`,
     `常用区域：${form.areas || "未设置"}`,
     `饮食限制：${form.dietary || "未设置"}`,
     `交通方式：${form.transport || "未设置"}`,
@@ -176,7 +172,6 @@ export function PreferencesExperience({
         allowLongTermMemory: true,
         preferences: {
           maxHousingBudget: form.budget === "" ? null : Number(form.budget),
-          pets: listFromInput(form.pets),
           preferredAreas: listFromInput(form.areas),
           dietaryRestrictions: listFromInput(form.dietary),
           transportModes: listFromInput(form.transport),
@@ -280,16 +275,6 @@ export function PreferencesExperience({
             onChange={(event) => update("budget", event.target.value)}
             className={fieldClass}
             placeholder="例如 4200"
-          />
-        </label>
-        <label className="block text-sm font-medium text-text">
-          宠物偏好
-          <input
-            aria-label="宠物偏好"
-            value={form.pets}
-            onChange={(event) => update("pets", event.target.value)}
-            className={fieldClass}
-            placeholder="例如 可以养猫"
           />
         </label>
         <label className="block text-sm font-medium text-text">

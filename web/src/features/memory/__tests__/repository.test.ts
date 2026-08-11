@@ -42,7 +42,6 @@ const userId = "70000000-0000-0000-0000-000000000001";
 const row = {
   user_id: userId,
   max_housing_budget: 3500,
-  pets: ["猫"],
   preferred_areas: ["拱墅区"],
   dietary_restrictions: [],
   transport_modes: ["地铁"],
@@ -74,7 +73,7 @@ describe("SupabaseMemoryRepository", () => {
     await expect(
       createSupabaseMemoryRepository(fake.client).upsertPreferences(
         userId,
-        { pets: ["猫"] },
+        { preferredAreas: ["拱墅区"] },
         "not-a-time",
       ),
     ).rejects.toMatchObject({ code: "INVALID_PREFERENCES" });
@@ -87,7 +86,6 @@ describe("SupabaseMemoryRepository", () => {
       userId,
       {
         maxHousingBudget: 3500,
-        pets: ["猫"],
         preferredAreas: ["拱墅区"],
         dietaryRestrictions: [],
         transportModes: ["地铁"],

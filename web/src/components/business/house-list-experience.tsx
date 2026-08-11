@@ -25,7 +25,6 @@ export interface HouseListExperienceProps {
   source: "housing_history_2024" | "supabase_mock";
 }
 
-const districts = ["全部", "拱墅区", "西湖区", "上城区"] as const;
 const roomTypes = ["全部户型", "一居室", "两居室", "开间", "合租"] as const;
 
 function chipClass(active: boolean) {
@@ -41,12 +40,9 @@ export function HouseListExperience({
   houses,
   source,
 }: HouseListExperienceProps) {
-  const [district, setDistrict] = useState<(typeof districts)[number]>("全部");
   const [roomType, setRoomType] =
     useState<(typeof roomTypes)[number]>("全部户型");
   const [budgetOnly, setBudgetOnly] = useState(false);
-  const [petsOnly, setPetsOnly] = useState(false);
-  const [nearSubwayOnly, setNearSubwayOnly] = useState(false);
   const [sort, setSort] = useState<HouseSort>("recommended");
   const [favoriteIds, setFavoriteIds] = useState<ReadonlySet<string>>(
     new Set(),
@@ -59,22 +55,15 @@ export function HouseListExperience({
     price_asc: "租金从低到高",
     price_desc: "租金从高到低",
   };
-  const activeFilterCount = [
-    district !== "全部",
-    roomType !== "全部户型",
-    budgetOnly,
-    petsOnly,
-    nearSubwayOnly,
-  ].filter(Boolean).length;
+  const activeFilterCount = [roomType !== "全部户型", budgetOnly].filter(
+    Boolean,
+  ).length;
 
   const filteredHouses = useMemo(() => {
     const filtered = houses.filter(
       (house) =>
-        (district === "全部" || house.district === district) &&
         (roomType === "全部户型" || house.roomType === roomType) &&
-        (!budgetOnly || house.priceMonthly <= 3500) &&
-        (!petsOnly || house.petsAllowed) &&
-        (!nearSubwayOnly || house.subwayDistanceM <= 600),
+        (!budgetOnly || house.priceMonthly <= 3500),
     );
 
     if (sort === "price_asc") {
@@ -88,7 +77,7 @@ export function HouseListExperience({
       );
     }
     return filtered;
-  }, [budgetOnly, district, houses, nearSubwayOnly, petsOnly, roomType, sort]);
+  }, [budgetOnly, houses, roomType, sort]);
 
   function toggleFavorite(id: string) {
     setFavoriteIds((current) => {
@@ -195,18 +184,6 @@ export function HouseListExperience({
         description="筛选的是历史记录，不代表当前可租"
       >
         <div className="space-y-5">
-          <FilterGroup label="区域">
-            {districts.map((value) => (
-              <button
-                key={value}
-                type="button"
-                className={chipClass(district === value)}
-                onClick={() => setDistrict(value)}
-              >
-                {value}
-              </button>
-            ))}
-          </FilterGroup>
           <FilterGroup label="户型">
             {roomTypes.map((value) => (
               <button
@@ -227,22 +204,6 @@ export function HouseListExperience({
               onClick={() => setBudgetOnly((value) => !value)}
             >
               3500 元以内
-            </button>
-            <button
-              type="button"
-              aria-pressed={petsOnly}
-              className={chipClass(petsOnly)}
-              onClick={() => setPetsOnly((value) => !value)}
-            >
-              允许宠物
-            </button>
-            <button
-              type="button"
-              aria-pressed={nearSubwayOnly}
-              className={chipClass(nearSubwayOnly)}
-              onClick={() => setNearSubwayOnly((value) => !value)}
-            >
-              地铁 600m 内
             </button>
           </FilterGroup>
           <Button className="w-full" onClick={() => setSheet(null)}>

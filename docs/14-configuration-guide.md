@@ -67,7 +67,7 @@ RAG_FINAL_K=5
 2. 规范化 Markdown 并生成确定性 chunks。
 3. 调用 `text-embedding-v4` 生成 1024 维向量。
 4. 更新 embedding、model、embedded_at 和状态。
-5. 运行 RAG eval，确认退款、宠物、押金、配送和拒答案例。
+5. 运行 RAG eval，确认退款、押金、配送、隐私和拒答案例。
 
 `RAG_RERANK_ENABLED=false` 时使用混合融合排序；验证 rerank 模型和预算后再启用。
 

@@ -17,7 +17,6 @@ test("local housing HTTP service reaches the agent with historical provenance", 
   expect(body).toContain("housing_history_2024");
   expect(body).toContain("2024-11");
   expect(body).toContain('"detailAvailable":false');
-  expect(body).toContain('"petsAllowed":null');
   expect(body).toContain("不代表当前仍可出租或当前价格");
   expect(body).not.toContain("must-not-leak");
   expect(body).not.toContain('"raw"');

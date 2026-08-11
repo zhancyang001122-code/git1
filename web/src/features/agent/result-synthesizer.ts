@@ -17,7 +17,6 @@ const PUBLIC_FACT_FIELDS = [
   "price",
   "roomType",
   "areaSqm",
-  "petsAllowed",
   "refundable",
   "inStock",
   "availableStock",

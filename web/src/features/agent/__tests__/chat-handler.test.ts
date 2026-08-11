@@ -138,7 +138,7 @@ describe("POST /api/chat handler", () => {
       new Request("http://localhost/api/chat", {
         method: "POST",
         body: JSON.stringify({
-          message: "找3500元以内允许养猫的一居室",
+          message: "找武林广场附近3500元以内的一居室",
           debug: true,
         }),
         headers: { "content-type": "application/json" },

@@ -24,7 +24,7 @@ function message(
 describe("summarizeConversation", () => {
   it("summarizes user constraints and unresolved questions without tool payloads or secrets", () => {
     const summary = summarizeConversation([
-      message("user", "预算3500元，想找允许养猫的一居室", 1),
+      message("user", "预算3500元，想找武林广场附近的一居室", 1),
       message("assistant", "请问希望在哪个区域？", 2),
       message("tool", '{"api_key":"secret-value"}', 3),
       message("user", "我的token=very-secret-token，优先拱墅区", 4),

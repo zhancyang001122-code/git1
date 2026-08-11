@@ -49,7 +49,7 @@ describe("repository factory", () => {
     await expect(
       repositories.memory.upsertPreferences(
         "70000000-0000-0000-0000-000000000001",
-        { pets: ["猫"] },
+        { preferredAreas: ["拱墅区"] },
         "2026-08-12T00:00:00.000Z",
       ),
     ).rejects.toMatchObject({ code: "DEMO_PERSISTENCE_DISABLED" });

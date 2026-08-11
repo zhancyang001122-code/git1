@@ -35,7 +35,9 @@ describe("POST /api/chat", () => {
   it("executes demo business tools and emits typed cards", async () => {
     vi.stubEnv("NEXT_PUBLIC_DEMO_MODE", "true");
     vi.stubEnv("NEXT_PUBLIC_ENABLE_AI_DEBUG", "false");
-    const response = await POST(chatRequest("找3500元以内允许养猫的一居室"));
+    const response = await POST(
+      chatRequest("找武林广场附近3500元以内的一居室"),
+    );
     const responseText = await response.text();
     const events = new SseEventParser().push(responseText);
 

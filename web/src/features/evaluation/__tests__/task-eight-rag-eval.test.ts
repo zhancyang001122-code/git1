@@ -34,12 +34,12 @@ const allCases = (
 
 const selectedIds = [
   "rag-refund-001",
-  "rag-pet-001",
+  "rag-deposit-damage-001",
   "rag-version-001",
   "rag-gap-001",
   "rag-refund-redeemed-001",
   "rag-deposit-contract-001",
-  "rag-pet-permission-001",
+  "rag-privacy-retention-001",
   "rag-delivery-timeout-001",
   "rag-privacy-delete-001",
   "rag-gap-unknown-001",

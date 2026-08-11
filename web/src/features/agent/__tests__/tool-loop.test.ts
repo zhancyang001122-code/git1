@@ -28,12 +28,10 @@ class SequenceProvider implements AIProvider {
 
 const houseArgs = {
   city: "杭州",
-  district: null,
   near_location: null,
   min_price: null,
   max_price: 3_500,
   room_type: "一居室",
-  pets_allowed: true,
   limit: 5,
 };
 
@@ -138,12 +136,10 @@ describe("agent tool loop", () => {
               name: "search_houses",
               arguments: JSON.stringify({
                 limit: 5,
-                pets_allowed: true,
                 room_type: "一居室",
                 max_price: 3_500,
                 min_price: null,
                 near_location: null,
-                district: null,
                 city: "杭州",
               }),
             },

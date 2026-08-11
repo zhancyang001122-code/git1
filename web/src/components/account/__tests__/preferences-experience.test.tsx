@@ -14,7 +14,6 @@ const enabledPreferences = {
   allowLongTermMemory: true as const,
   preferences: {
     maxHousingBudget: 4_200,
-    pets: ["可以养猫"],
     preferredAreas: ["武林广场"],
     dietaryRestrictions: ["不吃辣"],
     transportModes: ["地铁"],
@@ -41,9 +40,6 @@ describe("PreferencesExperience", () => {
     fireEvent.change(screen.getByLabelText("住房月预算上限"), {
       target: { value: "4200" },
     });
-    fireEvent.change(screen.getByLabelText("宠物偏好"), {
-      target: { value: "可以养猫" },
-    });
     fireEvent.click(screen.getByRole("button", { name: "同意并保存到云端" }));
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -57,7 +53,6 @@ describe("PreferencesExperience", () => {
       allowLongTermMemory: true,
       preferences: {
         maxHousingBudget: 4200,
-        pets: ["可以养猫"],
         preferredAreas: [],
         dietaryRestrictions: [],
         transportModes: [],

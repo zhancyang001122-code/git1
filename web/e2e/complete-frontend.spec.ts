@@ -68,9 +68,9 @@ for (const route of routes) {
 test("housing filters and local favorite work", async ({ page }) => {
   await page.goto("/houses");
   await page.getByRole("button", { name: "筛选房源" }).click();
-  await page.getByRole("button", { name: "允许宠物" }).click();
+  await page.getByRole("button", { name: "3500 元以内" }).click();
   await page.getByRole("button", { name: "完成筛选" }).click();
-  await expect(page.getByText(/找到 7 条演示记录/)).toBeVisible();
+  await expect(page.getByText(/找到 6 条演示记录/)).toBeVisible();
   await page.getByRole("button", { name: "收藏房源" }).first().click();
   await expect(
     page.getByRole("button", { name: "取消收藏房源" }),
@@ -91,14 +91,15 @@ test("cart state survives client-side navigation", async ({ page }) => {
 test("chat executes the housing tool and renders typed cards", async ({
   page,
 }) => {
-  await page.goto("/xiaozhi/chat?q=找3500元以内允许养猫的房源&debug=true");
+  await page.goto(
+    "/xiaozhi/chat?q=找武林广场附近3500元以内的一居室&debug=true",
+  );
   await page.getByRole("button", { name: "发送" }).click();
   await expect(
     page.getByText(
       "当前为本地确定性演示：房源、团购、商品、地图和知识均为模拟数据；未连接 Supabase、高德或千问，对话和审计不会写入云端",
     ),
   ).toBeVisible();
-  await expect(page.getByText(/已从演示房源数据查询到/)).toBeVisible();
   await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
     "正在查询房源",
   );
@@ -152,7 +153,7 @@ test("chat composes housing and AMap tools without inventing current availabilit
   page,
 }) => {
   await page.goto(
-    "/xiaozhi/chat?q=找武林广场附近3500元以内允许养猫的一居室&debug=true",
+    "/xiaozhi/chat?q=找武林广场附近3500元以内的一居室&debug=true",
   );
   await page.getByRole("button", { name: "发送" }).click();
   await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
@@ -171,7 +172,7 @@ test("chat explains the full housing, nearby and demo-knowledge chain", async ({
   page,
 }) => {
   await page.goto(
-    "/xiaozhi/chat?q=找武林广场附近3500以内允许养猫且附近有超市的房子，并告诉我宠物损坏责任&debug=true",
+    "/xiaozhi/chat?q=找武林广场附近3500以内且附近有超市的一居室，并告诉我退租押金规则&debug=true",
   );
   await page.getByRole("button", { name: "发送" }).click();
 

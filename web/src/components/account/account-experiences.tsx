@@ -104,7 +104,7 @@ const historyItems = [
     time: "今天 10:24",
   },
   {
-    title: "询问宠物友好房源",
+    title: "询问武林广场附近房源",
     href: "/xiaozhi/chat/demo-housing",
     time: "今天 10:20",
   },
@@ -229,7 +229,7 @@ export function FeedbackExperience() {
       sessionId: "71000000-0000-4000-8000-000000000001",
       messageId: "72000000-0000-4000-8000-000000000001",
     },
-    pet: {
+    deposit: {
       sessionId: "71000000-0000-4000-8000-000000000002",
       messageId: "72000000-0000-4000-8000-000000000002",
     },
@@ -284,7 +284,7 @@ export function FeedbackExperience() {
           className={`${fieldClass} mt-2`}
         >
           <option value="refund">团购退款演示回答</option>
-          <option value="pet">宠物友好房源演示回答</option>
+          <option value="deposit">租房押金演示回答</option>
           <option value="delivery">配送时效演示回答</option>
         </select>
       </label>

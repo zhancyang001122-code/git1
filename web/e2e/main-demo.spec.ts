@@ -4,7 +4,7 @@ test("the interview demo covers search, grounded tools and feedback", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("searchbox").fill("找3500元以内允许养猫的一居室");
+  await page.getByRole("searchbox").fill("找武林广场附近3500元以内的一居室");
   await page.getByRole("button", { name: "搜索" }).click();
   await expect(page).toHaveURL(/\/xiaozhi\/chat\?q=/);
   await page.getByRole("button", { name: "发送" }).click();
@@ -27,7 +27,7 @@ test("the interview multi-tool scenario exposes progress and provenance", async 
   page,
 }) => {
   await page.goto(
-    `/xiaozhi/chat?q=${encodeURIComponent("找武林广场附近3500以内允许养猫且附近有超市的房子，并告诉我宠物损坏责任")}&debug=true`,
+    `/xiaozhi/chat?q=${encodeURIComponent("找武林广场附近3500以内且附近有超市的一居室，并告诉我退租押金规则")}&debug=true`,
   );
   await page.getByRole("button", { name: "发送" }).click();
 

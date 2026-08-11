@@ -30,8 +30,8 @@ describe("HomePage", () => {
   it("submits quick prompts through the validated chat route", () => {
     render(<HomePage />);
 
-    fireEvent.click(screen.getByRole("button", { name: "找宠物友好房源" }));
-    expect(screen.getByRole("searchbox")).toHaveValue("找宠物友好房源");
+    fireEvent.click(screen.getByRole("button", { name: "找武林广场附近房源" }));
+    expect(screen.getByRole("searchbox")).toHaveValue("找武林广场附近房源");
     expect(screen.getByRole("search")).toHaveAttribute(
       "action",
       "/xiaozhi/chat",

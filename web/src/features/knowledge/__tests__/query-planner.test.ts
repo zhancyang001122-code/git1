@@ -5,7 +5,7 @@ import { planKnowledgeQuery } from "@/features/knowledge/query-planner";
 describe("knowledge query planner", () => {
   it.each([
     ["未使用的团购券可以退款吗", "group_buy", "refund"],
-    ["养猫抓坏家具怎么处理", "housing", "pet"],
+    ["退租验房后押金怎么处理", "housing", "deposit"],
     ["租房押金多久退", "housing", "deposit"],
     ["超市配送超时怎么办", "market", "delivery"],
   ] as const)(

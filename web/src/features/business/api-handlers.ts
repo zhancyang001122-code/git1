@@ -63,11 +63,9 @@ const optionalLimit = z.preprocess((value) => {
 const housesQuerySchema = z
   .object({
     city: optionalText(40),
-    district: optionalText(40),
     minPrice: optionalInteger(1_000_000),
     maxPrice: optionalInteger(1_000_000),
     roomType: optionalText(40),
-    petsAllowed: optionalBoolean,
     sort: z.preprocess(
       emptyToUndefined,
       z.enum(["recommended", "price_asc", "price_desc"]).optional(),

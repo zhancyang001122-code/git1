@@ -36,7 +36,6 @@ function preferenceView(
 ): Record<string, unknown> {
   const housing = {
     maxHousingBudget: preferences.maxHousingBudget,
-    pets: preferences.pets,
     preferredAreas: preferences.preferredAreas,
     transportModes: preferences.transportModes,
     familyProfile: preferences.familyProfile,

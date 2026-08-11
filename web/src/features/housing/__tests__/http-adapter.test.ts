@@ -76,7 +76,6 @@ describe("HousingHttpAdapter", () => {
       id: "house_abc",
       title: "武林广场旁整租两居",
       monthlyRent: 3_800,
-      petsPolicy: "unknown",
       datasetPeriod: "2024-11",
     });
     expect(result.isHistorical).toBe(true);

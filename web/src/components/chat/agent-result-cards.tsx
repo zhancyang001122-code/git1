@@ -4,7 +4,6 @@ import {
   MapPin,
   PackageCheck,
   PackageX,
-  PawPrint,
   RotateCcw,
   Save,
   ShieldQuestion,
@@ -28,12 +27,11 @@ import { safeNextPath } from "@/features/auth/safe-next";
 const houseSchema = z.object({
   id: z.string(),
   name: z.string(),
-  district: z.string(),
-  address: z.string(),
+  district: z.string().nullable(),
+  address: z.string().nullable(),
   priceMonthly: z.number().nonnegative(),
-  roomType: z.string(),
-  areaSqm: z.number().positive(),
-  petsAllowed: z.boolean().nullable(),
+  roomType: z.string().nullable(),
+  areaSqm: z.number().positive().nullable(),
   distanceM: z.number().nonnegative().optional(),
   isDemo: z.boolean(),
   detailAvailable: z.boolean().optional(),
@@ -76,7 +74,7 @@ function HouseResult({ data }: { data: z.infer<typeof houseSchema> }) {
     <>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <Tag>{data.roomType}</Tag>
+          <Tag>{data.roomType ?? "户型暂无记录"}</Tag>
           <h3 className="mt-2 line-clamp-2 text-base font-semibold leading-6 text-text">
             {data.name}
           </h3>
@@ -86,7 +84,8 @@ function HouseResult({ data }: { data: z.infer<typeof houseSchema> }) {
         </strong>
       </div>
       <p className="mt-2 text-xs text-text-muted">
-        {data.areaSqm}㎡ · {data.district}
+        {data.areaSqm === null ? "面积暂无记录" : `${data.areaSqm}㎡`} ·{` `}
+        {data.district ?? "区域暂无记录"}
       </p>
       {data.distanceM !== undefined ? (
         <p className="mt-2 text-xs text-text-muted">
@@ -95,19 +94,8 @@ function HouseResult({ data }: { data: z.infer<typeof houseSchema> }) {
       ) : null}
       <p className="mt-2 flex items-center gap-1 text-xs text-text-subtle">
         <MapPin aria-hidden="true" className="size-3.5 shrink-0" />
-        <span className="truncate">{data.address}</span>
+        <span className="truncate">{data.address ?? "地址暂无记录"}</span>
       </p>
-      {data.petsAllowed ? (
-        <p className="mt-2 flex items-center gap-1 text-xs font-medium text-success">
-          <PawPrint aria-hidden="true" className="size-3.5" />
-          允许宠物记录
-        </p>
-      ) : data.petsAllowed === null ? (
-        <p className="mt-2 flex items-center gap-1 text-xs text-text-muted">
-          <PawPrint aria-hidden="true" className="size-3.5" />
-          宠物政策未提供
-        </p>
-      ) : null}
       <SourceBadge
         source={data.isDemo ? "supabase_mock" : "housing_history_2024"}
         className="mt-3"
@@ -238,7 +226,6 @@ function PlaceResult({ data }: { data: z.infer<typeof placeSchema> }) {
 
 const preferenceLabels: Record<PreferenceProposalData["key"], string> = {
   max_housing_budget: "住房月预算上限",
-  pets: "宠物偏好",
   preferred_areas: "常用区域",
   dietary_restrictions: "饮食限制",
   transport_modes: "交通方式",
@@ -255,8 +242,6 @@ function preferencePatch(data: PreferenceProposalData) {
   switch (data.key) {
     case "max_housing_budget":
       return { maxHousingBudget: data.value };
-    case "pets":
-      return { pets: data.value };
     case "preferred_areas":
       return { preferredAreas: data.value };
     case "dietary_restrictions":

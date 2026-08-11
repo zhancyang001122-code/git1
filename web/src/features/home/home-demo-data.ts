@@ -10,7 +10,7 @@ export const homeHighlights = [
     eyebrow: "2024 历史房源示例",
     location: "拱墅区 · 武林商圈",
     priceText: "¥3280/月",
-    detail: "约 38㎡ · 近地铁 · 可养宠物记录",
+    detail: "约 38㎡ · 一居室 · 历史价格记录",
     imageSrc: "/images/home/housing-history-2024.png",
     imageAlt: "采光明亮的紧凑型出租屋室内",
     isDemo: true,

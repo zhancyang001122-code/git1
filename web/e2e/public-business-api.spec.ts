@@ -4,7 +4,7 @@ test("public business list APIs match the documented demo contract", async ({
   request,
 }) => {
   const houses = await request.get(
-    "/api/houses?city=杭州&maxPrice=3500&petsAllowed=true&limit=2",
+    "/api/houses?city=杭州&maxPrice=3500&roomType=一居室&limit=2",
   );
   expect(houses.ok()).toBe(true);
   await expect(houses.json()).resolves.toMatchObject({

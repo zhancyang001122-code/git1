@@ -21,16 +21,16 @@ describe("housing and deal experiences", () => {
     expect(
       screen.getByRole("dialog", { name: "筛选房源" }),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "允许宠物" }));
+    fireEvent.click(screen.getByRole("button", { name: "3500 元以内" }));
     fireEvent.click(screen.getByRole("button", { name: "完成筛选" }));
     expect(screen.getAllByRole("article")).toHaveLength(
-      availableHouses.filter((house) => house.petsAllowed).length,
+      availableHouses.filter((house) => house.priceMonthly <= 3500).length,
     );
 
     fireEvent.click(screen.getByRole("button", { name: /排序：推荐顺序/ }));
     fireEvent.click(screen.getByRole("button", { name: "租金从低到高" }));
     const headings = screen.getAllByRole("heading", { level: 2 });
-    expect(headings[0]).toHaveTextContent("大关性价比一居");
+    expect(headings[0]).toHaveTextContent("文三路合租次卧");
 
     fireEvent.click(screen.getAllByRole("button", { name: "收藏房源" })[0]!);
     expect(

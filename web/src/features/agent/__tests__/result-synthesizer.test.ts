@@ -25,7 +25,6 @@ describe("buildToolModelPayload", () => {
             id: "20000000-0000-0000-0000-000000000001",
             name: "武林晴川一居室",
             priceMonthly: 3_300,
-            petsAllowed: true,
           },
         },
       ],
@@ -57,8 +56,8 @@ describe("buildToolModelPayload", () => {
         passages: [
           {
             chunkId: "30000000-0000-0000-0000-000000000001",
-            title: "宠物责任演示规则",
-            content: "允许宠物不等于免除家具损坏责任。",
+            title: "押金退还演示规则",
+            content: "退租验收完成后按合同约定处理押金。",
             hiddenMetadata: "drop-me",
           },
         ],
@@ -68,7 +67,7 @@ describe("buildToolModelPayload", () => {
     const payload = buildToolModelPayload("search_knowledge", result);
     const serialized = JSON.stringify(payload);
 
-    expect(serialized).toContain("允许宠物不等于免除家具损坏责任");
+    expect(serialized).toContain("退租验收完成后按合同约定处理押金");
     expect(serialized).toContain('"isDemo":true');
     expect(serialized).not.toContain("hiddenMetadata");
   });

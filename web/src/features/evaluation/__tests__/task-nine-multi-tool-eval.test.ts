@@ -16,7 +16,7 @@ describe("Task 9 explainable multi-tool scenario", () => {
         {
           role: "user",
           content:
-            "找武林广场附近3500以内允许养猫且附近有超市的房子，并告诉我宠物损坏责任",
+            "找武林广场附近3500以内且附近有超市的一居室，并告诉我退租押金规则",
         },
       ],
       signal: new AbortController().signal,
@@ -54,7 +54,7 @@ describe("Task 9 explainable multi-tool scenario", () => {
       ),
     ).toBe(true);
     expect(events.some((event) => event.type === "citations")).toBe(true);
-    expect(answer).toContain("演示知识库");
+    expect(answer).toContain("合同约定和退租验收结果");
     expect(answer).not.toMatch(/\d+\s*分钟/);
   });
 });

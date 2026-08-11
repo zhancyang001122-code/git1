@@ -34,7 +34,6 @@ export interface House {
   priceMonthly: number;
   roomType: string;
   areaSqm: number;
-  petsAllowed: boolean;
   available: boolean;
   subwayDistanceM: number | null;
   location: GeoPoint;
@@ -89,7 +88,6 @@ export interface CommunityPost {
 
 export interface UserPreferences {
   maxHousingBudget: number | null;
-  pets: string[];
   preferredAreas: string[];
   dietaryRestrictions: string[];
   transportModes: string[];

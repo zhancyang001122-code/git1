@@ -6,18 +6,16 @@ import { createTaskSixToolRegistry } from "@/features/agent/tools/registry";
 import { createToolTestContext } from "./helpers";
 
 describe("business tools", () => {
-  it("applies every exact house filter in the repository and returns typed cards", async () => {
+  it("applies every supported house filter and returns typed cards", async () => {
     const registry = createTaskSixToolRegistry();
     const tool = registry.get("search_houses");
     const result = await tool.execute(
       {
         city: "杭州",
-        district: "拱墅区",
         near_location: "武林广场",
         min_price: 3_000,
         max_price: 3_500,
         room_type: "一居室",
-        pets_allowed: true,
         limit: 10,
       },
       createToolTestContext({ business: createDemoRepository() }),
@@ -33,11 +31,9 @@ describe("business tools", () => {
       items.every(
         (house) =>
           house.city === "杭州" &&
-          house.district === "拱墅区" &&
           Number(house.priceMonthly) >= 3_000 &&
           Number(house.priceMonthly) <= 3_500 &&
-          house.roomType === "一居室" &&
-          house.petsAllowed === true,
+          house.roomType === "一居室",
       ),
     ).toBe(true);
     expect(result.data).toMatchObject({
@@ -60,7 +56,7 @@ describe("business tools", () => {
     });
   });
 
-  it("uses the local historical HTTP service only for its configured WGS84 center", async () => {
+  it("uses the configured Supabase history service for its WGS84 center", async () => {
     const search = vi.fn(async () => ({
       items: [
         {
@@ -78,7 +74,6 @@ describe("business tools", () => {
           floor: "中楼层",
           sourceUrl: "https://example.invalid/HZ-001",
           location: { longitude: 120.1552, latitude: 30.2742 },
-          petsPolicy: "unknown" as const,
           datasetPeriod: "2024-11" as const,
         },
       ],
@@ -96,17 +91,15 @@ describe("business tools", () => {
       .execute(
         {
           city: "杭州",
-          district: "拱墅区",
           near_location: "武林广场",
           min_price: null,
           max_price: 4_000,
           room_type: "两居室",
-          pets_allowed: null,
           limit: 5,
         },
         createToolTestContext({
           housing: {
-            mode: "http",
+            mode: "supabase",
             service: { search },
             defaultCenter: {
               label: "武林广场",
@@ -141,45 +134,7 @@ describe("business tools", () => {
     });
     expect(result.cards?.[0]?.data).toMatchObject({
       id: "house_abc",
-      petsAllowed: null,
       detailAvailable: false,
-    });
-  });
-
-  it("refuses to pretend the historical dataset supports pet filtering", async () => {
-    const search = vi.fn();
-    const result = await createTaskSixToolRegistry()
-      .get("search_houses")
-      .execute(
-        {
-          city: "杭州",
-          district: null,
-          near_location: "武林广场",
-          min_price: null,
-          max_price: 4_000,
-          room_type: null,
-          pets_allowed: true,
-          limit: 5,
-        },
-        createToolTestContext({
-          housing: {
-            mode: "http",
-            service: { search },
-            defaultCenter: {
-              label: "武林广场",
-              longitude: 120.1551,
-              latitude: 30.2741,
-            },
-            radiusM: 2_000,
-          },
-        }),
-      );
-
-    expect(search).not.toHaveBeenCalled();
-    expect(result).toMatchObject({
-      ok: false,
-      source: "housing_history_2024",
-      error: { code: "HOUSING_PET_FILTER_UNAVAILABLE" },
     });
   });
 

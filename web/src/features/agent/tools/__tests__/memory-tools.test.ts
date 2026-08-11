@@ -16,7 +16,6 @@ function preferences(
   return {
     userId,
     maxHousingBudget: 3_500,
-    pets: ["猫"],
     preferredAreas: ["拱墅区"],
     dietaryRestrictions: ["少辣"],
     transportModes: ["地铁"],
@@ -59,7 +58,6 @@ describe("memory tools", () => {
       scope: "housing",
       preferences: {
         maxHousingBudget: 3_500,
-        pets: ["猫"],
         preferredAreas: ["拱墅区"],
         transportModes: ["地铁"],
         familyProfile: [],

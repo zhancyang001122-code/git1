@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { SearchBar } from "@/components/ui/search-bar";
 
 const quickPrompts = [
-  "找宠物友好房源",
+  "找武林广场附近房源",
   "附近有什么好吃的",
   "今晚买点菜",
   "团购退款规则",

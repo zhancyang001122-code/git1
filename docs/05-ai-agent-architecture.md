@@ -35,7 +35,10 @@ sequenceDiagram
 
 ```ts
 export interface AIProvider {
-  streamTurn(input: ProviderTurnInput, signal: AbortSignal): AsyncIterable<ProviderEvent>;
+  streamTurn(
+    input: ProviderTurnInput,
+    signal: AbortSignal,
+  ): AsyncIterable<ProviderEvent>;
 }
 
 export interface EmbeddingProvider {
@@ -52,6 +55,7 @@ export interface Reranker {
 ## 4. 工具
 
 P0：
+
 - `search_houses`
 - `get_house_detail`
 - `search_deals`
@@ -74,7 +78,7 @@ P0：
 - 指定武林广场且本机房源服务已配置时，由服务器端 Adapter 调用只读 FastAPI 服务。
 - 房源 API Key 只存在于服务端；浏览器和模型均不可见。
 - HTTP 响应再次经过 Zod 校验；`raw`、内部 ID 和联系方式不进入 Agent 上下文。
-- 当前真实快照不支持可靠宠物筛选，其他地点也尚未完成地理编码，因此两类请求必须明确失败，不能静默放宽条件。
+- 当前真实快照没有可靠区县和地址字段，其他地点也尚未完成地理编码，因此相关请求必须明确失败，不能静默放宽条件。
 - 历史坐标距离是 WGS84 直线距离，不得描述成高德步行路线。
 
 ## 5. 工具循环

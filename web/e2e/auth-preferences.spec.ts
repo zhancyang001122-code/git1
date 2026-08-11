@@ -12,7 +12,20 @@ interface MailpitSummary {
   To?: MailpitAddress | MailpitAddress[];
 }
 
-async function capturedOtp(request: APIRequestContext, email: string) {
+async function messageIds(request: APIRequestContext) {
+  expect(mailpitUrl, "local Mailpit URL").toBeTruthy();
+  const response = await request.get(`${mailpitUrl}/api/v1/messages`);
+  const payload = (await response.json()) as { messages?: MailpitSummary[] };
+  return new Set(
+    payload.messages?.flatMap((message) => (message.ID ? [message.ID] : [])),
+  );
+}
+
+async function capturedOtp(
+  request: APIRequestContext,
+  email: string,
+  excludedMessageIds: ReadonlySet<string>,
+) {
   expect(mailpitUrl, "local Mailpit URL").toBeTruthy();
   let messageId: string | undefined;
   await expect
@@ -24,7 +37,11 @@ async function capturedOtp(request: APIRequestContext, email: string) {
         };
         const message = payload.messages?.find((entry) => {
           const recipients = Array.isArray(entry.To) ? entry.To : [entry.To];
-          return recipients.some((recipient) => recipient?.Address === email);
+          return (
+            Boolean(entry.ID) &&
+            !excludedMessageIds.has(entry.ID!) &&
+            recipients.some((recipient) => recipient?.Address === email)
+          );
         });
         messageId = message?.ID;
         return messageId;
@@ -54,9 +71,10 @@ test("real local OTP session protects, persists, proposes, revokes and signs out
 
   await page.goto("/me/preferences");
   await expect(page).toHaveURL(/\/login\?next=%2Fme%2Fpreferences/);
+  const existingMessageIds = await messageIds(request);
   await page.getByLabel("邮箱").fill(email);
   await page.getByRole("button", { name: "发送验证码" }).click();
-  const otp = await capturedOtp(request, email);
+  const otp = await capturedOtp(request, email, existingMessageIds);
   await page.getByLabel("6 位验证码").fill(otp);
   await page.getByRole("button", { name: "登录并继续" }).click();
   await expect(page).toHaveURL(/\/me\/preferences$/);

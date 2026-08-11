@@ -14,7 +14,6 @@ function row(overrides: Partial<UserPreferences> = {}): UserPreferences {
   return {
     userId,
     maxHousingBudget: 3_500,
-    pets: ["猫"],
     preferredAreas: ["拱墅区"],
     dietaryRestrictions: [],
     transportModes: ["地铁"],

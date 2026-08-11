@@ -49,12 +49,10 @@ describe("Task 7 tool schemas", () => {
   it("accepts a complete house query but rejects extra and out-of-range fields", () => {
     const valid = {
       city: "杭州",
-      district: null,
       near_location: "武林广场",
       min_price: 2_000,
       max_price: 3_500,
       room_type: "一居室",
-      pets_allowed: true,
       limit: 5,
     };
 
@@ -65,6 +63,12 @@ describe("Task 7 tool schemas", () => {
     expect(
       toolInputSchemas.search_houses.safeParse({ ...valid, sql: "select *" })
         .success,
+    ).toBe(false);
+    expect(
+      toolInputSchemas.search_houses.safeParse({
+        ...valid,
+        district: "拱墅区",
+      }).success,
     ).toBe(false);
     const missingCity: Partial<typeof valid> = { ...valid };
     delete missingCity.city;

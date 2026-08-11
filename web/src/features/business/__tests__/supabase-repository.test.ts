@@ -52,7 +52,6 @@ const houseRow = {
   price_monthly: 3280,
   room_type: "一居室",
   area_sqm: "43",
-  pets_allowed: true,
   available: true,
   subway_distance_m: 480,
   longitude: "120.16328",
@@ -69,11 +68,9 @@ describe("SupabaseBusinessRepository", () => {
     const repository = createSupabaseBusinessRepository(fake.client);
     const page = await repository.listHouses({
       city: "杭州",
-      district: "拱墅区",
       minPrice: 2_500,
       maxPrice: 3500,
       roomType: "一居室",
-      petsAllowed: true,
       sort: "price_asc",
       limit: 10,
     });
@@ -86,10 +83,6 @@ describe("SupabaseBusinessRepository", () => {
     expect(fake.calls).toContainEqual({
       method: "eq",
       args: ["city", "杭州"],
-    });
-    expect(fake.calls).toContainEqual({
-      method: "eq",
-      args: ["district", "拱墅区"],
     });
     expect(fake.calls).toContainEqual({
       method: "gte",

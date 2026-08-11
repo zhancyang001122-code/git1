@@ -22,9 +22,9 @@ describe("primary product pages", () => {
     fireEvent.click(screen.getByRole("button", { name: "租房避坑" }));
     expect(screen.getAllByRole("article")).toHaveLength(1);
     expect(
-      screen.getByRole("heading", { name: "带猫租房前我会确认的 6 件事" }),
+      screen.getByRole("heading", { name: "签租房合同前我会确认的 6 件事" }),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /收藏 带猫租房/ }));
+    fireEvent.click(screen.getByRole("button", { name: /收藏 签租房合同/ }));
     expect(screen.getByText(/收藏状态仅保存在当前页面/)).toBeInTheDocument();
   });
 
@@ -37,7 +37,7 @@ describe("primary product pages", () => {
     expect(screen.getByText(/当前为可验证演示模式/)).toBeInTheDocument();
     expect(screen.queryByText(/后续会连接/)).not.toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /找宠物友好房源/ }),
+      screen.getByRole("link", { name: /找预算内一居室/ }),
     ).toHaveAttribute("href", expect.stringContaining("/xiaozhi/chat"));
   });
 

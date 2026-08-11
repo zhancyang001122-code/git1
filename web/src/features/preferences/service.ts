@@ -23,7 +23,6 @@ function toResponse(value: UserPreferences | null): PreferencesResponse {
     allowLongTermMemory: true,
     preferences: {
       maxHousingBudget: value.maxHousingBudget,
-      pets: value.pets,
       preferredAreas: value.preferredAreas,
       dietaryRestrictions: value.dietaryRestrictions,
       transportModes: value.transportModes,

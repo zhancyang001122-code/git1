@@ -33,7 +33,7 @@ describe("map partial failure", () => {
       messages: [
         {
           role: "user",
-          content: "找武林广场附近3500元以内允许养猫的一居室",
+          content: "找武林广场附近3500元以内的一居室",
         },
       ],
       signal: new AbortController().signal,

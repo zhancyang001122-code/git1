@@ -37,31 +37,6 @@ const fixtures: readonly KnowledgeHit[] = [
     isDemo: true,
   },
   {
-    chunkId: "63000000-0000-0000-0000-000000000002",
-    articleId: "61000000-0000-0000-0000-000000000002",
-    versionId: "62000000-0000-0000-0000-000000000002",
-    chunkIndex: 0,
-    title: "租房宠物规则说明",
-    versionLabel: "v1.0",
-    effectiveFrom: "2026-08-01",
-    effectiveUntil: null,
-    articleStatus: "published",
-    versionStatus: "published",
-    content:
-      "是否允许养宠物必须以具体房源记录和签约条款为准；允许宠物不等于免除责任，宠物造成的家具损坏按合同和验收结果处理。",
-    metadata: {
-      domain: "housing",
-      category: "pet",
-      city: "杭州",
-      isDemo: true,
-    },
-    vectorScore: 0.82,
-    textScore: 0.78,
-    combinedScore: 0.806,
-    score: 0.806,
-    isDemo: true,
-  },
-  {
     chunkId: "63000000-0000-0000-0000-000000000003",
     articleId: "61000000-0000-0000-0000-000000000003",
     versionId: "62000000-0000-0000-0000-000000000003",
@@ -139,10 +114,9 @@ const fixtures: readonly KnowledgeHit[] = [
 ];
 
 function relevantFixture(query: string): KnowledgeHit | null {
-  if (/押金/.test(query)) return fixtures[2]!;
-  if (/宠物|养猫|养狗|抓坏|家具损坏/.test(query)) return fixtures[1]!;
-  if (/配送|送达|骑手/.test(query)) return fixtures[3]!;
-  if (/隐私|个人信息|删除账号|注销账号/.test(query)) return fixtures[4]!;
+  if (/押金|退租|验房|房屋损坏/.test(query)) return fixtures[1]!;
+  if (/配送|送达|骑手/.test(query)) return fixtures[2]!;
+  if (/隐私|个人信息|删除账号|注销账号/.test(query)) return fixtures[3]!;
   if (/退|退款|团购券/.test(query)) return fixtures[0]!;
   return null;
 }

@@ -33,14 +33,14 @@ describe("common controls", () => {
     render(
       <SearchBar
         label="搜索本地生活服务"
-        value="  想找可养猫房源  "
+        value="  想找预算内房源  "
         onValueChange={() => undefined}
         onSubmit={onSubmit}
       />,
     );
 
     fireEvent.submit(screen.getByRole("search"));
-    expect(onSubmit).toHaveBeenCalledWith("想找可养猫房源");
+    expect(onSubmit).toHaveBeenCalledWith("想找预算内房源");
   });
 
   it("does not submit blank search input", () => {

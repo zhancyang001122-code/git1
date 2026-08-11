@@ -4,7 +4,7 @@
     {
       "id": "routing-house-001",
       "category": "routing",
-      "input": "找3500元以内允许养猫的一居室",
+      "input": "找武林广场附近3500元以内的一居室",
       "expected": {
         "requiredTools": ["search_houses"],
         "forbiddenTools": ["search_knowledge"],
@@ -41,13 +41,13 @@
       }
     },
     {
-      "id": "rag-pet-001",
+      "id": "rag-deposit-damage-001",
       "category": "rag",
-      "input": "允许养猫的房子如果猫抓坏家具怎么办",
+      "input": "退租验房发现房屋损坏，押金怎么处理",
       "expected": {
         "requiredTools": ["search_knowledge"],
         "citationRequired": true,
-        "requiredConcepts": ["允许宠物不等于免除责任"]
+        "requiredConcepts": ["完成退租验收", "核对合同约定"]
       }
     },
     {
@@ -92,13 +92,13 @@
       }
     },
     {
-      "id": "rag-pet-permission-001",
+      "id": "rag-privacy-retention-001",
       "category": "rag",
-      "input": "房源写允许宠物就不用赔家具损坏吗",
+      "input": "个人信息会保留多久",
       "expected": {
         "requiredTools": ["search_knowledge"],
         "citationRequired": true,
-        "requiredConcepts": ["允许宠物不等于免除责任"]
+        "requiredConcepts": ["当前隐私政策版本"]
       }
     },
     {
@@ -145,7 +145,7 @@
     {
       "id": "multi-house-map-001",
       "category": "multi_tool",
-      "input": "找武林广场附近3500以内允许养猫且附近有超市的房子",
+      "input": "找武林广场附近3500以内且附近有超市的一居室",
       "expected": {
         "requiredTools": ["search_houses", "search_nearby_places"],
         "toolOrderPartial": ["search_houses", "search_nearby_places"]
@@ -154,7 +154,7 @@
     {
       "id": "multi-house-rag-001",
       "category": "multi_tool",
-      "input": "推荐一套能养猫的房子并告诉我宠物损坏责任",
+      "input": "推荐一套武林广场附近的一居室并告诉我退租押金规则",
       "expected": {
         "requiredTools": ["search_houses", "search_knowledge"],
         "citationRequired": true
@@ -200,7 +200,7 @@
     {
       "id": "degradation-amap-001",
       "category": "degradation",
-      "input": "找3500内允许养猫且附近有超市的房子",
+      "input": "找武林广场附近3500内且附近有超市的一居室",
       "fault": { "service": "amap", "mode": "timeout" },
       "expected": {
         "mustReturnBusinessResults": true,

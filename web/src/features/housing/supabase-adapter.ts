@@ -156,7 +156,6 @@ function mapRow(row: z.infer<typeof rowSchema>): HistoricalHousingItem {
       longitude: row.longitude,
       latitude: row.latitude,
     },
-    petsPolicy: "unknown",
     datasetPeriod: DATASET_PERIOD,
   };
 }

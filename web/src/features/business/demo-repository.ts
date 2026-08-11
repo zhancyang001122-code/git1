@@ -63,14 +63,11 @@ export function createDemoRepository(): BusinessRepository {
         (house) =>
           house.available &&
           (!filter.city || house.city === filter.city) &&
-          (!filter.district || house.district === filter.district) &&
           (filter.minPrice === undefined ||
             house.priceMonthly >= filter.minPrice) &&
           (filter.maxPrice === undefined ||
             house.priceMonthly <= filter.maxPrice) &&
-          (!filter.roomType || house.roomType === filter.roomType) &&
-          (filter.petsAllowed === undefined ||
-            house.petsAllowed === filter.petsAllowed),
+          (!filter.roomType || house.roomType === filter.roomType),
       );
 
       if (filter.sort === "price_asc") {

@@ -10,7 +10,6 @@ const enabled = {
   allowLongTermMemory: true as const,
   preferences: {
     maxHousingBudget: 3_500,
-    pets: ["猫"],
     preferredAreas: ["拱墅区"],
     dietaryRestrictions: [],
     transportModes: ["地铁"],
@@ -48,7 +47,7 @@ describe("GET/PATCH /api/preferences", () => {
     const patchResponse = await handlers.PATCH(
       patchRequest({
         allowLongTermMemory: true,
-        preferences: { pets: ["猫"] },
+        preferences: { preferredAreas: ["拱墅区"] },
       }),
     );
 
@@ -80,12 +79,12 @@ describe("GET/PATCH /api/preferences", () => {
     for (const body of [
       {
         allowLongTermMemory: true,
-        preferences: { pets: ["猫"] },
+        preferences: { preferredAreas: ["拱墅区"] },
         userId: "70000000-0000-0000-0000-000000000002",
       },
       {
         allowLongTermMemory: true,
-        preferences: { pets: ["猫"] },
+        preferences: { preferredAreas: ["拱墅区"] },
         consentedAt: "2026-01-01T00:00:00.000Z",
       },
     ]) {

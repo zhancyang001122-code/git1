@@ -38,7 +38,6 @@ export interface HistoricalHousingItem {
   floor: string | null;
   sourceUrl: string | null;
   location: { longitude: number; latitude: number };
-  petsPolicy: "unknown";
   datasetPeriod: "2024-11";
 }
 

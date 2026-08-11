@@ -4,7 +4,7 @@
   "tools": [
     {
       "name": "search_houses",
-      "description": "Search 2024 historical housing records with exact structured filters. Use this for recorded rent, room type, pet, area and availability; never present historical availability as current.",
+      "description": "Search 2024 historical housing records by city, price, rent type or bedroom layout, and a named nearby location. Never present historical records as current availability.",
       "strict": true,
       "parameters": {
         "type": "object",
@@ -13,7 +13,6 @@
             "type": "string",
             "description": "City name, default Hangzhou."
           },
-          "district": { "type": ["string", "null"] },
           "near_location": {
             "type": ["string", "null"],
             "description": "Named place used for later geocoding or ranking."
@@ -21,7 +20,6 @@
           "min_price": { "type": ["integer", "null"], "minimum": 0 },
           "max_price": { "type": ["integer", "null"], "minimum": 0 },
           "room_type": { "type": ["string", "null"] },
-          "pets_allowed": { "type": ["boolean", "null"] },
           "limit": {
             "type": "integer",
             "minimum": 1,
@@ -31,12 +29,10 @@
         },
         "required": [
           "city",
-          "district",
           "near_location",
           "min_price",
           "max_price",
           "room_type",
-          "pets_allowed",
           "limit"
         ],
         "additionalProperties": false
@@ -44,7 +40,7 @@
     },
     {
       "name": "get_house_detail",
-      "description": "Get one house by UUID before comparing its price, coordinates, pet policy or nearby services.",
+      "description": "Get one house by UUID before comparing its recorded price, coordinates or nearby services.",
       "strict": true,
       "parameters": {
         "type": "object",
@@ -214,7 +210,7 @@
     },
     {
       "name": "search_knowledge",
-      "description": "Retrieve published and currently effective customer-service knowledge. Use for policies, contracts, refunds, deposits, pets and delivery rules. Cite returned chunks.",
+      "description": "Retrieve published and currently effective customer-service knowledge. Use for policies, contracts, refunds, deposits and delivery rules. Cite returned chunks.",
       "strict": true,
       "parameters": {
         "type": "object",
@@ -264,7 +260,6 @@
             "type": "string",
             "enum": [
               "max_housing_budget",
-              "pets",
               "preferred_areas",
               "dietary_restrictions",
               "transport_modes",

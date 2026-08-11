@@ -30,12 +30,10 @@ const nullableNonnegativeInteger = z.number().int().nonnegative().nullable();
 const searchHousesSchema = z
   .object({
     city: z.string(),
-    district: nullableString,
     near_location: nullableString,
     min_price: nullableNonnegativeInteger,
     max_price: nullableNonnegativeInteger,
     room_type: nullableString,
-    pets_allowed: z.boolean().nullable(),
     limit: z.number().int().min(1).max(10),
   })
   .strict();
@@ -73,7 +71,6 @@ const proposeUserPreferenceSchema = z
   .object({
     key: z.enum([
       "max_housing_budget",
-      "pets",
       "preferred_areas",
       "dietary_restrictions",
       "transport_modes",
@@ -130,13 +127,12 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
   {
     name: "search_houses",
     description:
-      "Search 2024 historical housing records with exact structured filters. Use this for recorded rent, room type, pet, area and availability; never present historical availability as current.",
+      "Search 2024 historical housing records by city, price, rent type or bedroom layout, and a named nearby location. Never present historical records as current availability.",
     strict: true,
     parameters: {
       type: "object",
       properties: {
         city: { type: "string", description: "City name, default Hangzhou." },
-        district: { type: ["string", "null"] },
         near_location: {
           type: ["string", "null"],
           description: "Named place used for later geocoding or ranking.",
@@ -144,17 +140,14 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
         min_price: { type: ["integer", "null"], minimum: 0 },
         max_price: { type: ["integer", "null"], minimum: 0 },
         room_type: { type: ["string", "null"] },
-        pets_allowed: { type: ["boolean", "null"] },
         limit: { type: "integer", minimum: 1, maximum: 10, default: 5 },
       },
       required: [
         "city",
-        "district",
         "near_location",
         "min_price",
         "max_price",
         "room_type",
-        "pets_allowed",
         "limit",
       ],
       additionalProperties: false,
@@ -163,7 +156,7 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
   {
     name: "get_house_detail",
     description:
-      "Get one house by UUID before comparing its price, coordinates, pet policy or nearby services.",
+      "Get one house by UUID before comparing its recorded price, coordinates or nearby services.",
     strict: true,
     parameters: {
       type: "object",
@@ -257,7 +250,6 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
           type: "string",
           enum: [
             "max_housing_budget",
-            "pets",
             "preferred_areas",
             "dietary_restrictions",
             "transport_modes",
@@ -344,7 +336,7 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
   {
     name: "search_knowledge",
     description:
-      "Retrieve published and currently effective customer-service knowledge. Use for policies, contracts, refunds, deposits, pets and delivery rules. Cite returned chunks.",
+      "Retrieve published and currently effective customer-service knowledge. Use for policies, contracts, refunds, deposits and delivery rules. Cite returned chunks.",
     strict: true,
     parameters: {
       type: "object",

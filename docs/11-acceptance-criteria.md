@@ -103,6 +103,6 @@
 
 1. 精确房源查询
 2. 带来源的退款规则
-3. 房源 + 超市 + 宠物规则组合任务
+3. 房源 + 超市 + 押金规则组合任务
 
 正式发布仍需完成生产 Auth 配置，并让三个在线业务链路分别通过：Supabase 业务数据、高德位置服务、千问与正式知识检索。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；其余证据和当前阻塞见 `docs/task-reports/2026-08-11-task-12-local-release-readiness.md`。

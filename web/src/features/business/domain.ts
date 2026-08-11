@@ -22,7 +22,6 @@ export interface House extends SourcedEntity {
   priceMonthly: number;
   roomType: string;
   areaSqm: number;
-  petsAllowed: boolean;
   available: boolean;
   subwayDistanceM: number;
   description: string;
@@ -92,11 +91,9 @@ export type HouseSort = "recommended" | "price_asc" | "price_desc";
 
 export interface HouseFilter {
   city?: string;
-  district?: string;
   minPrice?: number;
   maxPrice?: number;
   roomType?: string;
-  petsAllowed?: boolean;
   sort?: HouseSort;
   cursor?: string;
   limit?: number;

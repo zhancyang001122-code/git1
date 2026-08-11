@@ -270,7 +270,6 @@ export class HousingHttpAdapter implements HousingSearchService {
             longitude: item.longitude,
             latitude: item.latitude,
           },
-          petsPolicy: "unknown" as const,
           datasetPeriod: "2024-11" as const,
         })),
         sourceLabel: parsed.data.source.label,

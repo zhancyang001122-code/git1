@@ -56,7 +56,7 @@ const entries = [
   },
   {
     label: "小智偏好",
-    description: "预算、宠物、区域和饮食",
+    description: "预算、区域、交通和饮食",
     href: "/me/preferences",
     icon: SlidersHorizontal,
   },
@@ -142,9 +142,11 @@ export function MePage({
               <strong className="text-text">{demoProfile.budgetLabel}</strong>
             </p>
             <p className="p-4 text-sm text-text-muted">
-              居住偏好
+              交通方式
               <br />
-              <strong className="text-text">{demoProfile.petLabel}</strong>
+              <strong className="text-text">
+                {demoProfile.transportLabel}
+              </strong>
             </p>
             <p className="p-4 text-sm text-text-muted">
               常用区域

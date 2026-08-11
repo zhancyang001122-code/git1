@@ -39,7 +39,6 @@ function houseView(house: House): Record<string, unknown> {
     priceMonthly: house.priceMonthly,
     roomType: house.roomType,
     areaSqm: house.areaSqm,
-    petsAllowed: house.petsAllowed,
     available: house.available,
     subwayDistanceM: house.subwayDistanceM,
     tags: house.tags,
@@ -54,15 +53,13 @@ function historicalHouseView(
 ): Record<string, unknown> {
   return {
     id: house.id,
-    name: house.title,
+    name: house.title ?? house.community ?? "房源标题暂无记录",
     city: "杭州",
     district: house.district,
     address: house.address,
     priceMonthly: house.monthlyRent,
     roomType: house.layout,
     areaSqm: house.areaSqm,
-    petsAllowed: null,
-    petsPolicy: house.petsPolicy,
     available: null,
     subwayDistanceM: null,
     distanceM: house.distanceM,
@@ -156,21 +153,23 @@ const searchHouses: ToolDefinition<ToolInputs["search_houses"]> = {
     const configuredCenter = context.housing
       ? normalizedCenterName(context.housing.defaultCenter.label)
       : null;
-    return context.housing?.mode === "http" &&
-      requestedCenter !== null &&
-      requestedCenter === configuredCenter
+    return context.housing &&
+      context.housing.mode !== "unavailable" &&
+      (requestedCenter === null || requestedCenter === configuredCenter)
       ? "housing_history_2024"
       : context.businessSource;
   },
   inputSchema: toolInputSchemas.search_houses,
   async execute(input, context) {
     const housing = context.housing;
-    if (housing?.mode === "http" && input.near_location !== null) {
-      const requestedCenter = normalizedCenterName(input.near_location);
+    if (housing && housing.mode !== "unavailable") {
+      const requestedCenter = input.near_location
+        ? normalizedCenterName(input.near_location)
+        : null;
       const configuredCenter = normalizedCenterName(
         housing.defaultCenter.label,
       );
-      if (requestedCenter !== configuredCenter) {
+      if (requestedCenter !== null && requestedCenter !== configuredCenter) {
         return failure(
           "housing_history_2024",
           "HOUSING_LOCATION_NOT_GEOCODED",
@@ -182,13 +181,6 @@ const searchHouses: ToolDefinition<ToolInputs["search_houses"]> = {
           "housing_history_2024",
           "HOUSING_UNSUPPORTED_CITY",
           "当前历史房源数据仅覆盖杭州",
-        );
-      }
-      if (input.pets_allowed !== null) {
-        return failure(
-          "housing_history_2024",
-          "HOUSING_PET_FILTER_UNAVAILABLE",
-          "2024 历史房源没有可靠的宠物政策字段，不能按是否允许宠物筛选",
         );
       }
       if (!housing.service) {
@@ -210,7 +202,7 @@ const searchHouses: ToolDefinition<ToolInputs["search_houses"]> = {
             layout: historicalLayout(input.room_type),
             minArea: null,
             maxArea: null,
-            district: input.district,
+            district: null,
           },
           sort: "distance",
           limit: input.limit,
@@ -241,13 +233,9 @@ const searchHouses: ToolDefinition<ToolInputs["search_houses"]> = {
     }
     const page = await context.business.listHouses({
       city: input.city,
-      ...(input.district !== null && { district: input.district }),
       ...(input.min_price !== null && { minPrice: input.min_price }),
       ...(input.max_price !== null && { maxPrice: input.max_price }),
       ...(input.room_type !== null && { roomType: input.room_type }),
-      ...(input.pets_allowed !== null && {
-        petsAllowed: input.pets_allowed,
-      }),
       limit: input.limit,
     });
     const source = businessSource(context, page.items);

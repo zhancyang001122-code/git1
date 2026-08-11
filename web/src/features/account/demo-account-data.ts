@@ -52,7 +52,7 @@ export const demoProfile = {
   orderCount: 5,
   conversationCount: 56,
   budgetLabel: "≤ ¥3500",
-  petLabel: "可以养猫",
+  transportLabel: "步行 + 地铁",
   areaLabel: "武林广场",
   foodLabel: "不吃辣",
 } as const;

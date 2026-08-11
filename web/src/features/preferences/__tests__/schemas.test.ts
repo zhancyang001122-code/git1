@@ -27,12 +27,12 @@ describe("preferencePatchSchema", () => {
     for (const value of [
       {
         allowLongTermMemory: true,
-        preferences: { pets: ["猫"] },
+        preferences: { preferredAreas: ["西湖区"] },
         userId: "70000000-0000-0000-0000-000000000001",
       },
       {
         allowLongTermMemory: true,
-        preferences: { pets: ["猫"] },
+        preferences: { preferredAreas: ["西湖区"] },
         consentedAt: "2026-08-12T00:00:00.000Z",
       },
       { allowLongTermMemory: true, preferences: {} },
@@ -48,7 +48,7 @@ describe("preferencePatchSchema", () => {
     expect(
       preferencePatchSchema.safeParse({
         allowLongTermMemory: false,
-        preferences: { pets: ["猫"] },
+        preferences: { preferredAreas: ["西湖区"] },
       }).success,
     ).toBe(false);
   });
@@ -64,7 +64,10 @@ describe("preferencePatchSchema", () => {
       preferencePatchSchema.safeParse({
         allowLongTermMemory: true,
         preferences: {
-          pets: Array.from({ length: 21 }, (_, index) => `宠物${index}`),
+          preferredAreas: Array.from(
+            { length: 21 },
+            (_, index) => `区域${index}`,
+          ),
         },
       }).success,
     ).toBe(false);
