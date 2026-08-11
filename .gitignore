@@ -1,2 +1,10 @@
 .worktrees/
 .superpowers/
+
+# Local source datasets and generated import reports must never be committed.
+*.db
+*.sqlite
+*.sqlite3
+__pycache__/
+*.py[cod]
+scripts/housing-import/reports/

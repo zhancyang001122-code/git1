@@ -31,9 +31,13 @@ const migrations = await Promise.all(
 const historicalHousingMigration = migrations.find((migration) =>
   migration.name.endsWith("_historical_housing.sql"),
 );
+assert(historicalHousingMigration, "Historical housing migration is missing");
+const housingImportStatusMigration = migrations.find((migration) =>
+  migration.name.endsWith("_housing_import_observability.sql"),
+);
 assert(
-  historicalHousingMigration,
-  "Historical housing migration is missing",
+  housingImportStatusMigration,
+  "Housing import observability migration is missing",
 );
 
 for (const migration of migrations) {
@@ -54,6 +58,7 @@ for (const migration of migrations) {
 
 const allSql = migrations.map(({ sql }) => sql).join("\n");
 const historicalHousingSql = historicalHousingMigration.sql;
+const housingImportStatusSql = housingImportStatusMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -158,6 +163,38 @@ assert(
   ),
   "Historical housing activation RPC must be service-role only",
 );
+
+for (const requirement of [
+  {
+    pattern:
+      /create or replace function public\.get_housing_import_status\s*\(p_release_id uuid\)/i,
+    message: "Housing import status RPC is missing",
+  },
+  {
+    pattern: /set search_path = ''/i,
+    message: "Housing import status RPC must fix search_path",
+  },
+  {
+    pattern: /pg_database_size\s*\(current_database\(\)\)/i,
+    message: "Housing import status must report database size",
+  },
+  {
+    pattern: /pg_total_relation_size\s*\('public\.historical_houses'/i,
+    message: "Housing import status must report relation size",
+  },
+  {
+    pattern:
+      /revoke execute on function public\.get_housing_import_status\(uuid\)[\s\S]+from public, anon, authenticated/i,
+    message: "Housing import status RPC must revoke client execution",
+  },
+  {
+    pattern:
+      /grant execute on function public\.get_housing_import_status\(uuid\)[\s\S]+to service_role/i,
+    message: "Housing import status RPC must be service-role only",
+  },
+]) {
+  assert(requirement.pattern.test(housingImportStatusSql), requirement.message);
+}
 
 const publicReadTables = [
   "stores",
