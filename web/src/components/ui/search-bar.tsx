@@ -39,16 +39,12 @@ export function SearchBar({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     const query = value.trim();
+    event.preventDefault();
 
     if (!query || unavailable) {
-      event.preventDefault();
       return;
     }
-
-    if (!action) {
-      event.preventDefault();
-      onSubmit(query);
-    }
+    onSubmit(query);
   }
 
   return (

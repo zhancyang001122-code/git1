@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { SearchBar } from "@/components/ui/search-bar";
 
@@ -12,6 +13,7 @@ const quickPrompts = [
 ] as const;
 
 export function HomeSearchExperience() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -31,7 +33,9 @@ export function HomeSearchExperience() {
         onValueChange={(value) => {
           setQuery(value);
         }}
-        onSubmit={() => undefined}
+        onSubmit={(value) => {
+          router.push(`/xiaozhi/chat?q=${encodeURIComponent(value)}`);
+        }}
         placeholder="说说你想找什么……"
       />
 

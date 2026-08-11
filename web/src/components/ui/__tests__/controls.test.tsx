@@ -59,6 +59,27 @@ describe("common controls", () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it("uses the client submit callback while preserving the native GET fallback", () => {
+    const onSubmit = vi.fn();
+
+    render(
+      <SearchBar
+        action="/xiaozhi/chat"
+        queryName="q"
+        label="搜索本地生活服务"
+        value="帮我找房"
+        onValueChange={() => undefined}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    const form = screen.getByRole("search");
+    expect(fireEvent.submit(form)).toBe(false);
+    expect(onSubmit).toHaveBeenCalledWith("帮我找房");
+    expect(form).toHaveAttribute("action", "/xiaozhi/chat");
+    expect(screen.getByRole("searchbox")).toHaveAttribute("name", "q");
+  });
+
   it("maps source codes to controlled user-facing labels", () => {
     render(<SourceBadge source="housing_history_2024" />);
 

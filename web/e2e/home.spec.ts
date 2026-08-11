@@ -21,7 +21,9 @@ test("search carries the question into the validated chat route", async ({
   await page.goto("/");
   await page.getByRole("searchbox").fill("帮我找房");
   await page.getByRole("button", { name: "搜索" }).click();
-  await expect(page).toHaveURL(/\/xiaozhi\/chat\?q=/);
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("q"))
+    .toBe("帮我找房");
   await expect(page.getByRole("heading", { name: "小智对话" })).toBeVisible();
 });
 

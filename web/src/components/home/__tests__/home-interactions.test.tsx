@@ -1,7 +1,17 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { HomePage } from "@/components/home/home-page";
+
+const mocks = vi.hoisted(() => ({ push: vi.fn() }));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mocks.push }),
+}));
+
+beforeEach(() => {
+  mocks.push.mockClear();
+});
 
 describe("HomePage", () => {
   it("renders every required home section", () => {
@@ -37,6 +47,19 @@ describe("HomePage", () => {
       "/xiaozhi/chat",
     );
     expect(screen.getByRole("searchbox")).toHaveAttribute("name", "q");
+  });
+
+  it("navigates with the exact encoded search query", () => {
+    render(<HomePage />);
+
+    fireEvent.change(screen.getByRole("searchbox"), {
+      target: { value: "武林广场附近 3500 元房源" },
+    });
+    fireEvent.submit(screen.getByRole("search"));
+
+    expect(mocks.push).toHaveBeenCalledWith(
+      "/xiaozhi/chat?q=%E6%AD%A6%E6%9E%97%E5%B9%BF%E5%9C%BA%E9%99%84%E8%BF%91%203500%20%E5%85%83%E6%88%BF%E6%BA%90",
+    );
   });
 
   it("links service entries to their completed routes", () => {

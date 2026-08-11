@@ -49,6 +49,8 @@ RAG_FINAL_K=5
 
 模型名通过环境变量可替换。首次接入先用百炼控制台当前模型清单验证模型可用；API Key、地域 Host 和业务空间必须匹配。不要把 Key 写成 `NEXT_PUBLIC_*`。
 
+配置 Key 后运行 `pnpm external:verify-qwen`，该命令会以最小调用验证流式文本、流式 Function Calling 和 `text-embedding-v4` 的 1024 维输出，不打印 Key。
+
 ## 4. 高德开放平台
 
 1. 创建 Web 服务应用和 Key，不是浏览器 JS Key。
@@ -58,6 +60,8 @@ RAG_FINAL_K=5
 5. 记录配额和错误码，CI 使用 fixtures，不调用真实接口。
 
 默认演示地点：杭州武林广场，坐标仅用于 fallback。用户拒绝定位时 UI 必须说明使用默认地点。
+
+配置 Web 服务 Key 后运行 `pnpm external:verify-amap`，依次验证武林广场地理编码、2 公里内超市 POI 和到首个结果的步行路线，不打印 Key。
 
 ## 5. RAG 初始化
 
