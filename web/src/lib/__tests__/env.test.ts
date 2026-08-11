@@ -41,12 +41,14 @@ describe("environment contract", () => {
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
       SUPABASE_FALLBACK_TO_DEMO: "true",
+      AUTH_CAPTCHA_REQUIRED: "true",
     });
 
     expect(value).not.toHaveProperty("SUPABASE_SECRET_KEY");
     expect(value).not.toHaveProperty("SUPABASE_SERVICE_ROLE_KEY");
     expect(value).not.toHaveProperty("DASHSCOPE_API_KEY");
     expect(value).not.toHaveProperty("AMAP_WEB_SERVICE_KEY");
+    expect(value).not.toHaveProperty("AUTH_CAPTCHA_REQUIRED");
   });
 
   it("keeps server credentials in the server parser", () => {
@@ -56,6 +58,7 @@ describe("environment contract", () => {
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
       SUPABASE_FALLBACK_TO_DEMO: "true",
+      AUTH_CAPTCHA_REQUIRED: "true",
     });
 
     expect(value).toMatchObject({
@@ -64,6 +67,7 @@ describe("environment contract", () => {
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
       SUPABASE_FALLBACK_TO_DEMO: true,
+      AUTH_CAPTCHA_REQUIRED: true,
       DASHSCOPE_MODEL: "qwen-plus",
       DASHSCOPE_EMBEDDING_MODEL: "text-embedding-v4",
       DASHSCOPE_EMBEDDING_DIMENSIONS: 1024,
