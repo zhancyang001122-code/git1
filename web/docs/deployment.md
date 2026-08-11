@@ -79,6 +79,15 @@ pnpm deploy:verify
 
 `VERCEL_AUTOMATION_BYPASS_SECRET` 只能存在于当前进程或受保护的 CI Secret 中。若出现在终端记录、URL 或文件中，立即撤销或重新生成。
 
+如果本机网络无法直接解析或访问 `*.vercel.app`，只让 Playwright 验证进程使用现有代理，不要修改系统 DNS 或 `hosts`：
+
+```powershell
+$env:DEPLOYMENT_PROXY_SERVER='socks5://127.0.0.1:7897'
+pnpm deploy:verify
+```
+
+`DEPLOYMENT_PROXY_SERVER` 只接受 `http://`、`https://` 或 `socks5://`。代理凭证不得写入仓库或终端日志。
+
 ## 6. 二维码与备份视频
 
 获得正式 HTTPS URL 后生成二维码：

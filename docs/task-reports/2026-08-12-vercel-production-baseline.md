@@ -4,13 +4,13 @@
 
 - Vercel project：`xiaozhi-local-life`
 - Production URL：`https://xiaozhi-local-life.vercel.app`
-- Deployment ID：`dpl_EQTUxD77usdJtf7cUN7pZKxXxFyj`
+- Deployment ID：`dpl_BQdQDhN5axsHeq71VWM4SrExbJs3`
 - 状态：`READY`
 - 部署模式：Live
 
 Vercel 远端使用 `pnpm@10.14.0` 安装锁定依赖，并完成 Next.js 16.3.0 production build、TypeScript 检查和 42 个页面生成。
 
-2026-08-12 06:31（Asia/Shanghai）重新部署的代码与提交 `0542b94` 一致，除远端房源、Live 反馈、知识运营、百炼工具分片、演示知识来源保护及商品参数治理外，还包含无 Supabase 的隔离 Demo Preview 构建与运行时修复，以及支持 Vercel Deployment Protection 请求头的通用部署验证器。
+2026-08-12 06:43（Asia/Shanghai）重新部署提交 `e45190b`。除远端房源、Live 反馈、知识运营、百炼工具分片、演示知识来源保护及商品参数治理外，还包含 service-role 专用 AI Ops 汇总 RPC、Zod 响应校验和知识运营页概览。
 
 ## 已配置环境变量
 
@@ -51,6 +51,9 @@ Vercel 远端使用 `pnpm@10.14.0` 安装锁定依赖，并完成 Next.js 16.3.0
 演示知识来源标记保护部署后，最新 Production 版本再次执行完整 Live 公网流程并通过。
 商品参数治理部署后，包含上述两条核心场景的完整 Live 公网流程连续执行两次均通过。
 隔离 Preview 修复部署到 Production 后，完整 Live 公网流程再次通过，证明 Live Proxy 仍刷新 Supabase 会话，历史房源、高德、商品、偏好提案和反馈持久化未回归。
+AI Ops 部署后，远端迁移 `202608120017_ai_ops_dashboard.sql` 已应用；服务端密钥可读取汇总，publishable key 被拒绝。验证时近 7 天真实记录为 24 个会话、23 条 assistant 消息、251315 输入 Token、13875 输出 Token、173 次工具调用和 10 条反馈；RAG 工具运行与评测均为 0，报告保留真实零值。当前 4 个发布版本全部仍标记为 Demo，ready embedding chunk 为 0。
+
+本机网络一度把 `*.vercel.app` 解析到非 Vercel 地址，直连验证失败；未修改系统 DNS 或 `hosts`，改为只让 Playwright 验证进程通过现有 SOCKS5 代理访问。随后完整 Live 健康、移动布局、房源、高德、商品、偏好提案和反馈流程通过。验证器支持可选 `DEPLOYMENT_PROXY_SERVER`，不记录代理凭证。
 
 ## 集成故障与修复证据
 
@@ -62,7 +65,7 @@ Vercel 远端使用 `pnpm@10.14.0` 安装锁定依赖，并完成 Next.js 16.3.0
 
 质量门禁：
 
-- Vitest：109 个测试文件、405 个测试通过。
+- Vitest：111 个测试文件、411 个测试通过。
 - Playwright：47 个通过；真实本机 OTP 和本机 HTTP 房源两个条件测试按配置跳过。
 - ESLint、TypeScript strict 和 Next.js production build 通过。
 

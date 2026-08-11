@@ -22,8 +22,17 @@ const protectedDeploymentHeaders = protectionBypass
       "x-vercel-set-bypass-cookie": "true",
     }
   : undefined;
+const proxyServer = process.env.DEPLOYMENT_PROXY_SERVER?.trim();
+if (proxyServer) {
+  const proxyUrl = new URL(proxyServer);
+  if (!new Set(["http:", "https:", "socks5:"]).has(proxyUrl.protocol)) {
+    throw new Error("DEPLOYMENT_PROXY_SERVER must use HTTP, HTTPS or SOCKS5");
+  }
+}
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({
+  ...(proxyServer && { proxy: { server: proxyServer } }),
+});
 const healthPage = await browser.newPage({
   extraHTTPHeaders: protectedDeploymentHeaders,
 });

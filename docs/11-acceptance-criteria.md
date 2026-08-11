@@ -97,7 +97,9 @@
 - [x] 受保护的 Vercel Demo Preview 部署与冒烟；未复用 Production 数据库或密钥
 - [ ] Vercel GitHub Login Connection 与自动部署；当前使用已验证的 CLI 手动部署
 - [x] 单实例错误与耗时统计
-- [ ] Token 成本统计和集中可观测平台
+- [x] service-role 专用的近 7 天 AI Ops 聚合：Token、工具失败、反馈、评测和知识库存
+- [ ] 按百炼模型价格配置计算人民币成本
+- [ ] 跨实例日志检索、指标趋势和告警平台
 
 ## 演示通过
 
