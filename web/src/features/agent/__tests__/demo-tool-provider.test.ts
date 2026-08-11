@@ -98,12 +98,12 @@ describe("DemoToolCallingProvider routing subset", () => {
     expect(firstCall(values)).toMatchObject({ name: "search_knowledge" });
   });
 
-  it("saves only explicit remember requests and refuses secret extraction", async () => {
+  it("proposes only explicit remember requests and refuses secret extraction", async () => {
     const remember = await events([
       { role: "user", content: "以后都记住我的租房预算是3500" },
     ]);
     expect(firstCall(remember)).toMatchObject({
-      name: "save_user_preference",
+      name: "propose_user_preference",
     });
 
     const oneOff = await events([

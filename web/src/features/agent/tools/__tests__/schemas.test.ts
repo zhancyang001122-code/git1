@@ -16,7 +16,7 @@ const taskSevenTools: readonly ToolName[] = [
   "search_products",
   "get_product_stock",
   "get_user_preferences",
-  "save_user_preference",
+  "propose_user_preference",
   "search_nearby_places",
   "calculate_walking_route",
   "search_knowledge",
@@ -95,26 +95,24 @@ describe("Task 7 tool schemas", () => {
     ).toBe(false);
   });
 
-  it("requires explicit consent and a supported preference key", () => {
+  it("accepts only proposal data for a supported preference key", () => {
     expect(
-      toolInputSchemas.save_user_preference.safeParse({
+      toolInputSchemas.propose_user_preference.safeParse({
         key: "max_housing_budget",
         value: 3_500,
-        consent_confirmed: true,
       }).success,
     ).toBe(true);
     expect(
-      toolInputSchemas.save_user_preference.safeParse({
+      toolInputSchemas.propose_user_preference.safeParse({
         key: "max_housing_budget",
         value: 3_500,
-        consent_confirmed: false,
+        consent_confirmed: true,
       }).success,
     ).toBe(false);
     expect(
-      toolInputSchemas.save_user_preference.safeParse({
+      toolInputSchemas.propose_user_preference.safeParse({
         key: "medical_history",
         value: "secret",
-        consent_confirmed: true,
       }).success,
     ).toBe(false);
   });

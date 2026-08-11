@@ -80,36 +80,39 @@ describe("memory tools", () => {
     expect(disabled.data).toEqual({ enabled: false, scope: "all" });
   });
 
-  it("requires authentication instead of pretending an anonymous preference was saved", async () => {
+  it("creates an anonymous-safe proposal without writing preferences", async () => {
     const repository = memoryRepository();
     const result = await createTaskSixToolRegistry()
-      .get("save_user_preference")
+      .get("propose_user_preference")
       .execute(
         {
           key: "max_housing_budget",
           value: 4_000,
-          consent_confirmed: true,
         },
         createToolTestContext({ memory: repository, userId: null }),
       );
 
     expect(result).toMatchObject({
-      ok: false,
-      error: { code: "USER_AUTH_REQUIRED", retryable: false },
+      ok: true,
+      data: {
+        proposed: true,
+        key: "max_housing_budget",
+        value: 4_000,
+        requiresConfirmation: true,
+      },
     });
     expect(repository.upsertPreferences).not.toHaveBeenCalled();
   });
 
-  it("validates a key-specific value and writes explicit consent", async () => {
+  it("validates a key-specific value without claiming it was saved", async () => {
     const repository = memoryRepository();
-    const tool = createTaskSixToolRegistry().get("save_user_preference");
+    const tool = createTaskSixToolRegistry().get("propose_user_preference");
     const context = createToolTestContext({ memory: repository, userId });
 
     const invalid = await tool.execute(
       {
         key: "max_housing_budget",
         value: "3500",
-        consent_confirmed: true,
       },
       context,
     );
@@ -118,25 +121,22 @@ describe("memory tools", () => {
       error: { code: "PREFERENCE_VALUE_INVALID" },
     });
 
-    const saved = await tool.execute(
+    const proposal = await tool.execute(
       {
         key: "max_housing_budget",
         value: 4_000,
-        consent_confirmed: true,
       },
       context,
     );
-    expect(saved).toMatchObject({
+    expect(proposal).toMatchObject({
       ok: true,
-      data: { saved: true, key: "max_housing_budget", value: 4_000 },
+      data: {
+        proposed: true,
+        key: "max_housing_budget",
+        value: 4_000,
+        requiresConfirmation: true,
+      },
     });
-    expect(repository.upsertPreferences).toHaveBeenCalledWith(
-      userId,
-      expect.objectContaining({
-        maxHousingBudget: 4_000,
-        allowLongTermMemory: true,
-        consentedAt: expect.any(String),
-      }),
-    );
+    expect(repository.upsertPreferences).not.toHaveBeenCalled();
   });
 });

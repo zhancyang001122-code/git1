@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "tools": [
     {
       "name": "search_houses",
@@ -254,8 +254,8 @@
       }
     },
     {
-      "name": "save_user_preference",
-      "description": "Save one explicit user preference only after the user asks or clearly consents. Do not infer sensitive traits.",
+      "name": "propose_user_preference",
+      "description": "Prepare one allowed long-term preference for explicit user confirmation in the application UI. This tool never persists data and must not infer sensitive traits.",
       "strict": true,
       "parameters": {
         "type": "object",
@@ -271,10 +271,9 @@
               "family_profile"
             ]
           },
-          "value": {},
-          "consent_confirmed": { "type": "boolean", "const": true }
+          "value": {}
         },
-        "required": ["key", "value", "consent_confirmed"],
+        "required": ["key", "value"],
         "additionalProperties": false
       }
     }

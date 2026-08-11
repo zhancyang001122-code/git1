@@ -99,22 +99,14 @@ const preferenceValueSchemas = {
   family_profile: listValue,
 } as const;
 
-const inputKeys = {
-  max_housing_budget: "maxHousingBudget",
-  pets: "pets",
-  preferred_areas: "preferredAreas",
-  dietary_restrictions: "dietaryRestrictions",
-  transport_modes: "transportModes",
-  family_profile: "familyProfile",
-} as const;
-
-const saveUserPreference: ToolDefinition<ToolInputs["save_user_preference"]> = {
-  ...contract("save_user_preference"),
-  publicLabel: "正在保存已确认偏好",
+const proposeUserPreference: ToolDefinition<
+  ToolInputs["propose_user_preference"]
+> = {
+  ...contract("propose_user_preference"),
+  publicLabel: "正在准备偏好确认",
   source: () => "user_memory",
-  inputSchema: toolInputSchemas.save_user_preference,
-  async execute(input, context) {
-    if (!context.userId) return authRequired();
+  inputSchema: toolInputSchemas.propose_user_preference,
+  async execute(input) {
     const parsedValue = preferenceValueSchemas[input.key].safeParse(
       input.value,
     );
@@ -130,19 +122,13 @@ const saveUserPreference: ToolDefinition<ToolInputs["save_user_preference"]> = {
         resultCount: 0,
       };
     }
-    const consentedAt = new Date().toISOString();
-    await context.memory.upsertPreferences(context.userId, {
-      [inputKeys[input.key]]: parsedValue.data,
-      allowLongTermMemory: true,
-      consentedAt,
-    });
     return {
       ok: true,
       data: {
-        saved: true,
+        proposed: true,
         key: input.key,
         value: parsedValue.data,
-        consentedAt,
+        requiresConfirmation: true,
       },
       source: "user_memory",
       resultCount: 1,
@@ -152,5 +138,5 @@ const saveUserPreference: ToolDefinition<ToolInputs["save_user_preference"]> = {
 
 export const memoryToolDefinitions: readonly ErasedToolDefinition[] = [
   getUserPreferences,
-  saveUserPreference,
+  proposeUserPreference,
 ] as unknown as readonly ErasedToolDefinition[];

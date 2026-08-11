@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "cases": [
     {
       "id": "routing-house-001",
@@ -165,7 +165,7 @@
       "category": "memory",
       "input": "以后都记住我的租房预算是3500",
       "expected": {
-        "requiredTools": ["save_user_preference"],
+        "requiredTools": ["propose_user_preference"],
         "consentRequired": true
       }
     },
@@ -174,7 +174,7 @@
       "category": "memory",
       "input": "我今天想吃清淡一点",
       "expected": {
-        "forbiddenTools": ["save_user_preference"],
+        "forbiddenTools": ["propose_user_preference"],
         "reason": "single-session preference without explicit request to remember"
       }
     },

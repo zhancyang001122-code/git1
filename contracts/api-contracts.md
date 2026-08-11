@@ -73,7 +73,7 @@ data: {"finishReason":"stop"}
 
 ## `GET /api/preferences` / `PATCH /api/preferences`
 
-匿名演示用户使用固定 demo profile；接入 Auth 后按 `auth.uid()` 隔离。PATCH 使用 `preferencePatchSchema`，每次写入都记录 consent timestamp。
+仅登录用户可用。服务端通过 `auth.getUser()` 确定 `auth.uid()`，拒绝客户端 `userId` 或授权时间；用户会话 client 和 RLS 共同隔离数据。PATCH 使用 strict `preferencePatchSchema`：首次启用由服务端记录授权时间，后续修改记录更新时间；关闭长期记忆时删除该用户整行偏好。模型只能产生待确认提案，不能直接调用此 API 或写入偏好表。
 
 ## `POST /api/feedback`
 

@@ -164,10 +164,9 @@ function route(text: string): ProviderToolCall | null {
   if (/(?:记住|以后都).*(?:预算|租金)/.test(text)) {
     const budget = amount(text);
     if (budget !== null)
-      return call("save_user_preference", {
+      return call("propose_user_preference", {
         key: "max_housing_budget",
         value: budget,
-        consent_confirmed: true,
       });
   }
   if (/(?:我的|读取|查看).*(?:偏好|预算)/.test(text)) {
@@ -300,8 +299,8 @@ function summarizeTool(
   if (name === "search_products")
     return `已查询到 ${payload.resultCount} 条演示商品，请查看结果卡。精确库存需要继续核对具体商品。`;
   if (name === "get_user_preferences") return "已读取你明确授权的长期偏好。";
-  if (name === "save_user_preference")
-    return "已保存你刚才明确确认的长期偏好。";
+  if (name === "propose_user_preference")
+    return "我已准备偏好提案，请检查后手动确认保存；目前还没有写入长期记忆。";
   if (name === "search_nearby_places") {
     const demo = payload.facts?.some((fact) => fact.isDemo === true) ?? false;
     const housingNotice = /(?:房|租房|一居室|两居室|开间|合租)/.test(userText)

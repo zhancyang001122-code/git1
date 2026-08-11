@@ -12,7 +12,7 @@ export const taskSixToolNames = [
   "search_products",
   "get_product_stock",
   "get_user_preferences",
-  "save_user_preference",
+  "propose_user_preference",
   "search_nearby_places",
   "calculate_walking_route",
   "search_knowledge",
@@ -69,7 +69,7 @@ const getUserPreferencesSchema = z
   .object({ scope: z.enum(["housing", "food", "shopping", "all"]) })
   .strict();
 
-const saveUserPreferenceSchema = z
+const proposeUserPreferenceSchema = z
   .object({
     key: z.enum([
       "max_housing_budget",
@@ -80,7 +80,6 @@ const saveUserPreferenceSchema = z
       "family_profile",
     ]),
     value: z.unknown(),
-    consent_confirmed: z.literal(true),
   })
   .strict()
   .superRefine((value, context) => {
@@ -110,7 +109,7 @@ export const toolInputSchemas = {
   search_products: searchProductsSchema,
   get_product_stock: getProductStockSchema,
   get_user_preferences: getUserPreferencesSchema,
-  save_user_preference: saveUserPreferenceSchema,
+  propose_user_preference: proposeUserPreferenceSchema,
   search_nearby_places: nearbySearchInputSchema,
   calculate_walking_route: walkingRouteInputSchema,
   search_knowledge: searchKnowledgeSchema,
@@ -247,9 +246,9 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
     },
   },
   {
-    name: "save_user_preference",
+    name: "propose_user_preference",
     description:
-      "Save one explicit user preference only after the user asks or clearly consents. Do not infer sensitive traits.",
+      "Prepare one allowed long-term preference for explicit user confirmation in the application UI. This tool never persists data and must not infer sensitive traits.",
     strict: true,
     parameters: {
       type: "object",
@@ -266,9 +265,8 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
           ],
         },
         value: {},
-        consent_confirmed: { type: "boolean", const: true },
       },
-      required: ["key", "value", "consent_confirmed"],
+      required: ["key", "value"],
       additionalProperties: false,
     },
   },
