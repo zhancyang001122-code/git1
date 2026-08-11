@@ -25,17 +25,17 @@ export interface HousingSearchInput {
 
 export interface HistoricalHousingItem {
   id: string;
-  title: string;
-  community: string;
-  address: string;
-  district: string;
+  title: string | null;
+  community: string | null;
+  address: string | null;
+  district: string | null;
   distanceM: number;
   monthlyRent: number;
-  rentType: string;
-  layout: string;
-  areaSqm: number;
-  orientation: string;
-  floor: string;
+  rentType: string | null;
+  layout: string | null;
+  areaSqm: number | null;
+  orientation: string | null;
+  floor: string | null;
   sourceUrl: string | null;
   location: { longitude: number; latitude: number };
   petsPolicy: "unknown";
@@ -62,7 +62,7 @@ export interface HousingSearchService {
 }
 
 export interface HousingRuntime {
-  mode: "http" | "unavailable";
+  mode: "supabase" | "http" | "unavailable";
   service?: HousingSearchService;
   defaultCenter: HousingSearchCenter;
   radiusM: number;

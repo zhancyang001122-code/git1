@@ -54,6 +54,12 @@ const numberFromString = (
     return value;
   }, z.number().finite().min(minimum).max(maximum));
 
+function isLocalUrl(value: string | undefined): boolean {
+  if (!value) return false;
+  const hostname = new URL(value).hostname;
+  return new Set(["127.0.0.1", "localhost", "::1"]).has(hostname);
+}
+
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_APP_NAME: z.string().min(1).default("小智"),
   NEXT_PUBLIC_APP_DESCRIPTION: z
@@ -105,6 +111,7 @@ const serverEnvSchema = z
       emptyStringToUndefined,
       z.string().min(32).optional(),
     ),
+    HOUSING_HTTP_FALLBACK_ENABLED: stringBoolean(false),
     HOUSING_API_TIMEOUT_MS: integerFromString(8_000, 100, 30_000),
     HOUSING_DEFAULT_CENTER_NAME: z.string().min(1).default("武林广场"),
     HOUSING_DEFAULT_LONGITUDE: numberFromString(120.1551, -180, 180),
@@ -153,6 +160,27 @@ const serverEnvSchema = z
         message: "HOUSING_API_BASE_URL 与 HOUSING_API_KEY 必须同时配置",
       });
     }
+    if (
+      value.HOUSING_HTTP_FALLBACK_ENABLED &&
+      (!value.HOUSING_API_BASE_URL || !value.HOUSING_API_KEY)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["HOUSING_HTTP_FALLBACK_ENABLED"],
+        message: "启用本机房源回退时必须配置本机 URL 和密钥",
+      });
+    }
+    if (
+      value.HOUSING_HTTP_FALLBACK_ENABLED &&
+      value.HOUSING_API_BASE_URL &&
+      !isLocalUrl(value.HOUSING_API_BASE_URL)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["HOUSING_API_BASE_URL"],
+        message: "房源 HTTP 回退只允许 localhost 或回环地址",
+      });
+    }
   });
 
 export type PublicEnvironment = z.infer<typeof publicEnvSchema>;
@@ -190,6 +218,17 @@ export function getServiceConfiguration(
 ): ServiceConfiguration {
   const publicConfiguration = parsePublicEnv(input);
   const serverConfiguration = parseServerEnv(input);
+  const supabaseHousingConfigured = Boolean(
+    publicConfiguration.NEXT_PUBLIC_SUPABASE_URL &&
+    serverConfiguration.SUPABASE_SECRET_KEY,
+  );
+  const localHttpHousingConfigured = Boolean(
+    serverConfiguration.HOUSING_HTTP_FALLBACK_ENABLED &&
+    serverConfiguration.HOUSING_API_BASE_URL &&
+    serverConfiguration.HOUSING_API_KEY &&
+    isLocalUrl(serverConfiguration.HOUSING_API_BASE_URL) &&
+    input.NODE_ENV !== "production",
+  );
 
   if (publicConfiguration.NEXT_PUBLIC_DEMO_MODE) {
     return {
@@ -198,11 +237,7 @@ export function getServiceConfiguration(
         supabase: "disabled",
         qwen: "disabled",
         amap: "disabled",
-        housing:
-          serverConfiguration.HOUSING_API_BASE_URL &&
-          serverConfiguration.HOUSING_API_KEY
-            ? "configured"
-            : "disabled",
+        housing: localHttpHousingConfigured ? "configured" : "disabled",
       },
     };
   }
@@ -218,8 +253,7 @@ export function getServiceConfiguration(
       qwen: serverConfiguration.DASHSCOPE_API_KEY ? "configured" : "missing",
       amap: serverConfiguration.AMAP_WEB_SERVICE_KEY ? "configured" : "missing",
       housing:
-        serverConfiguration.HOUSING_API_BASE_URL &&
-        serverConfiguration.HOUSING_API_KEY
+        supabaseHousingConfigured || localHttpHousingConfigured
           ? "configured"
           : "missing",
     },

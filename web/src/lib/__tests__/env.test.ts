@@ -148,11 +148,32 @@ describe("environment contract", () => {
   it("reports the local housing service independently in demo mode", () => {
     const value = getServiceConfiguration({
       NEXT_PUBLIC_DEMO_MODE: "true",
+      HOUSING_HTTP_FALLBACK_ENABLED: "true",
       HOUSING_API_BASE_URL: "http://127.0.0.1:8000",
       HOUSING_API_KEY: "local-key-that-is-at-least-32-characters",
     });
 
     expect(value.services.housing).toBe("configured");
     expect(value.services.amap).toBe("disabled");
+  });
+
+  it("reports historical housing configured from the live Supabase server secret", () => {
+    const value = getServiceConfiguration({
+      NEXT_PUBLIC_DEMO_MODE: "false",
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      SUPABASE_SECRET_KEY: "sb_secret_test_value",
+    });
+
+    expect(value.services.housing).toBe("configured");
+  });
+
+  it("rejects an HTTP fallback that points outside the local machine", () => {
+    expect(() =>
+      parseServerEnv({
+        HOUSING_HTTP_FALLBACK_ENABLED: "true",
+        HOUSING_API_BASE_URL: "https://housing.example.com",
+        HOUSING_API_KEY: "local-key-that-is-at-least-32-characters",
+      }),
+    ).toThrow(/回环地址/);
   });
 });
