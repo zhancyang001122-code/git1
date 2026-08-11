@@ -15,6 +15,16 @@ const optionalUrl = z.preprocess(
   z.string().url().optional(),
 );
 
+const optionalEmail = z.preprocess(
+  emptyStringToUndefined,
+  z
+    .string()
+    .trim()
+    .email()
+    .transform((value) => value.toLowerCase())
+    .optional(),
+);
+
 const stringBoolean = (defaultValue: boolean) =>
   z.preprocess((value) => {
     if (value === "true") return true;
@@ -65,7 +75,7 @@ const serverEnvSchema = z
     SUPABASE_SECRET_KEY: optionalString,
     SUPABASE_SERVICE_ROLE_KEY: optionalString,
     SUPABASE_FALLBACK_TO_DEMO: stringBoolean(false),
-    AUTH_CAPTCHA_REQUIRED: stringBoolean(false),
+    AUTH_ALLOWED_EMAIL: optionalEmail,
     ANONYMOUS_COOKIE_SECRET: z.preprocess(
       emptyStringToUndefined,
       z.string().min(32).optional(),

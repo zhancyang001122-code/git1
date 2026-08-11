@@ -5,8 +5,10 @@ import { readLocalSupabaseEnvironment } from "./scripts/local-supabase-env.mjs";
 const local = readLocalSupabaseEnvironment();
 const port = Number.parseInt(process.env.PLAYWRIGHT_AUTH_PORT ?? "3101", 10);
 const baseURL = `http://127.0.0.1:${port}`;
+const authTestEmail = "playwright-auth@example.test";
 
 process.env.SUPABASE_AUTH_TEST_MAILPIT_URL = local.MAILPIT_URL;
+process.env.SUPABASE_AUTH_TEST_EMAIL = authTestEmail;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -31,7 +33,7 @@ export default defineConfig({
       NEXT_PUBLIC_ENABLE_AI_DEBUG: "false",
       NEXT_PUBLIC_SUPABASE_URL: local.API_URL,
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: local.PUBLISHABLE_KEY,
-      AUTH_CAPTCHA_REQUIRED: "false",
+      AUTH_ALLOWED_EMAIL: authTestEmail,
       SUPABASE_SECRET_KEY: "",
       SUPABASE_SERVICE_ROLE_KEY: "",
       DASHSCOPE_API_KEY: "",

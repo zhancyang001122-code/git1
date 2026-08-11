@@ -5,7 +5,8 @@ import { readLocalSupabaseEnvironment } from "./local-supabase-env.mjs";
 const local = readLocalSupabaseEnvironment();
 const appUrl = process.env.AUTH_TEST_APP_URL ?? "http://127.0.0.1:3101";
 const mailpitUrl = local.MAILPIT_URL;
-const email = `auth-api-${randomUUID()}@example.test`;
+const email =
+  process.env.AUTH_TEST_EMAIL ?? `auth-api-${randomUUID()}@example.test`;
 const cookies = new Map();
 
 function assert(condition, message) {

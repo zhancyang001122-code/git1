@@ -8,12 +8,9 @@ const emailSchema = z
   .email()
   .transform((value) => value.toLowerCase());
 
-const captchaTokenSchema = z.string().trim().min(16).max(4_096);
-
 export const otpSendSchema = z
   .object({
     email: emailSchema,
-    captchaToken: captchaTokenSchema.optional(),
   })
   .strict();
 

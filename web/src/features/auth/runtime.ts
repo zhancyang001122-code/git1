@@ -8,7 +8,7 @@ import {
 } from "@/features/auth/error-map";
 
 export interface AuthRuntime {
-  sendOtp(input: { email: string; captchaToken?: string }): Promise<void>;
+  sendOtp(input: { email: string }): Promise<void>;
   verifyOtp(input: { email: string; token: string }): Promise<void>;
   signOut(): Promise<void>;
 }
@@ -16,10 +16,10 @@ export interface AuthRuntime {
 export async function createSupabaseAuthRuntime(): Promise<AuthRuntime> {
   const client = await createServerSupabaseClient();
   return {
-    async sendOtp({ captchaToken, email }) {
+    async sendOtp({ email }) {
       const { error } = await client.auth.signInWithOtp({
         email,
-        options: { shouldCreateUser: true, captchaToken },
+        options: { shouldCreateUser: true },
       });
       if (error) throw mapSupabaseAuthError(error, "send");
     },

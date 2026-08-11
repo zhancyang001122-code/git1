@@ -2,6 +2,7 @@ import {
   type AuthRuntime,
   createSupabaseAuthRuntime,
 } from "@/features/auth/runtime";
+import { assertAllowedAuthEmail } from "@/features/auth/access-policy";
 import { assertSameOrigin } from "@/features/auth/same-origin";
 import { otpSendSchema } from "@/features/auth/schemas";
 import { apiErrorResponse, noStoreHeaders } from "@/lib/api-error-response";
@@ -21,7 +22,8 @@ interface RateLimiter {
 
 interface OtpSendHandlerOptions {
   runtimeFactory?: () => Promise<AuthRuntime>;
-  captchaRequired?: boolean;
+  allowedEmail?: string | null;
+  production?: boolean;
   allowMissingOrigin?: boolean;
   rateLimiters?: { client: RateLimiter; email: RateLimiter };
 }
@@ -53,25 +55,20 @@ export function createOtpSendHandler(options: OtpSendHandlerOptions = {}) {
         await readJsonWithLimit(request, 8_192),
       );
       if (!parsed.success) {
-        const captchaIssue = parsed.error.issues.some(
-          (issue) => issue.path[0] === "captchaToken",
-        );
         throw new AppError({
-          code: captchaIssue ? "AUTH_CAPTCHA_REQUIRED" : "AUTH_EMAIL_INVALID",
-          message: captchaIssue ? "请先完成人机验证" : "邮箱格式无效",
+          code: "AUTH_EMAIL_INVALID",
+          message: "邮箱格式无效",
           status: 400,
           cause: parsed.error,
         });
       }
-      const captchaRequired =
-        options.captchaRequired ?? serverEnv().AUTH_CAPTCHA_REQUIRED;
-      if (captchaRequired && !parsed.data.captchaToken) {
-        throw new AppError({
-          code: "AUTH_CAPTCHA_REQUIRED",
-          message: "请先完成人机验证",
-          status: 400,
-        });
-      }
+      assertAllowedAuthEmail(parsed.data.email, {
+        allowedEmail:
+          options.allowedEmail === undefined
+            ? serverEnv().AUTH_ALLOWED_EMAIL
+            : (options.allowedEmail ?? undefined),
+        production: options.production ?? process.env.NODE_ENV === "production",
+      });
       const emailLimit = emailLimiter.check(`email:${parsed.data.email}`);
       if (!emailLimit.allowed) {
         return rateLimitResponse(emailLimit, requestId, {

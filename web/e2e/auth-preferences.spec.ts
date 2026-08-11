@@ -1,6 +1,7 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
 
 const mailpitUrl = process.env.SUPABASE_AUTH_TEST_MAILPIT_URL;
+const authTestEmail = process.env.SUPABASE_AUTH_TEST_EMAIL;
 
 interface MailpitAddress {
   Address?: string;
@@ -48,7 +49,8 @@ test("real local OTP session protects, persists, proposes, revokes and signs out
   request,
 }) => {
   test.skip(!mailpitUrl, "Local Supabase Mailpit is not configured");
-  const email = `playwright-auth-${Date.now()}@example.test`;
+  expect(authTestEmail, "local Auth allowlist email").toBeTruthy();
+  const email = authTestEmail!;
 
   await page.goto("/me/preferences");
   await expect(page).toHaveURL(/\/login\?next=%2Fme%2Fpreferences/);

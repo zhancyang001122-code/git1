@@ -3,16 +3,16 @@ import { describe, expect, it } from "vitest";
 import { otpSendSchema, otpVerifySchema } from "@/features/auth/schemas";
 
 describe("auth request schemas", () => {
-  it("normalizes a valid email and accepts an optional captcha token", () => {
-    expect(
-      otpSendSchema.parse({
-        email: "  USER@Example.COM ",
-        captchaToken: "captcha-token-with-enough-length",
-      }),
-    ).toEqual({
+  it("normalizes a valid email without accepting captcha fields", () => {
+    expect(otpSendSchema.parse({ email: "  USER@Example.COM " })).toEqual({
       email: "user@example.com",
-      captchaToken: "captcha-token-with-enough-length",
     });
+    expect(
+      otpSendSchema.safeParse({
+        email: "user@example.com",
+        captchaToken: "obsolete-captcha-token",
+      }).success,
+    ).toBe(false);
   });
 
   it("rejects malformed email and unknown send fields", () => {

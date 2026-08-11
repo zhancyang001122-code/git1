@@ -23,15 +23,12 @@ describe("Supabase Auth runtime", () => {
     mocks.signOut.mockResolvedValue({ error: null });
   });
 
-  it("sends OTP with account creation and optional captcha", async () => {
+  it("sends OTP with account creation and no captcha option", async () => {
     const runtime = await createSupabaseAuthRuntime();
-    await runtime.sendOtp({
-      email: "user@example.com",
-      captchaToken: "captcha-token",
-    });
+    await runtime.sendOtp({ email: "user@example.com" });
     expect(mocks.signInWithOtp).toHaveBeenCalledWith({
       email: "user@example.com",
-      options: { shouldCreateUser: true, captchaToken: "captcha-token" },
+      options: { shouldCreateUser: true },
     });
   });
 

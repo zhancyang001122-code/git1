@@ -41,14 +41,14 @@ describe("environment contract", () => {
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
       SUPABASE_FALLBACK_TO_DEMO: "true",
-      AUTH_CAPTCHA_REQUIRED: "true",
+      AUTH_ALLOWED_EMAIL: "owner@example.com",
     });
 
     expect(value).not.toHaveProperty("SUPABASE_SECRET_KEY");
     expect(value).not.toHaveProperty("SUPABASE_SERVICE_ROLE_KEY");
     expect(value).not.toHaveProperty("DASHSCOPE_API_KEY");
     expect(value).not.toHaveProperty("AMAP_WEB_SERVICE_KEY");
-    expect(value).not.toHaveProperty("AUTH_CAPTCHA_REQUIRED");
+    expect(value).not.toHaveProperty("AUTH_ALLOWED_EMAIL");
   });
 
   it("keeps server credentials in the server parser", () => {
@@ -58,7 +58,7 @@ describe("environment contract", () => {
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
       SUPABASE_FALLBACK_TO_DEMO: "true",
-      AUTH_CAPTCHA_REQUIRED: "true",
+      AUTH_ALLOWED_EMAIL: " Owner@Example.COM ",
     });
 
     expect(value).toMatchObject({
@@ -67,7 +67,7 @@ describe("environment contract", () => {
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
       SUPABASE_FALLBACK_TO_DEMO: true,
-      AUTH_CAPTCHA_REQUIRED: true,
+      AUTH_ALLOWED_EMAIL: "owner@example.com",
       DASHSCOPE_MODEL: "qwen-plus",
       DASHSCOPE_EMBEDDING_MODEL: "text-embedding-v4",
       DASHSCOPE_EMBEDDING_DIMENSIONS: 1024,
@@ -84,6 +84,12 @@ describe("environment contract", () => {
       DASHSCOPE_BASE_URL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
       AMAP_BASE_URL: "https://restapi.amap.com",
     });
+  });
+
+  it("rejects a malformed Auth allowlist email", () => {
+    expect(() =>
+      parseServerEnv({ AUTH_ALLOWED_EMAIL: "not-an-email" }),
+    ).toThrow();
   });
 
   it("rejects invalid RAG dimensions, weights and rerank configuration", () => {

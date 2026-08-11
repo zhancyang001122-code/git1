@@ -115,7 +115,7 @@ pnpm test:e2e:auth
 - `pnpm format:check`：通过；生成的 `pnpm-lock.yaml`、构建目录和测试报告已排除，避免格式化工具改写生成物。
 - `pnpm lint`：通过。
 - `pnpm typecheck`：通过。
-- `pnpm test`：104 个测试文件、372 个测试全部通过。
+- `pnpm test`：104 个测试文件、375 个测试全部通过。
 - `pnpm build`：通过，`/login`、`/me/preferences` 与 Auth/Preferences API 均进入生产路由清单。
 - 默认 Demo Playwright：47 个通过、2 个按环境明确跳过；Auth 专项不在 Demo 环境重复运行。
 - Auth 专项 Playwright：1 个完整 Chromium 流程通过。
@@ -130,11 +130,11 @@ pnpm test:e2e:auth
 
 - 未配置生产域名和自定义 SMTP。
 - 未验证生产发件域名和真实邮箱送达率。
-- 未启用生产 CAPTCHA。
-- OTP API 当前应用层限流为单实例内存实现，不适合作为 Vercel 多实例最终方案。
+- 面试演示版本明确不使用 CAPTCHA 或共享限流；Production 只允许 `AUTH_ALLOWED_EMAIL` 指定的作者邮箱。该取舍不适用于公众注册或高流量产品。
+- OTP API 当前应用层限流为单实例内存实现，公开公众注册前必须升级；当前单邮箱演示还依赖 Supabase 供应商限流作为第二道边界。
 - 未完成生产环境的过期码、重发、限流和邮件退信冒烟。
 - 本报告不证明高德、千问、正式 RAG 材料或线上房源业务链路已接通。
 
 ## 6. 面试可诚实表述
 
-> 我把公开浏览和个人数据分开：公开业务允许游客访问，长期偏好要求邮箱 OTP 登录。服务端用 `auth.getUser()` 确认身份，再用用户会话访问启用 RLS 的 `user_preferences`，所以客户端不能指定修改谁的数据。模型只能生成待确认提案，真正写入必须由用户点击；撤销会删除整行。本地 Mailpit、SQL Role、PostgREST、API 和 Chromium 都有验证证据，但生产 SMTP、CAPTCHA 和共享限流仍需上线配置。
+> 我把公开浏览和个人数据分开：面试官可以匿名浏览，只有作者白名单邮箱能通过 Supabase OTP 登录并使用云端长期偏好。发送和验证接口都校验白名单，Production 漏配时安全停用；登录后服务端再用 `auth.getUser()` 与 RLS 隔离数据。模型只能生成待确认提案，真正写入必须由用户点击。因为它是低频作品演示，我没有堆 CAPTCHA 和共享限流，也不会把这个取舍包装成公众注册系统；生产真实邮箱送达仍要做冒烟验证。

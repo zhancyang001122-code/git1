@@ -2,6 +2,7 @@ import {
   type AuthRuntime,
   createSupabaseAuthRuntime,
 } from "@/features/auth/runtime";
+import { assertAllowedAuthEmail } from "@/features/auth/access-policy";
 import { safeNextPath } from "@/features/auth/safe-next";
 import { assertSameOrigin } from "@/features/auth/same-origin";
 import { otpVerifySchema } from "@/features/auth/schemas";
@@ -9,9 +10,12 @@ import { apiErrorResponse, noStoreHeaders } from "@/lib/api-error-response";
 import { readJsonWithLimit } from "@/lib/api-security";
 import { AppError } from "@/lib/errors";
 import { requestIdFor } from "@/lib/request-id";
+import { serverEnv } from "@/lib/env";
 
 interface OtpVerifyHandlerOptions {
   runtimeFactory?: () => Promise<AuthRuntime>;
+  allowedEmail?: string | null;
+  production?: boolean;
   allowMissingOrigin?: boolean;
 }
 
@@ -38,6 +42,13 @@ export function createOtpVerifyHandler(options: OtpVerifyHandlerOptions = {}) {
           cause: parsed.error,
         });
       }
+      assertAllowedAuthEmail(parsed.data.email, {
+        allowedEmail:
+          options.allowedEmail === undefined
+            ? serverEnv().AUTH_ALLOWED_EMAIL
+            : (options.allowedEmail ?? undefined),
+        production: options.production ?? process.env.NODE_ENV === "production",
+      });
       const runtime = await runtimeFactory();
       await runtime.verifyOtp({
         email: parsed.data.email,

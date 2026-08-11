@@ -13,15 +13,15 @@
 }
 ```
 
-所有 Auth 与用户数据响应使用 `cache-control: no-store` 和 `x-request-id`。状态变更接口校验同源请求；公开 Production 的 OTP 发送还必须启用 CAPTCHA、共享限流和自定义 SMTP。
+所有 Auth 与用户数据响应使用 `cache-control: no-store` 和 `x-request-id`。状态变更接口校验同源请求。当前面试演示版本不开放公众注册：Production 必须用服务端 `AUTH_ALLOWED_EMAIL` 指定唯一演示邮箱；未配置时 Auth 安全停用。
 
 ## `POST /api/auth/otp/send`
 
-请求使用 strict Schema：`email` 必填，`captchaToken` 在公开 Production 必填。服务端规范化邮箱、限制请求体大小，并按客户端和邮箱摘要分别限流。成功始终返回 `{ "ok": true }`，不暴露账号是否已经存在。
+请求使用 strict Schema，只有 `email` 字段。服务端规范化邮箱、限制请求体大小、校验演示邮箱白名单，并按客户端和邮箱摘要分别执行轻量限流；非白名单邮箱不会调用 Supabase。成功返回 `{ "ok": true }`。
 
 ## `POST /api/auth/otp/verify`
 
-请求包含规范化邮箱、6 位数字 `token` 和可选 `next`。服务端调用 Supabase `verifyOtp({ type: "email" })` 并写入 SSR Auth Cookie；响应只返回经过校验的内部跳转路径。外部 URL、协议相对 URL、反斜杠和控制字符回退到 `/me`。
+请求包含规范化邮箱、6 位数字 `token` 和可选 `next`。服务端再次校验演示邮箱白名单，随后调用 Supabase `verifyOtp({ type: "email" })` 并写入 SSR Auth Cookie；响应只返回经过校验的内部跳转路径。外部 URL、协议相对 URL、反斜杠和控制字符回退到 `/me`。
 
 ## `POST /api/auth/sign-out`
 

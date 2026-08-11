@@ -29,31 +29,45 @@ describe("POST /api/auth/otp/send", () => {
     const auth = runtime();
     const post = createOtpSendHandler({
       runtimeFactory: async () => auth,
-      captchaRequired: false,
+      allowedEmail: "user@example.com",
+      production: true,
     });
     const response = await post(request({ email: " USER@Example.COM " }));
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
-    expect(auth.sendOtp).toHaveBeenCalledWith({
-      email: "user@example.com",
-      captchaToken: undefined,
-    });
+    expect(auth.sendOtp).toHaveBeenCalledWith({ email: "user@example.com" });
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(response.headers.get("x-request-id")).toMatch(/^[0-9a-f-]{36}$/);
   });
 
-  it("requires captcha when the server setting is enabled", async () => {
+  it("rejects a non-allowlisted email before calling Supabase", async () => {
     const auth = runtime();
     const post = createOtpSendHandler({
       runtimeFactory: async () => auth,
-      captchaRequired: true,
+      allowedEmail: "owner@example.com",
+      production: true,
     });
     const response = await post(request({ email: "user@example.com" }));
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(403);
     expect(await response.json()).toMatchObject({
-      error: { code: "AUTH_CAPTCHA_REQUIRED", retryable: false },
+      error: { code: "AUTH_EMAIL_NOT_ALLOWED", retryable: false },
+    });
+    expect(auth.sendOtp).not.toHaveBeenCalled();
+  });
+
+  it("fails closed in production when the demo email is not configured", async () => {
+    const auth = runtime();
+    const response = await createOtpSendHandler({
+      runtimeFactory: async () => auth,
+      allowedEmail: null,
+      production: true,
+    })(request({ email: "user@example.com" }));
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({
+      error: { code: "AUTH_UNAVAILABLE", retryable: true },
     });
     expect(auth.sendOtp).not.toHaveBeenCalled();
   });
@@ -62,7 +76,8 @@ describe("POST /api/auth/otp/send", () => {
     const auth = runtime();
     const post = createOtpSendHandler({
       runtimeFactory: async () => auth,
-      captchaRequired: false,
+      allowedEmail: "user@example.com",
+      production: true,
     });
     const invalid = await post(request({ email: "not-an-email" }));
     expect(invalid.status).toBe(400);
@@ -81,7 +96,8 @@ describe("POST /api/auth/otp/send", () => {
     const auth = runtime();
     const post = createOtpSendHandler({
       runtimeFactory: async () => auth,
-      captchaRequired: false,
+      allowedEmail: "user@example.com",
+      production: true,
       rateLimiters: {
         client: {
           check: () => ({
@@ -117,7 +133,8 @@ describe("POST /api/auth/otp/send", () => {
     );
     const failed = await createOtpSendHandler({
       runtimeFactory: async () => failing,
-      captchaRequired: false,
+      allowedEmail: "user@example.com",
+      production: true,
     })(request({ email: "user@example.com" }));
     expect(failed.status).toBe(502);
     expect(await failed.json()).toMatchObject({

@@ -1,5 +1,7 @@
 # 小智 Auth 与长期偏好 Implementation Plan
 
+> **后续决策：** CAPTCHA 与公开注册相关步骤已由 `2026-08-12-interview-otp-simplification-implementation.md` 取代；其余会话、Preferences 与 RLS 任务仍有效。
+
 **Goal:** 在不阻断公开业务浏览的前提下，交付可验证的邮箱 6 位 OTP 登录、Supabase 会话刷新、按 `auth.uid()` 隔离的云端长期偏好，以及“模型提案、用户确认、API 写入”的真实授权链路。
 
 **Architecture:** Next.js Route Handler 负责请求边界、Supabase Auth 和会话 Cookie；Preferences application service 负责授权时间、部分更新和撤销语义；Memory Repository 只封装用户会话下的数据访问；RLS 是独立的第二道权限边界。Agent 保持只读偏好工具，并以无副作用提案工具生成确认卡，真正写入仅由用户界面调用 `/api/preferences`。
