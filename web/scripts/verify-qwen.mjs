@@ -97,7 +97,23 @@ const productArgs = await forcedToolCall(
   "帮我找30元以内有库存的早餐，没有指定门店。",
   contractTool("search_products"),
 );
+const productCategories = new Set([
+  "乳品",
+  "蛋品",
+  "水果",
+  "蔬菜",
+  "肉类",
+  "主食",
+  "饮料",
+  "速冻",
+  "日用",
+  "早餐",
+]);
 if (
+  typeof productArgs.query !== "string" ||
+  productArgs.query.trim().length === 0 ||
+  (productArgs.category !== null &&
+    !productCategories.has(productArgs.category)) ||
   productArgs.store_id !== null ||
   productArgs.max_price !== 30 ||
   productArgs.in_stock_only !== true

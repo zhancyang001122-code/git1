@@ -26,6 +26,18 @@ const databaseUuid = z
   .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 const nullableNonnegativeNumber = z.number().nonnegative().nullable();
 const nullableNonnegativeInteger = z.number().int().nonnegative().nullable();
+const productCategories = [
+  "乳品",
+  "蛋品",
+  "水果",
+  "蔬菜",
+  "肉类",
+  "主食",
+  "饮料",
+  "速冻",
+  "日用",
+  "早餐",
+] as const;
 
 const searchHousesSchema = z
   .object({
@@ -52,8 +64,8 @@ const searchDealsSchema = z
 
 const searchProductsSchema = z
   .object({
-    query: nullableString,
-    category: nullableString,
+    query: z.string().trim().min(1).max(80).nullable(),
+    category: z.enum(productCategories).nullable(),
     store_id: databaseUuid.nullable(),
     max_price: nullableNonnegativeNumber,
     in_stock_only: z.boolean(),
@@ -196,8 +208,19 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
     parameters: {
       type: "object",
       properties: {
-        query: { type: ["string", "null"] },
-        category: { type: ["string", "null"] },
+        query: {
+          type: ["string", "null"],
+          minLength: 1,
+          maxLength: 80,
+          description:
+            "A free-text product keyword such as breakfast, or null. Never use an empty string.",
+        },
+        category: {
+          type: ["string", "null"],
+          enum: [...productCategories, null],
+          description:
+            "An exact category from this enum, or null. Put broad intents such as breakfast in query when unsure; never invent a category.",
+        },
         store_id: {
           type: ["string", "null"],
           format: "uuid",

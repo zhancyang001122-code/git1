@@ -47,6 +47,16 @@ if (
   );
 }
 
+async function businessAlertTexts(targetPage) {
+  return (
+    await targetPage
+      .locator('[role="alert"]:not(#__next-route-announcer__)')
+      .allTextContents()
+  )
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
 const page = await browser.newPage({ viewport: { width: 430, height: 932 } });
 const browserErrors = [];
 page.on("pageerror", (error) => browserErrors.push(error.message));
@@ -104,11 +114,7 @@ try {
     await expect(
       page.getByRole("button", { name: "发送", exact: true }),
     ).toBeVisible({ timeout: 60_000 });
-    const alertTexts = (
-      await page.getByRole("alert").allTextContents({ timeoutMs: 5_000 })
-    )
-      .map((value) => value.trim())
-      .filter(Boolean);
+    const alertTexts = await businessAlertTexts(page);
     if (alertTexts.length > 0) {
       throw new Error(`production UI alerts: ${alertTexts.join(" | ")}`);
     }
@@ -153,18 +159,19 @@ try {
       await expect(commercePage.getByText("待你确认的长期偏好")).toBeVisible({
         timeout: 60_000,
       });
-      await expect(commercePage.getByText("不吃辣")).toBeVisible();
-      await commercePage.getByRole("button", { name: "取消" }).click();
+      await expect(
+        commercePage.getByText("不吃辣", { exact: true }),
+      ).toBeVisible();
+      await commercePage
+        .getByRole("region", { name: "查询结果与待确认操作" })
+        .getByRole("button", { name: "取消", exact: true })
+        .click();
       await expect(
         commercePage.getByRole("status").filter({
           hasText: "已取消，本次没有保存长期偏好",
         }),
       ).toBeVisible();
-      const commerceAlerts = (
-        await commercePage.getByRole("alert").allTextContents()
-      )
-        .map((value) => value.trim())
-        .filter(Boolean);
+      const commerceAlerts = await businessAlertTexts(commercePage);
       if (commerceAlerts.length > 0) {
         throw new Error(
           `production commerce UI alerts: ${commerceAlerts.join(" | ")}`,

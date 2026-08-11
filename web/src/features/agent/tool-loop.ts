@@ -70,7 +70,7 @@ function toolMessage(
 
 function repairHint(toolName: string): string {
   if (toolName === "search_products") {
-    return "Return every required field. If the user did not specify a store, set store_id to null; never invent a store_id. A non-null store_id must be a UUID from a previous trusted result.";
+    return "Return every required field. query must be a non-empty keyword or null. category must use the schema enum or null when unsure. If the user did not specify a store, set store_id to null; never invent a store_id. A non-null store_id must be a UUID from a previous trusted result.";
   }
   if (toolName === "propose_user_preference") {
     return "For max_housing_budget use an integer. For preferred_areas, dietary_restrictions, transport_modes, and family_profile use a non-empty string array.";

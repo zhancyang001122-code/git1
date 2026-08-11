@@ -97,12 +97,46 @@ describe("Task 7 tool schemas", () => {
       toolInputSchemas.get_product_stock.safeParse({ product_id: "not-a-uuid" })
         .success,
     ).toBe(false);
+    expect(
+      toolInputSchemas.search_products.safeParse({
+        query: "早餐",
+        category: "早餐",
+        store_id: null,
+        max_price: 30,
+        in_stock_only: true,
+        limit: 6,
+      }).success,
+    ).toBe(true);
+    expect(
+      toolInputSchemas.search_products.safeParse({
+        query: "早餐",
+        category: "食品",
+        store_id: null,
+        max_price: 30,
+        in_stock_only: true,
+        limit: 6,
+      }).success,
+    ).toBe(false);
+    expect(
+      toolInputSchemas.search_products.safeParse({
+        query: "",
+        category: null,
+        store_id: null,
+        max_price: 30,
+        in_stock_only: true,
+        limit: 6,
+      }).success,
+    ).toBe(false);
 
     const productContract = toolContractDefinitions.find(
       (definition) => definition.name === "search_products",
     );
     expect(productContract?.parameters).toMatchObject({
       properties: {
+        query: { minLength: 1 },
+        category: {
+          enum: expect.arrayContaining(["早餐", null]),
+        },
         store_id: {
           description: expect.stringMatching(/UUID.*null/u),
         },
