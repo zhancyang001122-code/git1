@@ -14,6 +14,32 @@ describe("assertSameOrigin", () => {
     ).not.toThrow();
   });
 
+  it("accepts the public Host origin when a local Next server normalizes request.url", () => {
+    expect(() =>
+      assertSameOrigin(
+        new Request("http://localhost:3101/api/auth/otp/send", {
+          method: "POST",
+          headers: {
+            host: "127.0.0.1:3101",
+            origin: "http://127.0.0.1:3101",
+          },
+        }),
+      ),
+    ).not.toThrow();
+
+    expect(() =>
+      assertSameOrigin(
+        new Request("http://localhost:3101/api/auth/otp/send", {
+          method: "POST",
+          headers: {
+            host: "127.0.0.1:3101",
+            origin: "https://evil.example",
+          },
+        }),
+      ),
+    ).toThrowError(expect.objectContaining({ code: "AUTH_ORIGIN_INVALID" }));
+  });
+
   it("rejects a different or malformed origin", () => {
     for (const origin of ["https://evil.example", "not-a-url"]) {
       expect(() =>

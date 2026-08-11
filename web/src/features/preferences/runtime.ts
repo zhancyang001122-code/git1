@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isMissingAuthSession } from "@/features/auth/error-map";
 import { createSupabaseMemoryRepository } from "@/features/memory/repository";
 import { createPreferencesService } from "@/features/preferences/service";
 import type {
@@ -28,7 +29,7 @@ export async function createPreferencesApiRuntime(): Promise<PreferencesApiRunti
       const { data, error } = await client.auth.getUser();
       if (error) {
         const status = typeof error.status === "number" ? error.status : null;
-        if (status === 401 || error.code === "session_not_found") return null;
+        if (status === 401 || isMissingAuthSession(error)) return null;
         throw new AppError({
           code: "AUTH_UNAVAILABLE",
           message: "登录服务暂时不可用，请稍后重试",

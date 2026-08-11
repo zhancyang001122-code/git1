@@ -70,6 +70,7 @@ success(
   "prepare isolated test identities",
   `
   delete from auth.users where id in ('${userA}', '${userB}');
+  delete from public.ai_tool_runs where tool_name = 'rls_probe';
   insert into auth.users (id, raw_user_meta_data) values
     ('${userA}', '{"display_name":"RLS User A"}'),
     ('${userB}', '{"display_name":"RLS User B"}');
@@ -113,14 +114,36 @@ denied(
 `,
 );
 
+denied(
+  "anon cannot read user preferences",
+  `
+  set role anon;
+  select count(*) from public.user_preferences;
+`,
+);
+
+denied(
+  "anon cannot write user preferences",
+  `
+  set role anon;
+  insert into public.user_preferences (
+    user_id, max_housing_budget, allow_long_term_memory, consented_at
+  ) values ('${userA}', 1, true, timezone('utc', now()));
+`,
+);
+
 success(
   "authenticated user can write own preferences",
   `
   set role authenticated;
   set "request.jwt.claim.sub" = '${userA}';
-  insert into public.user_preferences (user_id, max_housing_budget, allow_long_term_memory)
-  values ('${userA}', 3500, false)
-  on conflict (user_id) do update set max_housing_budget = excluded.max_housing_budget;
+  insert into public.user_preferences (
+    user_id, max_housing_budget, allow_long_term_memory, consented_at
+  ) values ('${userA}', 3500, true, timezone('utc', now()))
+  on conflict (user_id) do update set
+    max_housing_budget = excluded.max_housing_budget,
+    allow_long_term_memory = excluded.allow_long_term_memory,
+    consented_at = excluded.consented_at;
   select max_housing_budget from public.user_preferences where user_id = '${userA}';
 `,
   "3500",
@@ -144,6 +167,56 @@ denied(
   insert into public.user_preferences (user_id, max_housing_budget, allow_long_term_memory)
   values ('${userA}', 999, false);
 `,
+);
+
+success(
+  "authenticated user cannot update another user's preferences",
+  `
+  set role authenticated;
+  set "request.jwt.claim.sub" = '${userB}';
+  update public.user_preferences
+  set max_housing_budget = 999
+  where user_id = '${userA}'
+  returning user_id;
+`,
+  "",
+);
+
+success(
+  "authenticated user cannot delete another user's preferences",
+  `
+  set role authenticated;
+  set "request.jwt.claim.sub" = '${userB}';
+  delete from public.user_preferences
+  where user_id = '${userA}'
+  returning user_id;
+`,
+  "",
+);
+
+success(
+  "authenticated user can update own preferences",
+  `
+  set role authenticated;
+  set "request.jwt.claim.sub" = '${userA}';
+  update public.user_preferences
+  set max_housing_budget = 4200
+  where user_id = '${userA}'
+  returning max_housing_budget;
+`,
+  "4200",
+);
+
+success(
+  "authenticated user can delete own preferences",
+  `
+  set role authenticated;
+  set "request.jwt.claim.sub" = '${userA}';
+  delete from public.user_preferences
+  where user_id = '${userA}'
+  returning user_id;
+`,
+  userA,
 );
 
 success(
@@ -175,4 +248,4 @@ success(
   "1",
 );
 
-console.log("RLS verification completed with 9 role-boundary checks.");
+console.log("RLS verification completed with 16 role-boundary checks.");

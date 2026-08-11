@@ -21,8 +21,18 @@ export function assertSameOrigin(
 
   try {
     const supplied = new URL(header);
-    const expected = new URL(request.url);
-    if (supplied.origin !== expected.origin) invalidOrigin();
+    const requestUrl = new URL(request.url);
+    const expectedOrigins = new Set([requestUrl.origin]);
+    const host = request.headers.get("host");
+    if (host) {
+      const forwardedProtocol = request.headers
+        .get("x-forwarded-proto")
+        ?.split(",", 1)[0]
+        ?.trim();
+      const protocol = forwardedProtocol || requestUrl.protocol.slice(0, -1);
+      expectedOrigins.add(new URL(`${protocol}://${host}`).origin);
+    }
+    if (!expectedOrigins.has(supplied.origin)) invalidOrigin();
   } catch (error) {
     if (error instanceof AppError) throw error;
     invalidOrigin(error);

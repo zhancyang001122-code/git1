@@ -10,6 +10,7 @@
 - [x] `pnpm test`
 - [x] `pnpm build`
 - [x] 核心 Playwright Demo 通过
+- [x] 本地 Supabase + Mailpit Auth 专项 Playwright 通过
 
 ## P0 视觉
 
@@ -34,7 +35,18 @@
 - [x] 房源、团购、商品和社区内容只读列表 API
 - [x] 严格查询参数、稳定错误、请求 ID 和来源封装
 - [x] 反馈 API 验证消息归属，反馈不暴露为模型工具
-- [ ] 用户偏好 GET/PATCH API 与授权时间更新
+- [x] 用户偏好 GET/PATCH API、服务端授权时间、整行撤销与稳定错误
+
+## P0 Auth、授权与隐私
+
+- [x] 邮箱 6 位 OTP 本地 Mailpit 发送、验证与会话 Cookie
+- [x] `/me/preferences` 未登录服务端跳转，并保留安全站内 `next`
+- [x] 偏好 API 只从 `auth.getUser()` 获取用户 ID，不接受客户端 `userId`
+- [x] SQL Role 与 PostgREST 两层验证本人可读写删、跨用户不可读改删、匿名不可访问
+- [x] 模型偏好工具只生成无副作用提案；取消零写入，确认才调用 API
+- [x] 关闭长期记忆删除整行偏好；登出不等同于删除数据
+- [ ] 生产域名、自定义 SMTP、发件域名验证与真实邮箱冒烟
+- [ ] 生产 CAPTCHA 与适配 Vercel 多实例的共享限流
 
 ## P0 AI
 
@@ -92,4 +104,4 @@
 2. 带来源的退款规则
 3. 房源 + 超市 + 宠物规则组合任务
 
-正式发布仍需三个在线链路分别通过：Supabase 业务数据、高德位置服务、千问与正式知识检索。详细证据和当前阻塞见 `docs/task-reports/2026-08-11-task-12-local-release-readiness.md`。
+正式发布仍需完成生产 Auth 配置，并让三个在线业务链路分别通过：Supabase 业务数据、高德位置服务、千问与正式知识检索。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；其余证据和当前阻塞见 `docs/task-reports/2026-08-11-task-12-local-release-readiness.md`。

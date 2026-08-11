@@ -48,6 +48,12 @@ describe("Supabase auth error mapping", () => {
 
   it("recognizes an already signed-out session without swallowing other errors", () => {
     expect(isMissingAuthSession({ code: "session_not_found" })).toBe(true);
+    expect(
+      isMissingAuthSession({
+        code: "refresh_token_not_found",
+        message: "Invalid Refresh Token: Refresh Token Not Found",
+      }),
+    ).toBe(true);
     expect(isMissingAuthSession(new Error("database unavailable"))).toBe(false);
   });
 });

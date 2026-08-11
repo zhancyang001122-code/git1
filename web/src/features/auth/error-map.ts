@@ -24,7 +24,10 @@ export function isMissingAuthSession(error: unknown): boolean {
   return (
     details.code.includes("session_not_found") ||
     details.code.includes("session_missing") ||
-    details.message.includes("auth session missing")
+    details.code.includes("refresh_token_not_found") ||
+    details.code.includes("invalid_refresh_token") ||
+    details.message.includes("auth session missing") ||
+    details.message.includes("refresh token not found")
   );
 }
 
