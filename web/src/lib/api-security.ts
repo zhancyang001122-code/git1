@@ -36,12 +36,16 @@ export async function readJsonWithLimit(
 export function rateLimitResponse(
   result: RateLimitResult,
   requestId: string,
+  error: { code: string; message: string } = {
+    code: "RATE_LIMITED",
+    message: "请求过于频繁，请稍后重试",
+  },
 ): Response {
   return Response.json(
     {
       error: {
-        code: "RATE_LIMITED",
-        message: "请求过于频繁，请稍后重试",
+        code: error.code,
+        message: error.message,
         retryable: true,
         requestId,
       },
