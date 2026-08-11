@@ -39,6 +39,10 @@ assert(
   housingImportStatusMigration,
   "Housing import observability migration is missing",
 );
+const aiOpsDashboardMigration = migrations.find((migration) =>
+  migration.name.endsWith("_ai_ops_dashboard.sql"),
+);
+assert(aiOpsDashboardMigration, "AI Ops dashboard migration is missing");
 
 for (const migration of migrations) {
   const normalized = migration.sql.trim().toLowerCase();
@@ -59,6 +63,7 @@ for (const migration of migrations) {
 const allSql = migrations.map(({ sql }) => sql).join("\n");
 const historicalHousingSql = historicalHousingMigration.sql;
 const housingImportStatusSql = housingImportStatusMigration.sql;
+const aiOpsDashboardSql = aiOpsDashboardMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -194,6 +199,34 @@ for (const requirement of [
   },
 ]) {
   assert(requirement.pattern.test(housingImportStatusSql), requirement.message);
+}
+
+for (const requirement of [
+  {
+    pattern:
+      /create or replace function public\.get_ai_ops_dashboard\s*\(p_window_hours integer default 168\)/i,
+    message: "AI Ops dashboard RPC is missing",
+  },
+  {
+    pattern: /greatest\s*\(1,\s*least\(p_window_hours,\s*720\)\)/i,
+    message: "AI Ops dashboard must bound its time window",
+  },
+  {
+    pattern: /set search_path = ''/i,
+    message: "AI Ops dashboard RPC must fix search_path",
+  },
+  {
+    pattern:
+      /revoke all on function public\.get_ai_ops_dashboard\(integer\)[\s\S]+from public, anon, authenticated/i,
+    message: "AI Ops dashboard must revoke client execution",
+  },
+  {
+    pattern:
+      /grant execute on function public\.get_ai_ops_dashboard\(integer\)[\s\S]+to service_role/i,
+    message: "AI Ops dashboard must be service-role only",
+  },
+]) {
+  assert(requirement.pattern.test(aiOpsDashboardSql), requirement.message);
 }
 
 const publicReadTables = [
