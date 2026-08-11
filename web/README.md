@@ -2,6 +2,8 @@
 
 这是“小智”作品集的 Next.js 应用，Vercel 部署时将本目录设为 Root Directory。
 
+Production Live：[https://xiaozhi-local-life.vercel.app](https://xiaozhi-local-life.vercel.app)
+
 ## 产品能力
 
 - 430px 微信小程序式移动端界面，五个主页面共享统一导航和设计 Token。
@@ -59,5 +61,14 @@ React 页面不直接执行 SQL，不使用 service role 客户端。价格、�
 `NEXT_PUBLIC_DEMO_MODE=true`：使用确定性演示数据，UI 显示 Demo 来源，不写远程数据。
 
 `NEXT_PUBLIC_DEMO_MODE=false`：Supabase、匿名 Cookie 密钥和管理口令可先启用持久化会话、反馈、候选、草稿与审核。没有百炼 Key 时，发布会在任何数据库变更前明确返回 `KNOWLEDGE_INDEXING_NOT_CONFIGURED`；配置百炼后才允许发布、索引和评测。高德能力缺 Key 时同样明确显示未配置，不会伪装为在线结果。
+
+当前 Production 已接通 Supabase、千问、高德和 2024 历史房源，并通过“历史房源 + 高德”“演示商品 + 偏好提案”两条 Live 回归。正式客服知识材料、Production OTP 与 qwen3-rerank 仍未验收，不能从“模型已接通”推导为“正式 RAG 已完成”。
+
+部署后回归：
+
+```powershell
+$env:EXPECTED_PRODUCTION_MODE='live'
+pnpm deploy:verify-production
+```
 
 详细步骤见 [deployment.md](docs/deployment.md) 与 [runbook.md](docs/runbook.md)。

@@ -2,13 +2,43 @@
 
 面向 AI FDE / Solutions Engineer 面试的移动端 Web 作品集。产品以微信小程序式 430px 画布演示，将结构化业务查询、地图工具、可追溯 RAG、多工具编排和受控知识运营闭环组合在同一套 Agent 架构中。
 
+**Production Live：** [https://xiaozhi-local-life.vercel.app](https://xiaozhi-local-life.vercel.app)
+
 ## 当前真实状态
 
-- 五个主页面、业务二级页、流式对话、工具进度、反馈与知识运营页面已经实现。
-- 当前默认运行在明确标注的 Demo 模式；可选启动本机房源 API，让武林广场附近查询使用 2024-11 真实历史快照。未配置时房源仍为确定性 Demo。
-- 尚未连接远程 Supabase、阿里云百炼千问或高德 Web Service，也没有用户提供的正式客服知识材料。
-- 代码已预留 Live Adapter、RLS 迁移、1024 维 RAG、超时、限流、熔断、日志脱敏和评测边界；外部配置完成前不会宣称生产可用。
-- 不创建发布标签，直到真实部署、迁移、Embedding 和线上冒烟全部通过。
+- Production 已使用 `NEXT_PUBLIC_DEMO_MODE=false`，Supabase、百炼千问、高德和历史房源均报告 `configured`。
+- 2024-11 杭州历史房源共 60,202 条已导入 Supabase；页面和回答均标记为历史数据，不代表当前可租。
+- 千问已在线完成流式多轮 Function Calling；高德已在线完成地理编码、周边 POI 和步行路线验证。
+- 房源 + 高德、商品 + 偏好提案两条 Live 多工具链路已连续回归通过；点赞反馈会写入 Supabase。
+- 团购、商品、库存、订单和社区内容仍是明确标注的演示业务，不对应真实交易。
+- 用户尚未提供正式客服知识材料。预置政策只能作为明确标注的演示资料，不能宣称正式 RAG 内容质量已验收。
+- Production 邮箱 OTP、知识运营管理员口令和 `qwen3-rerank` 在线调用仍未配置；游客 Live 演示不受影响。
+
+## 数据真实性
+
+| 能力                   | 当前来源                       | 对外表述                          |
+| ---------------------- | ------------------------------ | --------------------------------- |
+| 房源                   | Supabase 中的 2024-11 历史数据 | `2024 历史房源数据`，不是实时可租 |
+| 周边与路线             | 高德 Web Service API           | `高德地图`                        |
+| 团购、商品、库存、订单 | Supabase 演示业务数据          | `演示数据` / `演示订单`           |
+| 对话与反馈             | 当前产品中的真实用户操作       | 持久化到 Supabase                 |
+| 客服知识               | 尚无用户正式材料               | 预置内容只标为演示资料            |
+
+## 架构
+
+```mermaid
+flowchart LR
+  UI["430px 移动端 Web"] --> API["Next.js Route Handlers"]
+  API --> Agent["Agent Orchestrator"]
+  Agent --> Registry["严格工具注册表 + Zod"]
+  Registry --> Business["Supabase Business Repository"]
+  Registry --> Maps["AMap Adapter"]
+  Registry --> Knowledge["Knowledge Service"]
+  Registry --> Memory["Supabase User Memory + RLS"]
+  Agent --> Qwen["Qwen Provider"]
+```
+
+大模型负责理解、选择工具和表达；价格、库存、状态、距离和政策等事实必须来自对应工具。React 页面不写 SQL，也不接触 service role、高德或百炼密钥。
 
 ## 技术栈
 
@@ -43,6 +73,15 @@ $env:PLAYWRIGHT_PORT='3310'; pnpm test:e2e
 pnpm build
 ```
 
+Production Live 回归：
+
+```powershell
+$env:EXPECTED_PRODUCTION_MODE='live'
+pnpm deploy:verify-production
+```
+
+该命令会创建两条测试对话和一条点赞反馈，不用于高频监控。
+
 ## 关键文档
 
 - [应用说明](web/README.md)
@@ -53,6 +92,8 @@ pnpm build
 - [知识库材料准备清单](docs/15-knowledge-material-intake.md)
 - [零基础学习与面试路线](docs/17-beginner-learning-path.md)
 - [验收标准](docs/11-acceptance-criteria.md)
+- [Production Live 部署证据](docs/task-reports/2026-08-12-vercel-production-baseline.md)
+- [面试问答指南](docs/10-interview-guide.md)
 - [Task 10 知识闭环报告](docs/task-reports/2026-08-11-task-10-governed-knowledge-loop.md)
 - [Task 11 安全加固报告](docs/task-reports/2026-08-11-task-11-service-hardening.md)
 - [本机历史房源接入报告](docs/task-reports/2026-08-11-housing-http-integration.md)
