@@ -17,14 +17,14 @@ import {
   candidateStatusSchema,
 } from "@/features/knowledge-ops/schemas";
 import { knowledgeDomains } from "@/features/knowledge/types";
+import { postgresUuidSchema } from "@/lib/database-id";
 import { AppError } from "@/lib/errors";
 
-const uuid = z.string().uuid();
 const candidateRowSchema = z.object({
-  id: uuid,
+  id: postgresUuidSchema,
   source_type: candidateSourceTypeSchema,
-  source_session_id: uuid.nullable(),
-  source_message_id: uuid.nullable(),
+  source_session_id: postgresUuidSchema.nullable(),
+  source_message_id: postgresUuidSchema.nullable(),
   normalized_question: z.string(),
   domain: z.enum(knowledgeDomains).nullable(),
   reason: z.string(),
@@ -36,21 +36,21 @@ const candidateRowSchema = z.object({
   updated_at: z.string(),
 });
 const reviewRowSchema = z.object({
-  id: uuid,
-  candidate_id: uuid,
+  id: postgresUuidSchema,
+  candidate_id: postgresUuidSchema,
   decision: z.enum(["approve", "reject", "request_changes"]),
   notes: z.string(),
   created_at: z.string(),
 });
 const publicationRowSchema = z.object({
-  candidate_id: uuid,
-  article_id: uuid,
-  version_id: uuid,
-  previous_version_id: uuid.nullable(),
+  candidate_id: postgresUuidSchema,
+  article_id: postgresUuidSchema,
+  version_id: postgresUuidSchema,
+  previous_version_id: postgresUuidSchema.nullable(),
 });
 const rollbackRowSchema = z.object({
-  article_id: uuid,
-  version_id: uuid,
+  article_id: postgresUuidSchema,
+  version_id: postgresUuidSchema,
 });
 
 const CANDIDATE_COLUMNS =
@@ -170,7 +170,11 @@ export function createSupabaseKnowledgeOpsRepository(
         p_evidence_json: input.evidence,
       });
       if (result.error) queryFailed(result.error);
-      const candidateId = parseRow(uuid, result.data, "知识候选编号");
+      const candidateId = parseRow(
+        postgresUuidSchema,
+        result.data,
+        "知识候选编号",
+      );
       const candidate = await requireCandidate(client, candidateId);
       return {
         candidate,
@@ -211,7 +215,11 @@ export function createSupabaseKnowledgeOpsRepository(
         p_draft_json: input.decision === "approve" ? input.draft : null,
       });
       if (result.error) queryFailed(result.error);
-      const reviewId = parseRow(uuid, result.data, "知识审核编号");
+      const reviewId = parseRow(
+        postgresUuidSchema,
+        result.data,
+        "知识审核编号",
+      );
       const reviewResult = await client
         .from("knowledge_reviews")
         .select(REVIEW_COLUMNS)

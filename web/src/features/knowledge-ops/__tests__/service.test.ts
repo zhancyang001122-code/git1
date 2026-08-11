@@ -19,6 +19,7 @@ async function approvedService(
     indexFails?: boolean;
     evalPasses?: boolean;
     evalThrows?: boolean;
+    queued?: boolean;
   } = {},
 ) {
   const order: string[] = [];
@@ -55,6 +56,17 @@ async function approvedService(
       onPreparePublication: () => order.push("prepare"),
       onPublishVersion: () => order.push("publish"),
     },
+    ...(options.queued && {
+      indexQueue: {
+        async enqueue() {
+          order.push("enqueue");
+          return {
+            id: "69000000-0000-4000-8000-000000000001",
+            status: "pending" as const,
+          };
+        },
+      },
+    }),
     isDemo: true,
   });
   const first = await service.createCandidate({
@@ -139,6 +151,21 @@ describe("KnowledgeOpsService", () => {
       searchable: false,
     });
     expect(result.warnings).toContain("INDEXING_FAILED");
+  });
+
+  it("publishes durably and returns queued before an independent worker indexes", async () => {
+    const { first, order, service } = await approvedService({ queued: true });
+
+    const result = await service.publish({ candidateId: first.candidateId });
+
+    expect(order).toEqual(["prepare", "publish", "enqueue"]);
+    expect(result).toMatchObject({
+      publicationStatus: "published",
+      indexStatus: "queued",
+      evaluationStatus: "not_run",
+      searchable: false,
+      warnings: ["INDEXING_QUEUED"],
+    });
   });
 
   it("keeps a published version visible with a rollback option when evaluation fails", async () => {

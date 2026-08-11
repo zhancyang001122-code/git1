@@ -45,9 +45,10 @@
 
 ### RAG 索引失败
 
-- 现象：版本已发布但 `indexStatus=failed`，不可检索。
-- 处理：检查 Embedding 模型、维度、配额和失败切片。不要宣称上线成功。
-- 恢复：重建失败版本索引并运行关联评测；评测失败且有上一版本时执行回滚。
+- 现象：版本已发布但长期停留在 `indexStatus=queued`，或达到最大重试次数后变为 `failed`；两种状态都不可检索。
+- 处理：先检查 `knowledge_index_jobs` 的 `status`、`attempt_count`、`lease_expires_at` 和 `last_error_code`，再核对 Embedding 模型、维度与配额。不要把排队或失败描述为上线成功。
+- 恢复：确认 `CRON_SECRET` 已配置后调用受保护的 `/api/internal/knowledge-index-worker`；失败任务可通过幂等 enqueue RPC 明确重新排队。评测失败且有上一版本时执行回滚。
+- 调度边界：Hobby 计划的 `vercel.json` 只提供每日兜底调度，面试现场由已登录管理页即时处理；数据库租约负责多实例互斥，不能改成进程内锁。
 
 ### 限流误伤
 

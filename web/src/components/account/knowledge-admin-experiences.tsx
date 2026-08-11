@@ -124,6 +124,7 @@ export function KnowledgeAdminDetail({
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [busy, setBusy] = useState(false);
   const [publication, setPublication] = useState<{
+    versionId: string;
     indexStatus: string;
     evaluationStatus: string;
     searchable: boolean;
@@ -206,6 +207,7 @@ export function KnowledgeAdminDetail({
         });
         setStatus("published");
         setPublication({
+          versionId: String(result.versionId),
           indexStatus: String(result.indexStatus),
           evaluationStatus: String(result.evaluationStatus),
           searchable: result.searchable === true,
@@ -215,11 +217,13 @@ export function KnowledgeAdminDetail({
             : [],
         });
         setNotice(
-          result.searchable === true
-            ? isDemo
-              ? "模拟版本已发布、索引并通过确定性评测；仅在当前服务器进程内可检索。"
-              : "版本已发布、索引并完成评测。"
-            : "版本已发布但索引失败，当前不可检索。",
+          result.indexStatus === "queued"
+            ? "版本已发布并进入持久化索引队列；Worker 完成前不会标记为可检索。"
+            : result.searchable === true
+              ? isDemo
+                ? "模拟版本已发布、索引并通过确定性评测；仅在当前服务器进程内可检索。"
+                : "版本已发布、索引并完成评测。"
+              : "版本已发布但索引失败，当前不可检索。",
         );
       } else {
         const result = await request("/api/knowledge/rollback", {
@@ -259,6 +263,62 @@ export function KnowledgeAdminDetail({
       );
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "评测失败");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function runIndexWorker() {
+    setBusy(true);
+    try {
+      const result = await request("/api/internal/knowledge-index-worker", {});
+      const workerStatus = String(result.status);
+      if (
+        workerStatus !== "idle" &&
+        String(result.versionId) !== publication?.versionId
+      ) {
+        setNotice(
+          "已先处理队列中更早的索引任务；当前版本仍在排队，可再次点击处理。",
+        );
+        return;
+      }
+      if (workerStatus === "succeeded") {
+        const finalization =
+          typeof result.finalization === "object" &&
+          result.finalization !== null
+            ? (result.finalization as Record<string, unknown>)
+            : {};
+        setPublication({
+          versionId: String(result.versionId),
+          indexStatus: "ready",
+          evaluationStatus: String(finalization.evaluationStatus ?? "not_run"),
+          searchable: finalization.searchable === true,
+          rollbackAvailable: finalization.rollbackAvailable === true,
+          warnings: Array.isArray(finalization.warnings)
+            ? finalization.warnings.map(String)
+            : [],
+        });
+        setNotice("索引任务已完成，页面状态已更新。");
+      } else if (workerStatus === "idle") {
+        setNotice("当前没有等待处理的索引任务。");
+      } else {
+        setPublication((current) =>
+          current
+            ? {
+                ...current,
+                indexStatus: workerStatus === "retrying" ? "queued" : "failed",
+                warnings: [String(result.errorCode ?? "INDEXING_FAILED")],
+              }
+            : current,
+        );
+        setNotice(
+          workerStatus === "retrying"
+            ? "索引暂时失败，任务已按退避策略重新排队。"
+            : "索引任务已达到重试上限，请检查外部服务和任务错误码。",
+        );
+      }
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "索引任务处理失败");
     } finally {
       setBusy(false);
     }
@@ -424,7 +484,7 @@ export function KnowledgeAdminDetail({
           onClick={() => setPendingAction("publish")}
         >
           <DatabaseZap className="size-4" />
-          发布并索引
+          {isDemo ? "发布并索引" : "发布并排队索引"}
         </Button>
         <Button
           variant="secondary"
@@ -448,7 +508,7 @@ export function KnowledgeAdminDetail({
       </div>
 
       {publication ? (
-        <section className="grid grid-cols-2 gap-3 text-sm">
+        <section className="grid grid-cols-2 gap-3 text-sm" aria-live="polite">
           <div className="rounded-card bg-surface-tint p-4">
             <p className="text-text-subtle">索引状态</p>
             <strong className="mt-1 block text-text">
@@ -472,6 +532,17 @@ export function KnowledgeAdminDetail({
               </p>
             ) : null}
           </div>
+          {!isDemo && publication.indexStatus === "queued" ? (
+            <Button
+              variant="secondary"
+              className="col-span-2 w-full"
+              disabled={busy}
+              onClick={() => void runIndexWorker()}
+            >
+              <DatabaseZap className="size-4" />
+              立即处理索引任务
+            </Button>
+          ) : null}
         </section>
       ) : null}
 
@@ -500,7 +571,9 @@ export function KnowledgeAdminDetail({
         }
         description={
           pendingAction === "publish"
-            ? "发布后才会进入索引和评测；索引失败时不会宣称可检索。"
+            ? isDemo
+              ? "Demo 会在当前请求内完成确定性索引和评测。"
+              : "发布与持久化入队在同一数据库事务内完成；Worker 成功前不会宣称可检索。"
             : pendingAction === "rollback"
               ? "当前候选版本将退出检索，并恢复上一已发布版本。"
               : "审核会保留决策记录，用户原话不会直接成为正式知识。"

@@ -47,6 +47,13 @@ const ragOpsTrendMigration = migrations.find((migration) =>
   migration.name.endsWith("_rag_ops_trend.sql"),
 );
 assert(ragOpsTrendMigration, "RAG Ops trend migration is missing");
+const knowledgeIndexQueueMigration = migrations.find((migration) =>
+  migration.name.endsWith("_knowledge_index_queue.sql"),
+);
+assert(
+  knowledgeIndexQueueMigration,
+  "Knowledge index queue migration is missing",
+);
 
 for (const migration of migrations) {
   const normalized = migration.sql.trim().toLowerCase();
@@ -69,6 +76,7 @@ const historicalHousingSql = historicalHousingMigration.sql;
 const housingImportStatusSql = housingImportStatusMigration.sql;
 const aiOpsDashboardSql = aiOpsDashboardMigration.sql;
 const ragOpsTrendSql = ragOpsTrendMigration.sql;
+const knowledgeIndexQueueSql = knowledgeIndexQueueMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -84,6 +92,50 @@ const rlsTables = new Set(
 );
 const missingRls = createdTables.filter((table) => !rlsTables.has(table));
 assert(missingRls.length === 0, `RLS is missing for: ${missingRls.join(", ")}`);
+
+for (const requirement of [
+  {
+    pattern: /create table public\.knowledge_index_jobs\b/i,
+    message: "Knowledge index queue table is missing",
+  },
+  {
+    pattern: /unique\s*\(version_id\)/i,
+    message: "Knowledge index jobs must be idempotent per version",
+  },
+  {
+    pattern: /for update skip locked/i,
+    message: "Knowledge index claim must use SKIP LOCKED",
+  },
+  {
+    pattern: /lease_expires_at/i,
+    message: "Knowledge index jobs must use leases",
+  },
+  {
+    pattern: /create or replace function public\.claim_knowledge_index_job/i,
+    message: "Knowledge index claim RPC is missing",
+  },
+  {
+    pattern: /create or replace function public\.fail_knowledge_index_job/i,
+    message: "Knowledge index retry RPC is missing",
+  },
+  {
+    pattern:
+      /create or replace function public\.publish_knowledge_candidate[\s\S]+perform public\.enqueue_knowledge_index_job/i,
+    message: "Knowledge publication and queue insertion must be atomic",
+  },
+  {
+    pattern:
+      /revoke all on function public\.claim_knowledge_index_job\(uuid, integer\)[\s\S]+from public, anon, authenticated/i,
+    message: "Knowledge index claim must revoke client execution",
+  },
+  {
+    pattern:
+      /grant execute on function public\.claim_knowledge_index_job\(uuid, integer\)[\s\S]+to service_role/i,
+    message: "Knowledge index claim must be service-role only",
+  },
+]) {
+  assert(requirement.pattern.test(knowledgeIndexQueueSql), requirement.message);
+}
 
 for (const table of ["housing_dataset_releases", "historical_houses"]) {
   assert(
@@ -326,6 +378,7 @@ assert(
 const serverOnlyTables = [
   "kb_chunks",
   "ai_tool_runs",
+  "knowledge_index_jobs",
   "knowledge_candidates",
   "knowledge_reviews",
   "ai_eval_cases",

@@ -98,8 +98,8 @@ describe("Supabase knowledge repository", () => {
   it("inherits demo provenance from the article when loading a version for indexing", async () => {
     const maybeSingle = vi.fn(async () => ({
       data: {
-        id: "62000000-0000-4000-8000-000000000001",
-        article_id: "61000000-0000-4000-8000-000000000001",
+        id: "62000000-0000-0000-0000-000000000001",
+        article_id: "61000000-0000-0000-0000-000000000001",
         version_label: "v1.0",
         content_markdown: "演示规则",
         status: "published",
@@ -124,11 +124,11 @@ describe("Supabase knowledge repository", () => {
 
     const version = await createSupabaseKnowledgeRepository(
       client,
-    ).getVersionForIndex("62000000-0000-4000-8000-000000000001");
+    ).getVersionForIndex("62000000-0000-0000-0000-000000000001");
 
     expect(version).toMatchObject({ isDemo: true });
     expect(builder.select).toHaveBeenCalledWith(
-      expect.stringContaining("is_demo"),
+      expect.stringContaining("!kb_article_versions_article_id_fkey"),
     );
   });
 });

@@ -19,6 +19,7 @@ import type {
   KnowledgeCandidateRecord,
   KnowledgeOpsRepository,
 } from "@/features/knowledge-ops/repository";
+import type { KnowledgeIndexEnqueuer } from "@/features/knowledge-ops/index-queue";
 import { AppError } from "@/lib/errors";
 
 export interface EvaluationRunSummary extends EvaluationMetrics {
@@ -29,6 +30,7 @@ export interface KnowledgeOpsServiceOptions {
   repository: KnowledgeOpsRepository;
   indexer: Pick<KnowledgeService, "indexVersion">;
   evaluator: { run(candidateId: string): Promise<EvaluationRunSummary> };
+  indexQueue?: KnowledgeIndexEnqueuer;
   isDemo: boolean;
   hooks?: {
     onPreparePublication?(): void;
@@ -51,7 +53,7 @@ export interface PublishResult {
   articleId: string;
   versionId: string;
   publicationStatus: "published";
-  indexStatus: "ready" | "failed";
+  indexStatus: "queued" | "ready" | "failed";
   evaluationStatus: "passed" | "failed" | "not_run";
   searchable: boolean;
   rollbackAvailable: boolean;
@@ -85,6 +87,7 @@ export function createKnowledgeOpsService({
   repository,
   indexer,
   evaluator,
+  indexQueue,
   isDemo,
   hooks,
 }: KnowledgeOpsServiceOptions): KnowledgeOpsService {
@@ -159,6 +162,36 @@ export function createKnowledgeOpsService({
         publicationStatus: "published" as const,
         isDemo,
       };
+      if (indexQueue) {
+        try {
+          await indexQueue.enqueue({
+            candidateId: value.candidateId,
+            versionId: publication.versionId,
+            previousVersionId: publication.previousVersionId,
+          });
+        } catch {
+          const result: PublishResult = {
+            ...base,
+            indexStatus: "failed",
+            evaluationStatus: "not_run",
+            searchable: false,
+            rollbackAvailable: publication.previousVersionId !== null,
+            warnings: ["INDEX_QUEUE_FAILED"],
+          };
+          await repository.savePublicationResult(value.candidateId, result);
+          return result;
+        }
+        const result: PublishResult = {
+          ...base,
+          indexStatus: "queued",
+          evaluationStatus: "not_run",
+          searchable: false,
+          rollbackAvailable: publication.previousVersionId !== null,
+          warnings: ["INDEXING_QUEUED"],
+        };
+        await repository.savePublicationResult(value.candidateId, result);
+        return result;
+      }
       try {
         await indexer.indexVersion(publication.versionId);
       } catch (error) {

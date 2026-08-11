@@ -100,4 +100,56 @@ describe("account and knowledge admin demo flows", () => {
       "DEMO_ADMIN_TOKEN",
     );
   });
+
+  it("lets a live admin process a queued index job without exposing credentials", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        Response.json({
+          versionId: "62000000-0000-4000-8000-000000000001",
+          indexStatus: "queued",
+          evaluationStatus: "not_run",
+          searchable: false,
+          rollbackAvailable: false,
+          warnings: ["INDEXING_QUEUED"],
+        }),
+      )
+      .mockResolvedValueOnce(
+        Response.json({
+          status: "succeeded",
+          versionId: "62000000-0000-4000-8000-000000000001",
+          candidateId: candidate.id,
+          finalization: {
+            evaluationStatus: "passed",
+            searchable: true,
+            rollbackAvailable: false,
+            warnings: [],
+          },
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <KnowledgeAdminDetail
+        candidate={{ ...candidate, status: "approved" }}
+        isDemo={false}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "发布并排队索引" }));
+    fireEvent.click(screen.getByRole("button", { name: "确认发布" }));
+    expect(
+      await screen.findByRole("button", { name: "立即处理索引任务" }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "立即处理索引任务" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock.mock.calls[1]?.[0]).toBe(
+      "/api/internal/knowledge-index-worker",
+    );
+    expect(screen.getByText("ready")).toBeInTheDocument();
+    expect(screen.getByText("passed")).toBeInTheDocument();
+    expect(JSON.stringify(fetchMock.mock.calls)).not.toContain(
+      "DEMO_ADMIN_TOKEN",
+    );
+  });
 });

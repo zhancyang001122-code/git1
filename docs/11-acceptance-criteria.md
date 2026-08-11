@@ -91,7 +91,7 @@
 - [x] 地理编码和步行路线 Adapter 与降级测试
 - [x] 地理编码和步行路线在线调用验证
 - [x] embedding 状态字段和发布后索引流程
-- [ ] 独立 worker 的队列式 embedding
+- [x] 独立 Worker 的持久化队列式 embedding：原子入队、租约、`SKIP LOCKED`、退避重试、Vercel Cron 与管理页即时触发均已实现；四个 Demo 版本已完成 Production 真实 Embedding
 - [x] 知识运营页的 Demo 评测指标
 - [x] service-role RAG 日趋势 RPC、受保护质量视图与 Production 部署
 - [ ] 配置 Production 管理口令并完成受保护 RAG 趋势页在线登录验收
@@ -110,4 +110,4 @@
 2. 带来源的退款规则
 3. 房源 + 超市 + 押金规则组合任务
 
-Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。正式知识检索仍需用户提供正式材料；生产 Auth 仍需作者邮箱、域名和 SMTP 配置。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；Production 证据见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`。
+Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。四个明确标注 Demo 的知识版本已通过独立 Worker 生成真实百炼 Embedding，并在线返回版本化引用；这不等于正式知识材料验收，正式检索仍需用户提供真实材料。生产 Auth 仍需作者邮箱、域名和 SMTP 配置。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；Production 基线见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`；Worker 证据见 `docs/task-reports/2026-08-12-knowledge-index-worker.md`。

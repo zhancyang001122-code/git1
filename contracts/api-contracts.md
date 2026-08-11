@@ -101,7 +101,7 @@ data: {"finishReason":"stop"}
 
 ## `POST /api/knowledge/publish`
 
-演示管理员接口。使用受服务端签名保护的 HttpOnly 管理会话 Cookie，脚本或自动化调用也可使用 `Authorization: Bearer <DEMO_ADMIN_TOKEN>`。动作顺序：创建新版本、发布、建立索引、执行关联评测；响应分别返回发布、索引、评测和可检索状态，不把部分成功描述为全部成功。
+演示管理员接口。使用受服务端签名保护的 HttpOnly 管理会话 Cookie，脚本或自动化调用也可使用 `Authorization: Bearer <DEMO_ADMIN_TOKEN>`。Live 模式在一个数据库事务内创建并发布新版本、写入持久化索引队列，随后立即返回 `indexStatus=queued`、`evaluationStatus=not_run`、`searchable=false`；独立 Worker 完成索引和关联评测后才更新最终状态。Demo 模式保留请求内确定性索引。响应不得把排队或部分成功描述为全部成功。
 
 ## 知识运营管理 API
 
@@ -110,6 +110,7 @@ data: {"finishReason":"stop"}
 - `POST /api/knowledge/candidates`：保存草稿或提交批准、驳回、退回修改决策。
 - `POST /api/knowledge/evaluate`：执行关联评测并返回通过数与得分。
 - `POST /api/knowledge/rollback`：只有存在上一已发布版本时才能回滚；没有回滚目标时返回稳定的 `409` 错误。
+- `GET|POST /api/internal/knowledge-index-worker`：每次最多领取并处理一个持久化索引任务。Vercel Cron 使用 `Authorization: Bearer <CRON_SECRET>`，已登录管理页也可用签名 HttpOnly Cookie 手动触发；响应为 `idle`、`succeeded`、`retrying` 或 `failed`，不返回任何凭证。
 
 上述 API 均要求管理会话或 Bearer Token，响应带 `cache-control: no-store` 与 `x-request-id`。
 

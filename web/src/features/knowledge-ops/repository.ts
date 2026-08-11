@@ -41,7 +41,7 @@ export interface PreparedPublication {
 
 export interface StoredPublicationResult {
   publicationStatus: "published";
-  indexStatus: "ready" | "failed";
+  indexStatus: "queued" | "ready" | "failed";
   evaluationStatus: "passed" | "failed" | "not_run";
   searchable: boolean;
   rollbackAvailable: boolean;

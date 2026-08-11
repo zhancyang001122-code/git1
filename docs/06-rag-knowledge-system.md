@@ -10,6 +10,7 @@ Knowledge Service 在职责上独立。当前 Demo 和业务表共用一个 Supa
 kb_articles          原始知识条目
 kb_article_versions  不可变版本
 kb_chunks            切片、Metadata、embedding
+knowledge_index_jobs 持久化索引任务、租约、重试与结果
 knowledge_candidates 对话产生的候选知识
 knowledge_reviews    审核记录
 ai_eval_cases        固定评测
@@ -43,6 +44,8 @@ draft -> reviewing -> published -> archived
 - 文档与查询使用适合检索的输入类型
 - 发布后异步生成，支持状态、失败原因和重试
 - embedding 维度与数据库列必须一致
+
+发布与写入 `knowledge_index_jobs` 在同一个数据库事务中完成。独立 Worker 每次通过 `FOR UPDATE SKIP LOCKED` 原子领取一个任务，持有最长 55 秒租约；失败按 10/20/40 秒退避，最多尝试 3 次。相同 `version_id` 只能有一个任务，Worker 重跑时依赖切片哈希保证幂等。只有索引完成后才会把版本标记为 `searchable=true` 并执行关联评测。
 
 ## 6. 检索流程
 
@@ -78,8 +81,8 @@ MVP 先使用 Supabase RPC 的向量 + trigram 加权分数；P1 启用重排。
 → 无结果/低置信/点踩/人工纠正
 → 候选知识草稿
 → 人工审核和证据确认
-→ 发布新版本
-→ 切片和 embedding
+→ 原子发布新版本并写入索引队列
+→ 独立 Worker 切片和生成 embedding
 → 回归评测
 → 进入正式检索
 ```

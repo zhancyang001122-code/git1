@@ -4,6 +4,7 @@ import type { KnowledgeService } from "@/features/knowledge/types";
 import { createRequestKnowledgeService } from "@/features/knowledge/runtime";
 import { isKnowledgeAdminRequestAuthorized } from "@/features/knowledge-ops/admin-session";
 import { AppError, toPublicError } from "@/lib/errors";
+import { postgresUuidSchema } from "@/lib/database-id";
 import { parseServerEnv } from "@/lib/env";
 import { requestIdFor } from "@/lib/request-id";
 import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
@@ -17,7 +18,7 @@ const indexRateLimiter = createFixedWindowRateLimiter({
   windowMs: 60_000,
 });
 
-const requestSchema = z.object({ versionId: z.string().uuid() }).strict();
+const requestSchema = z.object({ versionId: postgresUuidSchema }).strict();
 
 interface IndexRuntime {
   service: KnowledgeService;

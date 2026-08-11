@@ -2,7 +2,53 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(29);
+select plan(44);
+
+select has_table(
+  'public',
+  'knowledge_index_jobs',
+  'durable knowledge index queue exists'
+);
+select has_function(
+  'public',
+  'enqueue_knowledge_index_job',
+  array['uuid', 'uuid', 'uuid'],
+  'knowledge index enqueue function exists'
+);
+select has_function(
+  'public',
+  'claim_knowledge_index_job',
+  array['uuid', 'integer'],
+  'knowledge index claim function exists'
+);
+select has_function(
+  'public',
+  'complete_knowledge_index_job',
+  array['uuid', 'uuid', 'jsonb'],
+  'knowledge index completion function exists'
+);
+select has_function(
+  'public',
+  'fail_knowledge_index_job',
+  array['uuid', 'uuid', 'text', 'boolean', 'integer'],
+  'knowledge index failure function exists'
+);
+select ok(
+  not has_function_privilege(
+    'anon',
+    'public.claim_knowledge_index_job(uuid, integer)',
+    'execute'
+  ),
+  'anon cannot claim knowledge index jobs'
+);
+select ok(
+  has_function_privilege(
+    'service_role',
+    'public.claim_knowledge_index_job(uuid, integer)',
+    'execute'
+  ),
+  'service role can claim knowledge index jobs'
+);
 
 select has_column(
   'public',
@@ -165,6 +211,95 @@ select is(
   ),
   'published',
   'prepared version becomes published'
+);
+select is(
+  (
+    select count(*)
+    from public.knowledge_index_jobs
+    where version_id = :'publication_version_id'
+  ),
+  1::bigint,
+  'publication atomically creates one durable index job'
+);
+
+select *
+from public.claim_knowledge_index_job(
+  '68000000-0000-4000-8000-000000000001',
+  55
+)
+\gset first_claim_
+
+select is(
+  :'first_claim_status'::text,
+  'processing'::text,
+  'claim leases a pending job'
+);
+select is(
+  :'first_claim_attempt_count'::integer,
+  1,
+  'claim increments the attempt count'
+);
+
+select *
+from public.fail_knowledge_index_job(
+  :'first_claim_id',
+  '68000000-0000-4000-8000-000000000001',
+  'TEST_RETRYABLE',
+  true,
+  0
+)
+\gset first_failure_
+
+select is(
+  :'first_failure_status'::text,
+  'retrying'::text,
+  'retryable failure releases the job'
+);
+
+select *
+from public.claim_knowledge_index_job(
+  '68000000-0000-4000-8000-000000000002',
+  55
+)
+\gset second_claim_
+
+select is(
+  :'second_claim_attempt_count'::integer,
+  2,
+  'a released job can be claimed again'
+);
+
+select *
+from public.complete_knowledge_index_job(
+  :'second_claim_id',
+  '68000000-0000-4000-8000-000000000002',
+  '{"indexedChunks":1}'::jsonb
+)
+\gset completed_job_
+
+select is(
+  :'completed_job_status'::text,
+  'succeeded'::text,
+  'the lease owner can complete a job'
+);
+
+select *
+from public.enqueue_knowledge_index_job(
+  :'candidate_candidate_id',
+  :'publication_version_id',
+  null
+)
+\gset repeated_enqueue_
+
+select is(
+  :'repeated_enqueue_id'::uuid,
+  :'completed_job_id'::uuid,
+  'repeated enqueue is idempotent per version'
+);
+select is(
+  :'repeated_enqueue_status'::text,
+  'succeeded'::text,
+  'repeated enqueue does not reset a completed job'
 );
 
 select throws_ok(

@@ -12,9 +12,9 @@ import type {
   KnowledgeVersionForIndex,
   StoredKnowledgeChunk,
 } from "@/features/knowledge/types";
+import { postgresUuidSchema } from "@/lib/database-id";
 import { AppError } from "@/lib/errors";
 
-const uuid = z.string().uuid();
 const status = z.enum([
   "draft",
   "reviewing",
@@ -23,9 +23,9 @@ const status = z.enum([
   "rejected",
 ]);
 const hitRowSchema = z.object({
-  chunk_id: uuid,
-  article_id: uuid,
-  version_id: uuid,
+  chunk_id: postgresUuidSchema,
+  article_id: postgresUuidSchema,
+  version_id: postgresUuidSchema,
   chunk_index: z.number().int().nonnegative(),
   title: z.string(),
   version_label: z.string(),
@@ -41,8 +41,8 @@ const hitRowSchema = z.object({
   is_demo: z.boolean().default(false),
 });
 const versionRowSchema = z.object({
-  id: uuid,
-  article_id: uuid,
+  id: postgresUuidSchema,
+  article_id: postgresUuidSchema,
   version_label: z.string(),
   content_markdown: z.string(),
   status,
@@ -133,7 +133,7 @@ export function createSupabaseKnowledgeRepository(
       const query = client
         .from("kb_article_versions")
         .select(
-          "id,article_id,version_label,content_markdown,status,is_demo,kb_articles!inner(title,city,is_demo,kb_categories!inner(domain,slug))",
+          "id,article_id,version_label,content_markdown,status,is_demo,kb_articles!kb_article_versions_article_id_fkey(title,city,is_demo,kb_categories!inner(domain,slug))",
         )
         .eq("id", versionId);
       if (signal) query.abortSignal(signal);
