@@ -74,7 +74,11 @@ const entries = [
   },
 ] as const;
 
-export function MePage() {
+export function MePage({
+  accountNavigate,
+}: {
+  accountNavigate?: (path: string) => void;
+} = {}) {
   return (
     <AppShell activeNav="me" header={<PageHeader title="我的" />}>
       <div className="space-y-4 px-4 py-4">
@@ -167,7 +171,7 @@ export function MePage() {
           ))}
         </CellGroup>
 
-        <AccountUtilityActions />
+        <AccountUtilityActions navigate={accountNavigate} />
 
         <p className="flex items-center justify-center gap-1 text-xs text-text-subtle">
           <Clock3 aria-hidden="true" className="size-3.5" />

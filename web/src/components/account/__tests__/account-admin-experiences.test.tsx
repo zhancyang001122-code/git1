@@ -4,7 +4,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   FavoritesExperience,
   FeedbackExperience,
-  PreferencesExperience,
 } from "@/components/account/account-experiences";
 import {
   KnowledgeAdminDetail,
@@ -51,15 +50,6 @@ describe("account and knowledge admin demo flows", () => {
     fireEvent.click(screen.getByRole("button", { name: "确认移除" }));
     expect(screen.getAllByRole("article")).toHaveLength(2);
     expect(screen.getByText(/仅从当前页面移除/)).toBeInTheDocument();
-  });
-
-  it("saves preferences without claiming persistence", () => {
-    render(<PreferencesExperience />);
-    fireEvent.change(screen.getByLabelText("预算上限"), {
-      target: { value: "4200" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "保存演示偏好" }));
-    expect(screen.getByText(/没有写入 Supabase/)).toBeInTheDocument();
   });
 
   it("turns feedback into a reviewable candidate instead of published knowledge", async () => {

@@ -1,11 +1,13 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DiscoverPage } from "@/components/pages/discover-page";
 import { MePage } from "@/components/pages/me-page";
 import { MessagesPage } from "@/components/pages/messages-page";
 import { XiaozhiWelcomePage } from "@/components/pages/xiaozhi-welcome-page";
 import { demoCommunityPosts } from "@/features/business/demo-data";
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe("primary product pages", () => {
   it("renders and filters the complete community feed", () => {
@@ -68,5 +70,27 @@ describe("primary product pages", () => {
     expect(
       screen.getByText("帮助中心为演示入口，当前没有发起真实客服请求。"),
     ).toBeInTheDocument();
+  });
+
+  it("signs out without claiming that cloud preferences were deleted", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(Response.json({ ok: true }));
+    vi.stubGlobal("fetch", fetchMock);
+    const navigate = vi.fn();
+    render(<MePage accountNavigate={navigate} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "退出登录" }));
+    expect(
+      screen.getByRole("alertdialog", { name: "退出当前账号？" }),
+    ).toHaveTextContent("不会删除已保存的长期偏好");
+    fireEvent.click(screen.getByRole("button", { name: "确认退出" }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith("/api/auth/sign-out", {
+        method: "POST",
+      }),
+    );
+    expect(navigate).toHaveBeenCalledWith("/login");
   });
 });
