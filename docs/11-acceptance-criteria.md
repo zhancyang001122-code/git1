@@ -1,6 +1,6 @@
 # 验收标准
 
-状态说明：`[x]` 只表示仓库代码或本地 Demo 已有验证证据；`[ ]` 表示必须依赖用户账号、真实材料或线上环境继续验证。不能用本地契约测试替代在线接通结论。
+状态说明：`[x]` 表示已有仓库、本地集成或 Production 在线验证证据；`[ ]` 表示仍缺用户账号配置、正式材料或线上验证。不能用本地契约测试替代在线接通结论。
 
 ## P0 工程
 
@@ -52,11 +52,11 @@
 ## P0 AI
 
 - [x] 流式多轮协议、取消、超时和确定性 Demo Provider
-- [ ] 使用用户百炼账号在线验证千问流式多轮和 Function Calling
+- [x] 使用用户百炼账号在线验证千问流式多轮和 Function Calling
 - [x] `search_houses` 可查询本机 2024-11 只读历史房源；未配置时明确降级
 - [x] `search_houses` 查询用户远端 Supabase，并验证 60,202 条 2024-11 历史房源
 - [x] `search_nearby_places` 的 Adapter、fixture 契约和缺 Key 降级
-- [ ] 使用用户高德 Key 在线验证 POI、地理编码和路线
+- [x] 使用用户高德 Key 在线验证 POI、地理编码和路线
 - [x] Demo `search_knowledge` 返回来源和版本
 - [ ] 使用用户正式资料验证真实检索、Embedding 和引用
 - [x] Demo 至少三类工具组合
@@ -89,7 +89,7 @@
 - [ ] qwen3-rerank 在线调用验证
 - [x] 摘要和长期偏好代码与测试
 - [x] 地理编码和步行路线 Adapter 与降级测试
-- [ ] 地理编码和步行路线在线调用验证
+- [x] 地理编码和步行路线在线调用验证
 - [x] embedding 状态字段和发布后索引流程
 - [ ] 独立 worker 的队列式 embedding
 - [x] 知识运营页的 Demo 评测指标
@@ -106,4 +106,4 @@
 2. 带来源的退款规则
 3. 房源 + 超市 + 押金规则组合任务
 
-远端 Supabase 房源和知识反馈持久化已经通过。正式发布仍需完成生产 Auth 配置，并让高德位置服务、千问与正式知识检索通过在线验证。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；远端知识运营证据见 `docs/task-reports/2026-08-12-live-knowledge-ops.md`。
+Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。正式知识检索仍需用户提供正式材料；生产 Auth 仍需作者邮箱、域名和 SMTP 配置。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；Production 证据见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`。
