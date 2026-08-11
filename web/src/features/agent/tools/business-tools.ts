@@ -127,7 +127,7 @@ function productSearchView(product: Product): Record<string, unknown> {
 }
 
 function cards(
-  kind: ResultCard["kind"],
+  kind: Exclude<ResultCard["kind"], "preference_proposal">,
   items: readonly Record<string, unknown>[],
 ): ResultCard[] {
   return items.map((data) => ({ kind, data }));

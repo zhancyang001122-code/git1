@@ -29,10 +29,73 @@ const progressSchema = z.object({
   startedAt: isoDateTime,
   completedAt: isoDateTime.nullable(),
 });
-const resultCardSchema = z.object({
+const businessResultCardSchema = z.object({
   kind: z.enum(["house", "deal", "product", "place"]),
   data: z.record(z.string(), z.unknown()),
 });
+const preferenceListValueSchema = z
+  .array(z.string().trim().min(1).max(80))
+  .max(20)
+  .transform((items) => [...new Set(items)]);
+const preferenceProposalBase = {
+  id: z.string().min(1).max(120),
+  proposed: z.literal(true),
+  requiresConfirmation: z.literal(true),
+};
+export const preferenceProposalDataSchema = z.discriminatedUnion("key", [
+  z
+    .object({
+      ...preferenceProposalBase,
+      key: z.literal("max_housing_budget"),
+      value: z.number().int().nonnegative().max(200_000),
+    })
+    .strict(),
+  z
+    .object({
+      ...preferenceProposalBase,
+      key: z.literal("pets"),
+      value: preferenceListValueSchema,
+    })
+    .strict(),
+  z
+    .object({
+      ...preferenceProposalBase,
+      key: z.literal("preferred_areas"),
+      value: preferenceListValueSchema,
+    })
+    .strict(),
+  z
+    .object({
+      ...preferenceProposalBase,
+      key: z.literal("dietary_restrictions"),
+      value: preferenceListValueSchema,
+    })
+    .strict(),
+  z
+    .object({
+      ...preferenceProposalBase,
+      key: z.literal("transport_modes"),
+      value: preferenceListValueSchema,
+    })
+    .strict(),
+  z
+    .object({
+      ...preferenceProposalBase,
+      key: z.literal("family_profile"),
+      value: preferenceListValueSchema,
+    })
+    .strict(),
+]);
+const preferenceProposalCardSchema = z
+  .object({
+    kind: z.literal("preference_proposal"),
+    data: preferenceProposalDataSchema,
+  })
+  .strict();
+const resultCardSchema = z.union([
+  businessResultCardSchema,
+  preferenceProposalCardSchema,
+]);
 const citationSchema = z.object({
   articleId: databaseUuid,
   versionId: databaseUuid,
@@ -97,6 +160,9 @@ const eventSchemas = {
 
 export type PublicToolProgress = z.infer<typeof progressSchema>;
 export type ResultCard = z.infer<typeof resultCardSchema>;
+export type PreferenceProposalData = z.infer<
+  typeof preferenceProposalDataSchema
+>;
 export type KnowledgeCitation = z.infer<typeof citationSchema>;
 export type DebugToolRun = z.infer<typeof debugRunSchema>;
 export type ChatStreamEvent = {

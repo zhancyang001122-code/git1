@@ -1,4 +1,7 @@
-import type { ResultCard } from "@/features/agent/chat-events";
+import {
+  preferenceProposalDataSchema,
+  type ResultCard,
+} from "@/features/agent/chat-events";
 import type { ToolResult } from "@/features/agent/tools/types";
 
 const PUBLIC_FACT_FIELDS = [
@@ -26,8 +29,9 @@ const PUBLIC_FACT_FIELDS = [
 
 function publicFact(card: ResultCard): Record<string, unknown> {
   const fact: Record<string, unknown> = { kind: card.kind };
+  const data = card.data as Record<string, unknown>;
   for (const field of PUBLIC_FACT_FIELDS) {
-    const value = card.data[field];
+    const value = data[field];
     if (
       value === null ||
       typeof value === "string" ||
@@ -84,10 +88,18 @@ export function buildToolModelPayload(
   toolName: string,
   result: ToolResult,
 ): Record<string, unknown> {
-  const facts = (result.cards ?? []).slice(0, 20).map(publicFact);
+  const facts = (result.cards ?? [])
+    .filter((card) => card.kind !== "preference_proposal")
+    .slice(0, 20)
+    .map(publicFact);
   const itemIds = facts.flatMap((fact) =>
     typeof fact.id === "string" ? [fact.id] : [],
   );
+
+  const proposal =
+    toolName === "propose_user_preference"
+      ? preferenceProposalDataSchema.safeParse(result.data)
+      : null;
 
   return {
     ok: result.ok,
@@ -96,6 +108,15 @@ export function buildToolModelPayload(
     ...(result.error && { error: result.error }),
     ...(itemIds.length > 0 && { itemIds }),
     ...(facts.length > 0 && { facts }),
+    ...(proposal?.success && {
+      pendingConfirmation: {
+        type: "preference",
+        key: proposal.data.key,
+        value: proposal.data.value,
+        saved: false,
+        requiresUserAction: true,
+      },
+    }),
     ...(toolName === "search_knowledge" && {
       knowledge: knowledgePayload(result.data),
     }),

@@ -1,7 +1,9 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AgentResultCards } from "@/components/chat/agent-result-cards";
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe("AgentResultCards", () => {
   it("renders a source-labelled, keyboard-focusable housing result", () => {
@@ -127,5 +129,160 @@ describe("AgentResultCards", () => {
     expect(screen.getByText("180 米")).toBeInTheDocument();
     expect(screen.getByText("高德地图")).toBeInTheDocument();
     expect(screen.getByText("接口演示数据")).toBeInTheDocument();
+  });
+
+  it("cancels a preference proposal without making any request", () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <AgentResultCards
+        cards={[
+          {
+            kind: "preference_proposal",
+            data: {
+              id: "preference-proposal:dietary_restrictions",
+              proposed: true,
+              key: "dietary_restrictions",
+              value: ["不吃辣"],
+              requiresConfirmation: true,
+            },
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("饮食限制")).toBeInTheDocument();
+    expect(screen.getByText("不吃辣")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "取消" }));
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "已取消，本次没有保存长期偏好",
+    );
+  });
+
+  it("confirms one allowed preference field through the authenticated API", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      Response.json({
+        allowLongTermMemory: true,
+        preferences: {
+          maxHousingBudget: null,
+          pets: [],
+          preferredAreas: [],
+          dietaryRestrictions: ["不吃辣"],
+          transportModes: [],
+          familyProfile: [],
+        },
+        consentedAt: "2026-08-12T01:00:00.000Z",
+        updatedAt: "2026-08-12T01:00:00.000Z",
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <AgentResultCards
+        cards={[
+          {
+            kind: "preference_proposal",
+            data: {
+              id: "preference-proposal:dietary_restrictions",
+              proposed: true,
+              key: "dietary_restrictions",
+              value: ["不吃辣"],
+              requiresConfirmation: true,
+            },
+          },
+        ]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "确认保存" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+      allowLongTermMemory: true,
+      preferences: { dietaryRestrictions: ["不吃辣"] },
+    });
+    expect(
+      await screen.findByRole("status", { name: "偏好已保存到云端" }),
+    ).toBeVisible();
+  });
+
+  it("redirects an anonymous confirmation to login with a safe return path", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(
+          Response.json({ error: { code: "AUTH_REQUIRED" } }, { status: 401 }),
+        ),
+    );
+    const navigate = vi.fn();
+    render(
+      <AgentResultCards
+        returnPath="/xiaozhi/chat/demo-housing"
+        navigate={navigate}
+        cards={[
+          {
+            kind: "preference_proposal",
+            data: {
+              id: "preference-proposal:max_housing_budget",
+              proposed: true,
+              key: "max_housing_budget",
+              value: 4_000,
+              requiresConfirmation: true,
+            },
+          },
+        ]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "确认保存" }));
+
+    await waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith(
+        "/login?next=%2Fxiaozhi%2Fchat%2Fdemo-housing",
+      ),
+    );
+  });
+
+  it("preserves a failed proposal so the user can retry", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>().mockResolvedValue(
+        Response.json(
+          {
+            error: {
+              code: "PREFERENCES_UNAVAILABLE",
+              message: "偏好服务暂时不可用，请稍后重试",
+            },
+          },
+          { status: 503 },
+        ),
+      ),
+    );
+    render(
+      <AgentResultCards
+        cards={[
+          {
+            kind: "preference_proposal",
+            data: {
+              id: "preference-proposal:preferred_areas",
+              proposed: true,
+              key: "preferred_areas",
+              value: ["滨江"],
+              requiresConfirmation: true,
+            },
+          },
+        ]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "确认保存" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "偏好服务暂时不可用，请稍后重试",
+    );
+    expect(screen.getByText("滨江")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "确认保存" })).toBeEnabled();
   });
 });

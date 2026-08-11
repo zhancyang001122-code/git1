@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   initialChatStreamState,
+  parseChatStreamEvent,
   reduceChatStreamEvent,
 } from "@/features/agent/chat-events";
 import { SseEventParser, encodeSseEvent } from "@/features/agent/sse";
@@ -106,5 +107,44 @@ describe("chat SSE protocol", () => {
     expect(() => parser.push("event: done\ndata: {}\n\n")).toThrowError(
       expect.objectContaining({ code: "SSE_PROTOCOL_INVALID" }),
     );
+  });
+
+  it("accepts a typed preference proposal and rejects a mismatched key value", () => {
+    expect(
+      parseChatStreamEvent("result_cards", {
+        cards: [
+          {
+            kind: "preference_proposal",
+            data: {
+              id: "preference-proposal:dietary_restrictions",
+              proposed: true,
+              key: "dietary_restrictions",
+              value: ["不吃辣"],
+              requiresConfirmation: true,
+            },
+          },
+        ],
+      }),
+    ).toMatchObject({
+      type: "result_cards",
+      cards: [{ kind: "preference_proposal" }],
+    });
+
+    expect(() =>
+      parseChatStreamEvent("result_cards", {
+        cards: [
+          {
+            kind: "preference_proposal",
+            data: {
+              id: "preference-proposal:max_housing_budget",
+              proposed: true,
+              key: "max_housing_budget",
+              value: ["3500"],
+              requiresConfirmation: true,
+            },
+          },
+        ],
+      }),
+    ).toThrowError(expect.objectContaining({ code: "SSE_PROTOCOL_INVALID" }));
   });
 });

@@ -97,4 +97,33 @@ describe("buildToolModelPayload", () => {
     expect(payload).not.toHaveProperty("role");
     expect(payload).not.toHaveProperty("systemPrompt");
   });
+
+  it("marks a preference proposal as pending instead of a saved fact", () => {
+    const proposal = {
+      id: "preference-proposal:preferred_areas",
+      proposed: true as const,
+      key: "preferred_areas" as const,
+      value: ["滨江"],
+      requiresConfirmation: true as const,
+    };
+    const payload = buildToolModelPayload("propose_user_preference", {
+      ok: true,
+      source: "user_memory",
+      resultCount: 1,
+      data: proposal,
+      cards: [{ kind: "preference_proposal", data: proposal }],
+    });
+
+    expect(payload).toMatchObject({
+      pendingConfirmation: {
+        type: "preference",
+        key: "preferred_areas",
+        value: ["滨江"],
+        saved: false,
+        requiresUserAction: true,
+      },
+    });
+    expect(payload).not.toHaveProperty("facts");
+    expect(JSON.stringify(payload)).not.toContain('"saved":true');
+  });
 });

@@ -1,5 +1,4 @@
-import { z } from "zod";
-
+import { preferenceProposalDataSchema } from "@/features/agent/chat-events";
 import type { ToolInputs, ToolName } from "@/features/agent/tools/schemas";
 import {
   toolContractDefinitions,
@@ -89,16 +88,6 @@ const getUserPreferences: ToolDefinition<ToolInputs["get_user_preferences"]> = {
   },
 };
 
-const listValue = z.array(z.string().trim().min(1).max(80)).max(20);
-const preferenceValueSchemas = {
-  max_housing_budget: z.number().int().nonnegative().max(200_000),
-  pets: listValue,
-  preferred_areas: listValue,
-  dietary_restrictions: listValue,
-  transport_modes: listValue,
-  family_profile: listValue,
-} as const;
-
 const proposeUserPreference: ToolDefinition<
   ToolInputs["propose_user_preference"]
 > = {
@@ -107,10 +96,14 @@ const proposeUserPreference: ToolDefinition<
   source: () => "user_memory",
   inputSchema: toolInputSchemas.propose_user_preference,
   async execute(input) {
-    const parsedValue = preferenceValueSchemas[input.key].safeParse(
-      input.value,
-    );
-    if (!parsedValue.success) {
+    const proposal = preferenceProposalDataSchema.safeParse({
+      id: `preference-proposal:${input.key}`,
+      proposed: true,
+      key: input.key,
+      value: input.value,
+      requiresConfirmation: true,
+    });
+    if (!proposal.success) {
       return {
         ok: false,
         error: {
@@ -124,12 +117,8 @@ const proposeUserPreference: ToolDefinition<
     }
     return {
       ok: true,
-      data: {
-        proposed: true,
-        key: input.key,
-        value: parsedValue.data,
-        requiresConfirmation: true,
-      },
+      data: proposal.data,
+      cards: [{ kind: "preference_proposal", data: proposal.data }],
       source: "user_memory",
       resultCount: 1,
     };

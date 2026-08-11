@@ -100,6 +100,16 @@ describe("memory tools", () => {
         value: 4_000,
         requiresConfirmation: true,
       },
+      cards: [
+        {
+          kind: "preference_proposal",
+          data: {
+            key: "max_housing_budget",
+            value: 4_000,
+            requiresConfirmation: true,
+          },
+        },
+      ],
     });
     expect(repository.upsertPreferences).not.toHaveBeenCalled();
   });
