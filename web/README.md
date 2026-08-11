@@ -11,7 +11,8 @@ Production Live：[https://xiaozhi-local-life.vercel.app](https://xiaozhi-local-
 - 服务端 SSE 对话，展示公开处理进度、类型化结果卡、来源标签和知识引用。
 - RAG 混合检索、可选 Rerank、文章/版本/切片分层以及低置信拒答。
 - 用户反馈形成候选知识，经过草稿、人工审核、发布、索引、评测和可用时回滚。
-- requestId、日志脱敏、请求体上限、限流、超时、幂等重试和共享熔断。
+- requestId、日志脱敏、请求体上限、限流、超时、幂等重试和进程级共享熔断（非跨实例）。
+- 持久化索引队列、独立 Worker、租约与退避重试，以及受保护的 RAG/AI Ops 质量视图。
 
 ## 本地运行
 
@@ -62,7 +63,7 @@ React 页面不直接执行 SQL，不使用 service role 客户端。价格、�
 
 `NEXT_PUBLIC_DEMO_MODE=false`：Supabase、匿名 Cookie 密钥和管理口令可先启用持久化会话、反馈、候选、草稿与审核。没有百炼 Key 时，发布会在任何数据库变更前明确返回 `KNOWLEDGE_INDEXING_NOT_CONFIGURED`；配置百炼后才允许发布、索引和评测。高德能力缺 Key 时同样明确显示未配置，不会伪装为在线结果。
 
-当前 Production 已接通 Supabase、千问、高德和 2024 历史房源，并通过“历史房源 + 高德”“演示商品 + 偏好提案”两条 Live 回归。正式客服知识材料、Production OTP 与 qwen3-rerank 仍未验收，不能从“模型已接通”推导为“正式 RAG 已完成”。
+当前 Production 已接通 Supabase、千问、高德和 2024 历史房源，并通过“历史房源 + 高德”“演示商品 + 偏好提案”两条 Live 回归。四个明确标注 Demo 的知识版本也已通过独立 Worker 生成真实 Embedding，并完成在线检索与版本化引用。正式客服知识材料、Production OTP 与 qwen3-rerank 仍未验收，不能从“Demo 技术链路已通”推导为“正式 RAG 内容已完成”。
 
 部署后回归：
 

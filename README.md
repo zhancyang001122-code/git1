@@ -10,6 +10,8 @@
 - 2024-11 杭州历史房源共 60,202 条已导入 Supabase；页面和回答均标记为历史数据，不代表当前可租。
 - 千问已在线完成流式多轮 Function Calling；高德已在线完成地理编码、周边 POI 和步行路线验证。
 - 房源 + 高德、商品 + 偏好提案两条 Live 多工具链路已连续回归通过；点赞反馈会写入 Supabase。
+- 四个明确标注 Demo 的知识版本已通过持久化队列和独立 Worker 生成真实百炼 Embedding，Production 检索可返回版本化引用；这证明技术链路，不代表正式资料质量。
+- 受保护的 AI Ops 视图会按每次 `qwen-plus` 请求的输入长度分档估算人民币成本，并显示覆盖率、价格核验日和排除项；它不是阿里云账单。
 - 团购、商品、库存、订单和社区内容仍是明确标注的演示业务，不对应真实交易。
 - 用户尚未提供正式客服知识材料。预置政策只能作为明确标注的演示资料，不能宣称正式 RAG 内容质量已验收。
 - Production 邮箱 OTP、知识运营管理员口令和 `qwen3-rerank` 在线调用仍未配置；游客 Live 演示不受影响。
@@ -34,6 +36,8 @@ flowchart LR
   Registry --> Business["Supabase Business Repository"]
   Registry --> Maps["AMap Adapter"]
   Registry --> Knowledge["Knowledge Service"]
+  Knowledge --> Queue["Supabase durable index queue"]
+  Queue --> Worker["Vercel Cron / manual Worker"]
   Registry --> Memory["Supabase User Memory + RLS"]
   Agent --> Qwen["Qwen Provider"]
 ```
@@ -93,6 +97,8 @@ pnpm deploy:verify-production
 - [零基础学习与面试路线](docs/17-beginner-learning-path.md)
 - [验收标准](docs/11-acceptance-criteria.md)
 - [Production Live 部署证据](docs/task-reports/2026-08-12-vercel-production-baseline.md)
+- [知识索引 Worker 证据](web/docs/task-reports/2026-08-12-knowledge-index-worker.md)
+- [AI 成本估算证据](web/docs/task-reports/2026-08-12-ai-cost-estimate.md)
 - [受保护 Preview 部署证据](docs/task-reports/2026-08-12-vercel-preview-baseline.md)
 - [面试问答指南](docs/10-interview-guide.md)
 - [Task 10 知识闭环报告](docs/task-reports/2026-08-11-task-10-governed-knowledge-loop.md)

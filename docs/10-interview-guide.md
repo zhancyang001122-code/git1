@@ -14,7 +14,7 @@
 
 ## RAG 为什么仍在 Supabase？
 
-独立首先是职责和接口独立。Knowledge Service 已实现文章、版本、切片、混合检索和评测边界，底层使用 Supabase pgvector，Embedding Provider 也已在线验证。当前缺的是用户正式材料及其内容质量评测，不是代码表结构；预置资料会贯穿文章、版本、分块和引用保留 `isDemo`。未来换专用搜索平台时，`search_knowledge` 不变。
+独立首先是职责和接口独立。Knowledge Service 已实现文章、版本、切片、混合检索和评测边界；发布与索引通过 Supabase 持久化队列解耦，独立 Worker 使用租约、`SKIP LOCKED`、幂等键和退避重试生成 Embedding。四个 Demo 版本已在线完成索引与检索。当前缺的是用户正式材料及其内容质量评测，不是代码表结构；预置资料会贯穿文章、版本、分块和引用保留 `isDemo`。未来换专用搜索平台时，`search_knowledge` 不变。
 
 ## Function Calling 和 MCP？
 
@@ -51,6 +51,10 @@ Function Calling 是应用把工具给模型并执行函数；MCP 是标准化�
 ## 多轮上下文如何控成本？
 
 最近消息 + 历史摘要。长期偏好按需读取，不每次注入全部数据。工具结果只保留后续必要摘要。
+
+## 模型成本怎么估算，为什么不直接看总 Token？
+
+`qwen-plus` 的公开价格按单次请求输入长度分档，不能把 7 天总 Token 全套最低价。service-role 专用 RPC 只聚合每次请求的模型名、输入 Token、输出 Token 和次数，不读取正文；应用逐桶选择价格档位，并显示覆盖率、价格来源与核验日。免费额度、优惠、Embedding 和 Rerank 未纳入，所以它是工程估算，不是账单。
 
 ## 为什么不用 Dify？
 
