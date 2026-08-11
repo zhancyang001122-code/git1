@@ -99,7 +99,7 @@
 - [ ] Vercel GitHub Login Connection 与自动部署；当前使用已验证的 CLI 手动部署
 - [x] 单实例错误与耗时统计
 - [x] service-role 专用的近 7 天 AI Ops 聚合：Token、工具失败、反馈、评测和知识库存
-- [ ] 按百炼模型价格配置计算人民币成本
+- [x] 按百炼模型价格配置计算人民币成本：逐请求按输入长度分档，显示覆盖率、价格核验日、官方来源和排除项，不冒充实际账单
 - [ ] 跨实例日志检索、指标趋势和告警平台
 
 ## 演示通过
@@ -110,4 +110,4 @@
 2. 带来源的退款规则
 3. 房源 + 超市 + 押金规则组合任务
 
-Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。四个明确标注 Demo 的知识版本已通过独立 Worker 生成真实百炼 Embedding，并在线返回版本化引用；这不等于正式知识材料验收，正式检索仍需用户提供真实材料。生产 Auth 仍需作者邮箱、域名和 SMTP 配置。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；Production 基线见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`；Worker 证据见 `docs/task-reports/2026-08-12-knowledge-index-worker.md`。
+Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。四个明确标注 Demo 的知识版本已通过独立 Worker 生成真实百炼 Embedding，并在线返回版本化引用；这不等于正式知识材料验收，正式检索仍需用户提供真实材料。AI Ops 已能按线上逐请求 Token 和核验后的 `qwen-plus` 非思考模式公开原价估算人民币成本，但明确排除免费额度、优惠、Embedding 与 Rerank，因此不是阿里云账单。生产 Auth 仍需作者邮箱、域名和 SMTP 配置。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；Production 基线见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`；Worker 证据见 `docs/task-reports/2026-08-12-knowledge-index-worker.md`；成本估算证据见 `web/docs/task-reports/2026-08-12-ai-cost-estimate.md`。

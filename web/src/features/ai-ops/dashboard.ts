@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { AppError } from "@/lib/errors";
+import type { AIModelUsageBucket } from "@/features/ai-ops/pricing";
 
 const windowHoursSchema = z.number().int().min(1).max(720);
 const metricSchema = z.coerce.number().int().nonnegative();
@@ -59,6 +60,13 @@ const ragTrendRowSchema = z.object({
   eval_runs: metricSchema,
   eval_passed: metricSchema,
   candidates_created: metricSchema,
+});
+
+const modelUsageRowSchema = z.object({
+  model_name: z.string().min(1),
+  input_tokens: metricSchema.nullable(),
+  output_tokens: metricSchema.nullable(),
+  requests: metricSchema,
 });
 
 export interface RAGOpsTrendPoint {
@@ -182,5 +190,47 @@ export async function loadRAGOpsTrend(
     evalRuns: row.eval_runs,
     evalPassed: row.eval_passed,
     candidatesCreated: row.candidates_created,
+  }));
+}
+
+export async function loadAIModelUsage(
+  client: SupabaseClient,
+  windowHours = 168,
+): Promise<readonly AIModelUsageBucket[]> {
+  const input = windowHoursSchema.safeParse(windowHours);
+  if (!input.success) {
+    throw new AppError({
+      code: "INVALID_AI_MODEL_USAGE_INPUT",
+      message: "模型用量统计窗口必须是 1 至 720 小时的整数",
+      status: 400,
+    });
+  }
+  const result = await client.rpc("get_ai_model_usage", {
+    p_window_hours: input.data,
+  });
+  if (result.error) {
+    throw new AppError({
+      code: "AI_MODEL_USAGE_QUERY_FAILED",
+      message: "模型用量汇总暂时不可用",
+      status: 503,
+      retryable: true,
+      cause: result.error,
+    });
+  }
+  const parsed = z.array(modelUsageRowSchema).safeParse(result.data);
+  if (!parsed.success) {
+    throw new AppError({
+      code: "INVALID_AI_MODEL_USAGE_DATA",
+      message: "模型用量汇总返回了无效数据",
+      status: 502,
+      retryable: true,
+      cause: parsed.error,
+    });
+  }
+  return parsed.data.map((row) => ({
+    modelName: row.model_name,
+    inputTokens: row.input_tokens,
+    outputTokens: row.output_tokens,
+    requests: row.requests,
   }));
 }

@@ -9,6 +9,7 @@ import type {
   AIOpsDashboard,
   RAGOpsTrendPoint,
 } from "@/features/ai-ops/dashboard";
+import type { AIModelCostEstimate } from "@/features/ai-ops/pricing";
 
 const dashboard: AIOpsDashboard = {
   windowHours: 168,
@@ -43,6 +44,40 @@ describe("AIOpsOverview", () => {
     expect(
       screen.getByText(/未配置模型价格，不估算人民币成本/),
     ).toBeInTheDocument();
+  });
+
+  it("renders an auditable list-price estimate with explicit exclusions", () => {
+    const costEstimate: AIModelCostEstimate = {
+      status: "partial",
+      estimatedCostCny: 0.5072,
+      coveredRequests: 3,
+      totalRequests: 4,
+      unpricedRequests: 1,
+      pricing: {
+        model: "qwen-plus",
+        modeLabel: "非思考模式",
+        effectiveFrom: "2026-08-12",
+        sourceUrl: "https://help.aliyun.com/zh/model-studio/qwen-plus",
+        tiers: [],
+      },
+    };
+
+    render(
+      <AIOpsOverview
+        dashboard={dashboard}
+        status="ready"
+        costEstimate={costEstimate}
+      />,
+    );
+
+    expect(screen.getByText("¥0.5072")).toBeInTheDocument();
+    expect(screen.getByText("部分覆盖 · 覆盖 3/4 次请求")).toBeInTheDocument();
+    expect(screen.getByText(/不含免费额度、优惠/)).toBeInTheDocument();
+    expect(screen.getByText(/Embedding 与 Rerank/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "官方价格来源" })).toHaveAttribute(
+      "href",
+      costEstimate.pricing.sourceUrl,
+    );
   });
 
   it("states why central metrics are absent in Demo mode", () => {

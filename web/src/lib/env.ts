@@ -54,6 +54,24 @@ const numberFromString = (
     return value;
   }, z.number().finite().min(minimum).max(maximum));
 
+const pricingTierSchema = z
+  .object({
+    maxInputTokens: z.number().int().positive().max(2_000_000),
+    inputCnyPerMillion: z.number().finite().nonnegative().max(10_000),
+    outputCnyPerMillion: z.number().finite().nonnegative().max(10_000),
+  })
+  .strict();
+
+const optionalPricingTiers = z.preprocess((value) => {
+  if (value === undefined || value === "") return undefined;
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}, z.array(pricingTierSchema).min(1).max(10).optional());
+
 function isLocalUrl(value: string | undefined): boolean {
   if (!value) return false;
   const hostname = new URL(value).hostname;
@@ -93,6 +111,17 @@ const serverEnvSchema = z
     DASHSCOPE_EMBEDDING_DIMENSIONS: integerFromString(1024, 1024, 1024),
     DASHSCOPE_RERANK_MODEL: z.string().min(1).default("qwen3-rerank"),
     DASHSCOPE_RERANK_BASE_URL: optionalUrl,
+    DASHSCOPE_PRICING_MODEL: optionalString,
+    DASHSCOPE_PRICING_MODE_LABEL: z.preprocess(
+      emptyStringToUndefined,
+      z.string().trim().min(1).max(40).optional(),
+    ),
+    DASHSCOPE_PRICING_EFFECTIVE_FROM: z.preprocess(
+      emptyStringToUndefined,
+      z.string().date().optional(),
+    ),
+    DASHSCOPE_PRICING_SOURCE_URL: optionalUrl,
+    DASHSCOPE_PRICING_TIERS_JSON: optionalPricingTiers,
     RAG_RERANK_ENABLED: stringBoolean(false),
     RAG_VECTOR_WEIGHT: numberFromString(0.65, 0, 1),
     RAG_TEXT_WEIGHT: numberFromString(0.35, 0, 1),
@@ -135,6 +164,37 @@ const serverEnvSchema = z
     ),
   })
   .superRefine((value, context) => {
+    const pricingValues = [
+      value.DASHSCOPE_PRICING_MODEL,
+      value.DASHSCOPE_PRICING_MODE_LABEL,
+      value.DASHSCOPE_PRICING_EFFECTIVE_FROM,
+      value.DASHSCOPE_PRICING_SOURCE_URL,
+      value.DASHSCOPE_PRICING_TIERS_JSON,
+    ];
+    if (
+      pricingValues.some((item) => item !== undefined) &&
+      pricingValues.some((item) => item === undefined)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["DASHSCOPE_PRICING_MODEL"],
+        message: "百炼价格模型、模式、生效日、来源和分档必须同时配置",
+      });
+    }
+    const tiers = value.DASHSCOPE_PRICING_TIERS_JSON;
+    if (
+      tiers &&
+      tiers.some(
+        (tier, index) =>
+          index > 0 && tier.maxInputTokens <= tiers[index - 1]!.maxInputTokens,
+      )
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["DASHSCOPE_PRICING_TIERS_JSON"],
+        message: "百炼价格分档必须按最大输入 Token 严格递增",
+      });
+    }
     if (Math.abs(value.RAG_VECTOR_WEIGHT + value.RAG_TEXT_WEIGHT - 1) > 0.001) {
       context.addIssue({
         code: "custom",

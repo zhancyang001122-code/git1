@@ -54,6 +54,10 @@ assert(
   knowledgeIndexQueueMigration,
   "Knowledge index queue migration is missing",
 );
+const aiModelCostMigration = migrations.find((migration) =>
+  migration.name.endsWith("_ai_model_cost.sql"),
+);
+assert(aiModelCostMigration, "AI model cost migration is missing");
 
 for (const migration of migrations) {
   const normalized = migration.sql.trim().toLowerCase();
@@ -77,6 +81,7 @@ const housingImportStatusSql = housingImportStatusMigration.sql;
 const aiOpsDashboardSql = aiOpsDashboardMigration.sql;
 const ragOpsTrendSql = ragOpsTrendMigration.sql;
 const knowledgeIndexQueueSql = knowledgeIndexQueueMigration.sql;
+const aiModelCostSql = aiModelCostMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -135,6 +140,31 @@ for (const requirement of [
   },
 ]) {
   assert(requirement.pattern.test(knowledgeIndexQueueSql), requirement.message);
+}
+
+for (const requirement of [
+  {
+    pattern:
+      /create or replace function public\.get_ai_model_usage\s*\(\s*p_window_hours integer default 168\s*\)/i,
+    message: "AI model usage RPC is missing",
+  },
+  {
+    pattern:
+      /group by[\s\S]+model_name[\s\S]+input_tokens[\s\S]+output_tokens/i,
+    message: "AI model usage must preserve per-request pricing buckets",
+  },
+  {
+    pattern:
+      /revoke all on function public\.get_ai_model_usage\(integer\)[\s\S]+from public, anon, authenticated/i,
+    message: "AI model usage must revoke client execution",
+  },
+  {
+    pattern:
+      /grant execute on function public\.get_ai_model_usage\(integer\)[\s\S]+to service_role/i,
+    message: "AI model usage must be service-role only",
+  },
+]) {
+  assert(requirement.pattern.test(aiModelCostSql), requirement.message);
 }
 
 for (const table of ["housing_dataset_releases", "historical_houses"]) {

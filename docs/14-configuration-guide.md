@@ -39,6 +39,12 @@ DASHSCOPE_EMBEDDING_MODEL=text-embedding-v4
 DASHSCOPE_EMBEDDING_DIMENSIONS=1024
 DASHSCOPE_RERANK_MODEL=qwen3-rerank
 DASHSCOPE_RERANK_BASE_URL=<工作空间专属 compatible-api/v1 地址>
+# 可选，以下五项必须同时配置；价格变化后要更新核验日和分档。
+DASHSCOPE_PRICING_MODEL=qwen-plus
+DASHSCOPE_PRICING_MODE_LABEL=非思考模式
+DASHSCOPE_PRICING_EFFECTIVE_FROM=2026-08-12
+DASHSCOPE_PRICING_SOURCE_URL=https://help.aliyun.com/zh/model-studio/qwen-plus
+DASHSCOPE_PRICING_TIERS_JSON=[{"maxInputTokens":128000,"inputCnyPerMillion":0.8,"outputCnyPerMillion":2},{"maxInputTokens":256000,"inputCnyPerMillion":2.4,"outputCnyPerMillion":20},{"maxInputTokens":1000000,"inputCnyPerMillion":4.8,"outputCnyPerMillion":48}]
 RAG_RERANK_ENABLED=false
 RAG_VECTOR_WEIGHT=0.65
 RAG_TEXT_WEIGHT=0.35
@@ -48,6 +54,8 @@ RAG_FINAL_K=5
 ```
 
 模型名通过环境变量可替换。首次接入先用百炼控制台当前模型清单验证模型可用；API Key、地域 Host 和业务空间必须匹配。不要把 Key 写成 `NEXT_PUBLIC_*`。
+
+成本配置引用 [`qwen-plus` 官方价格页](https://help.aliyun.com/zh/model-studio/qwen-plus)，当前按中国内地（北京）非思考模式公开原价配置。系统先由 service-role 专用 RPC 按每条 assistant 消息的 `model_name + input_tokens + output_tokens` 分桶，再按该请求的输入长度选择价格档位；不能把 7 天总 Token 全部套入最低档。管理页同时显示请求覆盖率，其他模型、缺失 Token 或超出已配置档位的请求保持未计价。该值不含免费额度、优惠、Embedding 和 Rerank，仅是可复核估算，不是阿里云账单；Embedding 的官方响应虽含 `usage.prompt_tokens`，当前项目尚未持久化该字段，不能把它假装计入。
 
 配置 Key 后运行 `pnpm external:verify-qwen`，该命令会以最小调用验证流式文本、流式 Function Calling 和 `text-embedding-v4` 的 1024 维输出，不打印 Key。
 

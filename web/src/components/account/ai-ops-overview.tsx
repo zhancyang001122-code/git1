@@ -2,6 +2,7 @@ import type {
   AIOpsDashboard,
   RAGOpsTrendPoint,
 } from "@/features/ai-ops/dashboard";
+import type { AIModelCostEstimate } from "@/features/ai-ops/pricing";
 
 type DashboardStatus = "ready" | "demo" | "unavailable";
 
@@ -14,13 +15,15 @@ function Metric({
   label,
   value,
   detail,
+  className = "",
 }: {
   label: string;
   value: string;
   detail: string;
+  className?: string;
 }) {
   return (
-    <div className="rounded-card bg-surface-tint p-4">
+    <div className={`rounded-card bg-surface-tint p-4 ${className}`}>
       <dt className="text-xs text-text-subtle">{label}</dt>
       <dd className="mt-1 text-lg font-semibold text-text">{value}</dd>
       <dd className="mt-1 text-xs leading-5 text-text-muted">{detail}</dd>
@@ -28,12 +31,18 @@ function Metric({
   );
 }
 
+function formatCny(value: number): string {
+  return `¥${value.toFixed(value < 1 ? 4 : 2)}`;
+}
+
 export function AIOpsOverview({
   dashboard,
   status,
+  costEstimate = null,
 }: {
   dashboard: AIOpsDashboard | null;
   status: DashboardStatus;
+  costEstimate?: AIModelCostEstimate | null;
 }) {
   if (status !== "ready" || !dashboard) {
     return (
@@ -115,10 +124,33 @@ export function AIOpsOverview({
           value={dashboard.readyChunks.toLocaleString("zh-CN")}
           detail={`${dashboard.publishedVersions.toLocaleString("zh-CN")} 个发布版本，其中 ${dashboard.demoPublishedVersions.toLocaleString("zh-CN")} 个为 Demo`}
         />
+        {costEstimate ? (
+          <Metric
+            className="col-span-2"
+            label="模型估算成本"
+            value={formatCny(costEstimate.estimatedCostCny)}
+            detail={`${costEstimate.status === "partial" ? "部分覆盖 · " : ""}覆盖 ${costEstimate.coveredRequests.toLocaleString("zh-CN")}/${costEstimate.totalRequests.toLocaleString("zh-CN")} 次请求`}
+          />
+        ) : null}
       </dl>
 
       <p className="mt-3 text-xs leading-5 text-text-subtle">
-        未配置模型价格，不估算人民币成本；Token 是实际记录值，不等于账单金额。
+        {costEstimate ? (
+          <>
+            {`按 ${costEstimate.pricing.model} ${costEstimate.pricing.modeLabel}公开原价估算（价格核验日 ${costEstimate.pricing.effectiveFrom}）；不含免费额度、优惠、Embedding 与 Rerank，不等于账单金额。查看`}
+            <a
+              className="ml-1 text-brand underline underline-offset-2"
+              href={costEstimate.pricing.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              官方价格来源
+            </a>
+            。
+          </>
+        ) : (
+          "未配置模型价格，不估算人民币成本；Token 是实际记录值，不等于账单金额。"
+        )}
       </p>
     </section>
   );

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   loadAIOpsDashboard,
+  loadAIModelUsage,
   loadRAGOpsTrend,
 } from "@/features/ai-ops/dashboard";
 
@@ -141,5 +142,45 @@ describe("RAG Ops trend", () => {
       code: "INVALID_RAG_OPS_TREND_INPUT",
     });
     expect(fake.rpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("AI model usage", () => {
+  it("maps request-level token buckets without loading message content", async () => {
+    const fake = fakeListClient({
+      data: [
+        {
+          model_name: "qwen-plus",
+          input_tokens: 2000,
+          output_tokens: 1000,
+          requests: 3,
+        },
+        {
+          model_name: "unknown",
+          input_tokens: null,
+          output_tokens: null,
+          requests: 1,
+        },
+      ],
+      error: null,
+    });
+
+    await expect(loadAIModelUsage(fake.client, 168)).resolves.toEqual([
+      {
+        modelName: "qwen-plus",
+        inputTokens: 2000,
+        outputTokens: 1000,
+        requests: 3,
+      },
+      {
+        modelName: "unknown",
+        inputTokens: null,
+        outputTokens: null,
+        requests: 1,
+      },
+    ]);
+    expect(fake.rpc).toHaveBeenCalledWith("get_ai_model_usage", {
+      p_window_hours: 168,
+    });
   });
 });
