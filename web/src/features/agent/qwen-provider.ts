@@ -24,21 +24,21 @@ const chunkSchema = z.object({
   choices: z.array(
     z.object({
       delta: z.object({
-        content: z.string().nullable().optional(),
+        content: z.string().nullish(),
         tool_calls: z
           .array(
             z.object({
               index: z.number().int().nonnegative(),
-              id: z.string().optional(),
+              id: z.string().nullish(),
               function: z
                 .object({
-                  name: z.string().optional(),
-                  arguments: z.string().optional(),
+                  name: z.string().nullish(),
+                  arguments: z.string().nullish(),
                 })
-                .optional(),
+                .nullish(),
             }),
           )
-          .optional(),
+          .nullish(),
       }),
       finish_reason: z.string().nullable().optional(),
     }),

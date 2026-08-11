@@ -100,6 +100,89 @@ describe("QwenProvider", () => {
     expect(events.at(-1)).toEqual({ type: "finish", reason: "tool_calls" });
   });
 
+  it("accepts OpenAI-compatible null placeholders in streamed tool fragments", async () => {
+    const provider = new QwenProvider({
+      model: "qwen-plus",
+      streamFactory: async () =>
+        chunks([
+          {
+            choices: [
+              {
+                delta: {
+                  content: null,
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: "call-1",
+                      function: {
+                        name: "search_houses",
+                        arguments: '{"city":"杭',
+                      },
+                    },
+                  ],
+                },
+                finish_reason: null,
+              },
+            ],
+          },
+          {
+            choices: [
+              {
+                delta: {
+                  content: null,
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: null,
+                      function: { name: null, arguments: '州"}' },
+                    },
+                  ],
+                },
+                finish_reason: null,
+              },
+            ],
+          },
+          { choices: [{ delta: {}, finish_reason: "tool_calls" }] },
+        ]),
+    });
+    const events = [];
+    for await (const event of provider.streamTurn(
+      { messages: [{ role: "user", content: "找房" }] },
+      new AbortController().signal,
+    ))
+      events.push(event);
+
+    expect(events).toContainEqual({
+      type: "tool_calls",
+      calls: [
+        {
+          id: "call-1",
+          name: "search_houses",
+          arguments: '{"city":"杭州"}',
+        },
+      ],
+    });
+  });
+
+  it("still rejects malformed chunks after provider compatibility handling", async () => {
+    const provider = new QwenProvider({
+      model: "qwen-plus",
+      streamFactory: async () => chunks([{ choices: [{ delta: "invalid" }] }]),
+    });
+    const read = async () => {
+      for await (const event of provider.streamTurn(
+        { messages: [{ role: "user", content: "测试" }] },
+        new AbortController().signal,
+      ))
+        void event;
+    };
+
+    await expect(read()).rejects.toMatchObject({
+      code: "QWEN_RESPONSE_INVALID",
+      message: "模型响应格式无效",
+    });
+  });
+
   it("normalizes SDK failures without exposing provider response objects", async () => {
     const provider = new QwenProvider({
       model: "qwen-plus",
