@@ -54,6 +54,7 @@ function toolMessage(
   result: ToolResult,
   duplicate = false,
   repairAllowed?: boolean,
+  repairHint?: string,
 ): ProviderMessage {
   return {
     role: "tool",
@@ -62,8 +63,28 @@ function toolMessage(
       ...buildToolModelPayload(call.name, result),
       ...(duplicate && { duplicate: true }),
       ...(repairAllowed !== undefined && { repairAllowed }),
+      ...(repairAllowed === true && repairHint && { repairHint }),
     }),
   };
+}
+
+function repairHint(toolName: string): string {
+  if (toolName === "search_products") {
+    return "Return every required field. If the user did not specify a store, set store_id to null; never invent a store_id. A non-null store_id must be a UUID from a previous trusted result.";
+  }
+  if (toolName === "propose_user_preference") {
+    return "For max_housing_budget use an integer. For preferred_areas, dietary_restrictions, transport_modes, and family_profile use a non-empty string array.";
+  }
+  return "Return a complete JSON object matching the tool schema. Include every required nullable field explicitly as null when the user did not provide it.";
+}
+
+function registerInvalidAttempt(
+  counts: Map<string, number>,
+  toolName: string,
+): { repairAllowed: boolean; exhausted: boolean } {
+  const count = (counts.get(toolName) ?? 0) + 1;
+  counts.set(toolName, count);
+  return { repairAllowed: count === 1, exhausted: count >= 2 };
 }
 
 function blockedResult(source: ToolSource): ToolResult {
@@ -233,7 +254,28 @@ export async function* runAgentToolLoop(
       const key = dedupeKey(call);
       const existing = completedCalls.get(key);
       if (existing) {
-        messages.push(toolMessage(call, existing.result, true));
+        if (existing.result.error?.code === "TOOL_ARGUMENTS_INVALID") {
+          const attempt = registerInvalidAttempt(invalidCounts, call.name);
+          if (attempt.exhausted) {
+            blockedTools.add(call.name);
+            yield {
+              type: "warning",
+              code: "TOOL_ARGUMENTS_REPAIR_EXHAUSTED",
+              message: "工具参数连续无效，请换一种说法后重试",
+            };
+          }
+          messages.push(
+            toolMessage(
+              call,
+              existing.result,
+              true,
+              attempt.repairAllowed,
+              repairHint(call.name),
+            ),
+          );
+        } else {
+          messages.push(toolMessage(call, existing.result, true));
+        }
         continue;
       }
 
@@ -283,10 +325,9 @@ export async function* runAgentToolLoop(
       const invalid = execution.result.error?.code === "TOOL_ARGUMENTS_INVALID";
       let repairAllowed: boolean | undefined;
       if (invalid) {
-        const count = (invalidCounts.get(call.name) ?? 0) + 1;
-        invalidCounts.set(call.name, count);
-        repairAllowed = count === 1;
-        if (count >= 2) {
+        const attempt = registerInvalidAttempt(invalidCounts, call.name);
+        repairAllowed = attempt.repairAllowed;
+        if (attempt.exhausted) {
           blockedTools.add(call.name);
           yield {
             type: "warning",
@@ -295,7 +336,15 @@ export async function* runAgentToolLoop(
           };
         }
       }
-      messages.push(toolMessage(call, execution.result, false, repairAllowed));
+      messages.push(
+        toolMessage(
+          call,
+          execution.result,
+          false,
+          repairAllowed,
+          repairHint(call.name),
+        ),
+      );
 
       if (execution.result.ok && execution.result.cards?.length) {
         for (const card of execution.result.cards as readonly ResultCard[]) {

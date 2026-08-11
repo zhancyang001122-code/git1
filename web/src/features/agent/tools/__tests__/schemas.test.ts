@@ -97,6 +97,17 @@ describe("Task 7 tool schemas", () => {
       toolInputSchemas.get_product_stock.safeParse({ product_id: "not-a-uuid" })
         .success,
     ).toBe(false);
+
+    const productContract = toolContractDefinitions.find(
+      (definition) => definition.name === "search_products",
+    );
+    expect(productContract?.parameters).toMatchObject({
+      properties: {
+        store_id: {
+          description: expect.stringMatching(/UUID.*null/u),
+        },
+      },
+    });
   });
 
   it("accepts only proposal data for a supported preference key", () => {
@@ -106,6 +117,18 @@ describe("Task 7 tool schemas", () => {
         value: 3_500,
       }).success,
     ).toBe(true);
+    expect(
+      toolInputSchemas.propose_user_preference.safeParse({
+        key: "dietary_restrictions",
+        value: ["不吃辣"],
+      }).success,
+    ).toBe(true);
+    expect(
+      toolInputSchemas.propose_user_preference.safeParse({
+        key: "dietary_restrictions",
+        value: "不吃辣",
+      }).success,
+    ).toBe(false);
     expect(
       toolInputSchemas.propose_user_preference.safeParse({
         key: "max_housing_budget",
@@ -119,5 +142,10 @@ describe("Task 7 tool schemas", () => {
         value: "secret",
       }).success,
     ).toBe(false);
+
+    const proposalContract = toolContractDefinitions.find(
+      (definition) => definition.name === "propose_user_preference",
+    );
+    expect(proposalContract?.description).toMatch(/array/i);
   });
 });

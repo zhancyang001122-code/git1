@@ -189,6 +189,99 @@ describe("agent tool loop", () => {
     expect(events.at(-1)).toEqual({ type: "done", finishReason: "stop" });
   });
 
+  it("tells the model how to repair an invented product store id", async () => {
+    const invalidProductArgs = {
+      query: "早餐",
+      category: null,
+      store_id: "demo-store-001",
+      max_price: 30,
+      in_stock_only: true,
+      limit: 6,
+    };
+    const provider = new SequenceProvider([
+      [
+        {
+          type: "tool_calls",
+          calls: [
+            {
+              id: "invalid-product",
+              name: "search_products",
+              arguments: JSON.stringify(invalidProductArgs),
+            },
+          ],
+        },
+        { type: "finish", reason: "tool_calls" },
+      ],
+      [
+        {
+          type: "tool_calls",
+          calls: [
+            {
+              id: "corrected-product",
+              name: "search_products",
+              arguments: JSON.stringify({
+                ...invalidProductArgs,
+                store_id: null,
+              }),
+            },
+          ],
+        },
+        { type: "finish", reason: "tool_calls" },
+      ],
+      [
+        { type: "text_delta", delta: "已找到早餐商品。" },
+        { type: "finish", reason: "stop" },
+      ],
+    ]);
+
+    const { events } = await collect(provider);
+    const repairMessage = provider.turns[1]?.messages.find(
+      (message) =>
+        message.role === "tool" && message.toolCallId === "invalid-product",
+    );
+    expect(repairMessage).toMatchObject({ role: "tool" });
+    expect(JSON.parse(repairMessage?.content ?? "{}")).toMatchObject({
+      repairAllowed: true,
+      repairHint: expect.stringMatching(/store_id.*null/u),
+    });
+    expect(
+      events.some(
+        (event) =>
+          event.type === "result_cards" &&
+          event.cards.some((card) => card.kind === "product"),
+      ),
+    ).toBe(true);
+  });
+
+  it("counts an identical invalid call as the exhausted repair attempt", async () => {
+    const invalidArgs = { ...houseArgs, limit: 50 };
+    const provider = new SequenceProvider([
+      [
+        toolCall("invalid-first", invalidArgs),
+        { type: "finish", reason: "tool_calls" },
+      ],
+      [
+        toolCall("invalid-repeated", invalidArgs),
+        { type: "finish", reason: "tool_calls" },
+      ],
+      [toolCall("blocked-valid"), { type: "finish", reason: "tool_calls" }],
+      [
+        { type: "text_delta", delta: "请换一种说法。" },
+        { type: "finish", reason: "stop" },
+      ],
+    ]);
+
+    const { events } = await collect(provider);
+
+    expect(events).toContainEqual({
+      type: "warning",
+      code: "TOOL_ARGUMENTS_REPAIR_EXHAUSTED",
+      message: "工具参数连续无效，请换一种说法后重试",
+    });
+    expect(events.some((event) => event.type === "result_cards")).toBe(false);
+    expect(events.at(-1)).toEqual({ type: "done", finishReason: "stop" });
+  });
+
   it("blocks a tool after the second distinct invalid argument attempt", async () => {
     const provider = new SequenceProvider([
       [

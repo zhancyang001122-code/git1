@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import OpenAI from "openai";
 
 function required(name) {
@@ -14,6 +16,57 @@ const model = process.env.DASHSCOPE_MODEL?.trim() || "qwen-plus";
 const embeddingModel =
   process.env.DASHSCOPE_EMBEDDING_MODEL?.trim() || "text-embedding-v4";
 const client = new OpenAI({ apiKey, baseURL, timeout: 45_000, maxRetries: 1 });
+const toolContract = JSON.parse(
+  readFileSync(
+    new URL("../../contracts/tool-contracts.json", import.meta.url),
+    "utf8",
+  ),
+);
+
+function contractTool(name) {
+  const tool = toolContract.tools.find((candidate) => candidate.name === name);
+  if (!tool) throw new Error(`Missing tool contract: ${name}`);
+  return {
+    type: "function",
+    function: {
+      name: tool.name,
+      description: tool.description,
+      parameters: tool.parameters,
+      strict: tool.strict,
+    },
+  };
+}
+
+async function forcedToolCall(prompt, tool) {
+  const stream = await client.chat.completions.create({
+    model,
+    stream: true,
+    stream_options: { include_usage: true },
+    max_tokens: 128,
+    messages: [{ role: "user", content: prompt }],
+    tools: [tool],
+    tool_choice: { type: "function", function: { name: tool.function.name } },
+  });
+  const calls = new Map();
+  for await (const chunk of stream) {
+    for (const fragment of chunk.choices[0]?.delta?.tool_calls ?? []) {
+      const current = calls.get(fragment.index) ?? {
+        id: "",
+        name: "",
+        arguments: "",
+      };
+      current.id += fragment.id ?? "";
+      current.name += fragment.function?.name ?? "";
+      current.arguments += fragment.function?.arguments ?? "";
+      calls.set(fragment.index, current);
+    }
+  }
+  const call = calls.get(0);
+  if (!call?.id || call.name !== tool.function.name) {
+    throw new Error(`Qwen did not return forced tool ${tool.function.name}`);
+  }
+  return JSON.parse(call.arguments);
+}
 
 const textStream = await client.chat.completions.create({
   model,
@@ -40,52 +93,28 @@ if (!usageReceived) {
   throw new Error("Qwen streaming response did not include token usage");
 }
 
-const functionStream = await client.chat.completions.create({
-  model,
-  stream: true,
-  stream_options: { include_usage: true },
-  max_tokens: 64,
-  messages: [{ role: "user", content: "查询杭州今天的天气" }],
-  tools: [
-    {
-      type: "function",
-      function: {
-        name: "lookup_weather",
-        description: "查询指定城市天气",
-        parameters: {
-          type: "object",
-          properties: { city: { type: "string" } },
-          required: ["city"],
-          additionalProperties: false,
-        },
-      },
-    },
-  ],
-  tool_choice: { type: "function", function: { name: "lookup_weather" } },
-});
-const calls = new Map();
-for await (const chunk of functionStream) {
-  for (const fragment of chunk.choices[0]?.delta?.tool_calls ?? []) {
-    const current = calls.get(fragment.index) ?? {
-      id: "",
-      name: "",
-      arguments: "",
-    };
-    current.id += fragment.id ?? "";
-    current.name += fragment.function?.name ?? "";
-    current.arguments += fragment.function?.arguments ?? "";
-    calls.set(fragment.index, current);
-  }
+const productArgs = await forcedToolCall(
+  "帮我找30元以内有库存的早餐，没有指定门店。",
+  contractTool("search_products"),
+);
+if (
+  productArgs.store_id !== null ||
+  productArgs.max_price !== 30 ||
+  productArgs.in_stock_only !== true
+) {
+  throw new Error("Qwen product Function Calling returned invalid filters");
 }
-const call = calls.get(0);
-if (!call?.id || call.name !== "lookup_weather") {
-  throw new Error(
-    "Qwen streaming Function Calling did not return the forced tool",
-  );
-}
-const args = JSON.parse(call.arguments);
-if (typeof args.city !== "string" || !args.city.includes("杭州")) {
-  throw new Error("Qwen Function Calling returned invalid arguments");
+
+const preferenceArgs = await forcedToolCall(
+  "请准备一个待用户确认的长期偏好：我不吃辣。",
+  contractTool("propose_user_preference"),
+);
+if (
+  preferenceArgs.key !== "dietary_restrictions" ||
+  !Array.isArray(preferenceArgs.value) ||
+  !preferenceArgs.value.includes("不吃辣")
+) {
+  throw new Error("Qwen preference Function Calling returned invalid value");
 }
 
 const embedding = await client.embeddings.create({
@@ -106,5 +135,5 @@ if (
 }
 
 console.log(
-  `PASS Qwen streaming, Function Calling and ${embeddingModel} 1024-dimension embedding.`,
+  `PASS Qwen streaming, project Function Calling contracts and ${embeddingModel} 1024-dimension embedding.`,
 );

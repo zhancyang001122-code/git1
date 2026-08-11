@@ -79,14 +79,18 @@
     },
     {
       "name": "search_products",
-      "description": "Search structured demo supermarket products by keyword, category, price and in-stock status.",
+      "description": "Search structured demo supermarket products by keyword, category, price and in-stock status. Set optional filters to null when the user did not provide them; never invent identifiers.",
       "strict": true,
       "parameters": {
         "type": "object",
         "properties": {
           "query": { "type": ["string", "null"] },
           "category": { "type": ["string", "null"] },
-          "store_id": { "type": ["string", "null"], "format": "uuid" },
+          "store_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "A store UUID from a trusted prior result, or null when no store was specified. Never invent a store identifier."
+          },
           "max_price": { "type": ["number", "null"], "minimum": 0 },
           "in_stock_only": { "type": "boolean", "default": true },
           "limit": {
@@ -251,7 +255,7 @@
     },
     {
       "name": "propose_user_preference",
-      "description": "Prepare one allowed long-term preference for explicit user confirmation in the application UI. This tool never persists data and must not infer sensitive traits.",
+      "description": "Prepare one allowed long-term preference for explicit user confirmation in the application UI. Use an integer value for max_housing_budget; use a non-empty string array for every other key. This tool never persists data and must not infer sensitive traits.",
       "strict": true,
       "parameters": {
         "type": "object",
@@ -266,7 +270,18 @@
               "family_profile"
             ]
           },
-          "value": {}
+          "value": {
+            "description": "Integer for max_housing_budget; non-empty string array for every other allowed key.",
+            "oneOf": [
+              { "type": "integer", "minimum": 0, "maximum": 200000 },
+              {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 20,
+                "items": { "type": "string", "minLength": 1, "maxLength": 80 }
+              }
+            ]
+          }
         },
         "required": ["key", "value"],
         "additionalProperties": false

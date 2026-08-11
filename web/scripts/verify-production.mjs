@@ -118,11 +118,73 @@ try {
     await expect(page.getByText("感谢反馈，已记录。")).toBeVisible();
   }
 
+  if (expectedMode === "live") {
+    const commercePage = await browser.newPage({
+      viewport: { width: 430, height: 932 },
+    });
+    const commerceErrors = [];
+    commercePage.on("pageerror", (error) => commerceErrors.push(error.message));
+    commercePage.on("console", (message) => {
+      if (message.type() === "error") commerceErrors.push(message.text());
+    });
+    try {
+      const commerceQuery =
+        "帮我找30元以内有库存的早餐，并记住我不吃辣。商品和偏好都要分别处理。";
+      const commerceUrl = new URL("/xiaozhi/chat", url);
+      commerceUrl.searchParams.set("q", commerceQuery);
+      await commercePage.goto(commerceUrl.href, {
+        waitUntil: "load",
+        timeout: 45_000,
+      });
+      await expect(
+        commercePage.getByRole("textbox", { name: "输入消息" }),
+      ).toHaveValue(commerceQuery);
+      await commercePage
+        .getByRole("button", { name: "发送", exact: true })
+        .click();
+      await expect(commercePage.getByText("正在查询商品")).toBeVisible({
+        timeout: 60_000,
+      });
+      await expect(
+        commercePage
+          .getByText(/鲜牛奶 950ml|无菌鸡蛋 10 枚|即食燕麦 500g/)
+          .first(),
+      ).toBeVisible({ timeout: 60_000 });
+      await expect(commercePage.getByText("待你确认的长期偏好")).toBeVisible({
+        timeout: 60_000,
+      });
+      await expect(commercePage.getByText("不吃辣")).toBeVisible();
+      await commercePage.getByRole("button", { name: "取消" }).click();
+      await expect(
+        commercePage.getByRole("status").filter({
+          hasText: "已取消，本次没有保存长期偏好",
+        }),
+      ).toBeVisible();
+      const commerceAlerts = (
+        await commercePage.getByRole("alert").allTextContents()
+      )
+        .map((value) => value.trim())
+        .filter(Boolean);
+      if (commerceAlerts.length > 0) {
+        throw new Error(
+          `production commerce UI alerts: ${commerceAlerts.join(" | ")}`,
+        );
+      }
+      if (commerceErrors.length > 0) {
+        throw new Error(
+          `production commerce browser errors: ${commerceErrors.join(" | ")}`,
+        );
+      }
+    } finally {
+      await commercePage.close();
+    }
+  }
+
   if (browserErrors.length > 0) {
     throw new Error(`production browser errors: ${browserErrors.join(" | ")}`);
   }
   console.log(
-    `PASS production ${expectedMode} health, mobile layout, housing, maps and feedback flow.`,
+    `PASS production ${expectedMode} health, mobile layout, housing, maps, commerce, preference proposal and feedback flow.`,
   );
 } finally {
   await browser.close();

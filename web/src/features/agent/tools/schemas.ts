@@ -67,27 +67,32 @@ const getUserPreferencesSchema = z
   .object({ scope: z.enum(["housing", "food", "shopping", "all"]) })
   .strict();
 
-const proposeUserPreferenceSchema = z
-  .object({
-    key: z.enum([
-      "max_housing_budget",
+const preferenceListValueSchema = z
+  .array(z.string().trim().min(1).max(80))
+  .min(1)
+  .max(20)
+  .transform((items) => [...new Set(items)]);
+
+const proposeUserPreferenceSchema = z.discriminatedUnion("key", [
+  z
+    .object({
+      key: z.literal("max_housing_budget"),
+      value: z.number().int().nonnegative().max(200_000),
+    })
+    .strict(),
+  ...(
+    [
       "preferred_areas",
       "dietary_restrictions",
       "transport_modes",
       "family_profile",
-    ]),
-    value: z.unknown(),
-  })
-  .strict()
-  .superRefine((value, context) => {
-    if (!Object.hasOwn(value, "value")) {
-      context.addIssue({
-        code: "custom",
-        path: ["value"],
-        message: "偏好值不能为空缺失",
-      });
-    }
-  });
+    ] as const
+  ).map((key) =>
+    z
+      .object({ key: z.literal(key), value: preferenceListValueSchema })
+      .strict(),
+  ),
+]);
 
 const searchKnowledgeSchema = z
   .object({
@@ -186,14 +191,19 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
   {
     name: "search_products",
     description:
-      "Search structured demo supermarket products by keyword, category, price and in-stock status.",
+      "Search structured demo supermarket products by keyword, category, price and in-stock status. Set optional filters to null when the user did not provide them; never invent identifiers.",
     strict: true,
     parameters: {
       type: "object",
       properties: {
         query: { type: ["string", "null"] },
         category: { type: ["string", "null"] },
-        store_id: { type: ["string", "null"], format: "uuid" },
+        store_id: {
+          type: ["string", "null"],
+          format: "uuid",
+          description:
+            "A store UUID from a trusted prior result, or null when no store was specified. Never invent a store identifier.",
+        },
         max_price: { type: ["number", "null"], minimum: 0 },
         in_stock_only: { type: "boolean", default: true },
         limit: { type: "integer", minimum: 1, maximum: 12, default: 6 },
@@ -241,7 +251,7 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
   {
     name: "propose_user_preference",
     description:
-      "Prepare one allowed long-term preference for explicit user confirmation in the application UI. This tool never persists data and must not infer sensitive traits.",
+      "Prepare one allowed long-term preference for explicit user confirmation in the application UI. Use an integer value for max_housing_budget; use a non-empty string array for every other key. This tool never persists data and must not infer sensitive traits.",
     strict: true,
     parameters: {
       type: "object",
@@ -256,7 +266,19 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
             "family_profile",
           ],
         },
-        value: {},
+        value: {
+          description:
+            "Integer for max_housing_budget; non-empty string array for every other allowed key.",
+          oneOf: [
+            { type: "integer", minimum: 0, maximum: 200000 },
+            {
+              type: "array",
+              minItems: 1,
+              maxItems: 20,
+              items: { type: "string", minLength: 1, maxLength: 80 },
+            },
+          ],
+        },
       },
       required: ["key", "value"],
       additionalProperties: false,
