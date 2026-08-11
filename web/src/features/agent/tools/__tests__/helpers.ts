@@ -17,6 +17,9 @@ export function createToolTestContext(
       upsertPreferences: vi.fn(async () => {
         throw new Error("not configured");
       }),
+      deletePreferences: vi.fn(async () => {
+        throw new Error("not configured");
+      }),
     },
     audit: {
       record: vi.fn(async (entry: ToolAuditEntry) => {

@@ -122,6 +122,9 @@ describe("POST /api/chat handler", () => {
             upsertPreferences: async () => {
               throw new Error("not available");
             },
+            deletePreferences: async () => {
+              throw new Error("not available");
+            },
           },
           audit: createInMemoryToolAudit(),
           businessSource: "supabase_mock",
@@ -165,6 +168,9 @@ describe("POST /api/chat handler", () => {
           memory: {
             getPreferences: async () => null,
             upsertPreferences: async () => {
+              throw new Error("not available");
+            },
+            deletePreferences: async () => {
               throw new Error("not available");
             },
           },

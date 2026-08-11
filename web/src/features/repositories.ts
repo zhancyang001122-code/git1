@@ -57,6 +57,9 @@ function createReadOnlyDemoRepositories() {
     async upsertPreferences() {
       return persistenceDisabled();
     },
+    async deletePreferences() {
+      return persistenceDisabled();
+    },
   };
   const conversations: ConversationRepository = {
     async createSession() {

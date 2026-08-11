@@ -69,12 +69,14 @@ describe("SupabaseMemoryRepository", () => {
     ).not.toContain("*");
   });
 
-  it("requires explicit consent time before enabling long-term memory", async () => {
+  it("rejects an invalid server authorization time", async () => {
     const fake = fakeClient({ data: row });
     await expect(
-      createSupabaseMemoryRepository(fake.client).upsertPreferences(userId, {
-        allowLongTermMemory: true,
-      }),
+      createSupabaseMemoryRepository(fake.client).upsertPreferences(
+        userId,
+        { pets: ["猫"] },
+        "not-a-time",
+      ),
     ).rejects.toMatchObject({ code: "INVALID_PREFERENCES" });
     expect(fake.calls).toHaveLength(0);
   });
@@ -90,9 +92,8 @@ describe("SupabaseMemoryRepository", () => {
         dietaryRestrictions: [],
         transportModes: ["地铁"],
         familyProfile: ["独居"],
-        allowLongTermMemory: true,
-        consentedAt: "2026-08-11T00:00:00.000Z",
       },
+      "2026-08-11T00:00:00.000Z",
     );
 
     const upsert = fake.calls.find((call) => call.method === "upsert");
@@ -102,5 +103,15 @@ describe("SupabaseMemoryRepository", () => {
       allow_long_term_memory: true,
     });
     expect(upsert?.args[1]).toEqual({ onConflict: "user_id" });
+  });
+
+  it("deletes only the requested owner row", async () => {
+    const fake = fakeClient({ data: null });
+    await createSupabaseMemoryRepository(fake.client).deletePreferences(userId);
+    expect(fake.calls).toContainEqual({ method: "delete", args: [] });
+    expect(fake.calls).toContainEqual({
+      method: "eq",
+      args: ["user_id", userId],
+    });
   });
 });

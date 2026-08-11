@@ -39,10 +39,10 @@ function memoryRepository(
           input.maxHousingBudget === undefined
             ? (value?.maxHousingBudget ?? null)
             : input.maxHousingBudget,
-        allowLongTermMemory: input.allowLongTermMemory,
-        consentedAt: input.consentedAt ?? null,
+        allowLongTermMemory: true,
       }),
     ),
+    deletePreferences: vi.fn(async () => undefined),
   };
 }
 

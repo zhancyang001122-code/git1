@@ -7,7 +7,7 @@ const uuid = z
   .string()
   .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 const stringList = z.array(z.string().trim().min(1).max(80)).max(20);
-const preferencesInputSchema = z
+const preferencesPatchSchema = z
   .object({
     maxHousingBudget: z
       .number()
@@ -21,14 +21,9 @@ const preferencesInputSchema = z
     dietaryRestrictions: stringList.optional(),
     transportModes: stringList.optional(),
     familyProfile: stringList.optional(),
-    allowLongTermMemory: z.boolean(),
-    consentedAt: z.string().datetime({ offset: true }).nullable().optional(),
   })
-  .strict()
-  .refine(
-    (value) => !value.allowLongTermMemory || Boolean(value.consentedAt),
-    "启用长期记忆前必须记录授权时间",
-  );
+  .strict();
+const authorizationTimeSchema = z.string().datetime({ offset: true });
 
 const preferencesRowSchema = z.object({
   user_id: uuid,
@@ -39,8 +34,8 @@ const preferencesRowSchema = z.object({
   transport_modes: z.array(z.string()),
   family_profile: z.array(z.string()),
   allow_long_term_memory: z.boolean(),
-  consented_at: z.string().nullable(),
-  updated_at: z.string(),
+  consented_at: z.string().datetime({ offset: true }).nullable(),
+  updated_at: z.string().datetime({ offset: true }),
 });
 
 const PREFERENCE_COLUMNS =
@@ -59,14 +54,16 @@ export interface UserPreferences {
   updatedAt: string;
 }
 
-export type PreferencesInput = z.input<typeof preferencesInputSchema>;
+export type PreferencesPatch = z.input<typeof preferencesPatchSchema>;
 
 export interface MemoryRepository {
   getPreferences(userId: string): Promise<UserPreferences | null>;
   upsertPreferences(
     userId: string,
-    input: PreferencesInput,
+    input: PreferencesPatch,
+    consentedAt: string,
   ): Promise<UserPreferences>;
+  deletePreferences(userId: string): Promise<void>;
 }
 
 function invalidInput(cause: unknown): never {
@@ -131,10 +128,14 @@ export function createSupabaseMemoryRepository(
       return result.data ? mapPreferences(result.data) : null;
     },
 
-    async upsertPreferences(inputUserId, input) {
+    async upsertPreferences(inputUserId, input, inputConsentedAt) {
       const userId = parseUserId(inputUserId);
-      const parsed = preferencesInputSchema.safeParse(input);
-      if (!parsed.success) invalidInput(parsed.error);
+      const parsed = preferencesPatchSchema.safeParse(input);
+      const parsedConsentedAt =
+        authorizationTimeSchema.safeParse(inputConsentedAt);
+      if (!parsed.success || !parsedConsentedAt.success) {
+        invalidInput(parsed.success ? parsedConsentedAt.error : parsed.error);
+      }
       const value = parsed.data;
       const payload = {
         user_id: userId,
@@ -154,8 +155,8 @@ export function createSupabaseMemoryRepository(
         ...(value.familyProfile !== undefined && {
           family_profile: value.familyProfile,
         }),
-        allow_long_term_memory: value.allowLongTermMemory,
-        consented_at: value.allowLongTermMemory ? value.consentedAt : null,
+        allow_long_term_memory: true,
+        consented_at: parsedConsentedAt.data,
       };
       const result = await client
         .from("user_preferences")
@@ -164,6 +165,14 @@ export function createSupabaseMemoryRepository(
         .single();
       if (result.error) queryFailed(result.error);
       return mapPreferences(result.data);
+    },
+    async deletePreferences(inputUserId) {
+      const userId = parseUserId(inputUserId);
+      const result = await client
+        .from("user_preferences")
+        .delete()
+        .eq("user_id", userId);
+      if (result.error) queryFailed(result.error);
     },
   };
 }
