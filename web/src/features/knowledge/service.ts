@@ -186,6 +186,7 @@ export class DefaultKnowledgeService implements KnowledgeService {
       domain: version.domain,
       category: version.category,
       city: version.city,
+      isDemo: version.isDemo,
       contentMarkdown: version.contentMarkdown,
     });
     const existing = await this.repository.listChunksForVersion(

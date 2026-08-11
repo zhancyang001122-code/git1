@@ -14,6 +14,7 @@ describe("knowledge chunker", () => {
       domain: "group_buy" as const,
       category: "refund",
       city: "杭州",
+      isDemo: true,
       contentMarkdown: `# 团购券退款规则\n\n## 适用条件\n\n${Array(8).fill(paragraph).join("\n\n")}\n\n## 不适用条件\n\n${Array(6).fill(paragraph).join("\n\n")}`,
     };
 
@@ -24,6 +25,7 @@ describe("knowledge chunker", () => {
     expect(first.length).toBeGreaterThan(2);
     expect(first.every((chunk) => chunk.content.length <= 700)).toBe(true);
     expect(first.every((chunk) => chunk.contentHash.length === 64)).toBe(true);
+    expect(first.every((chunk) => chunk.metadata.isDemo === true)).toBe(true);
     expect(first.some((chunk) => chunk.headingPath.includes("适用条件"))).toBe(
       true,
     );
@@ -40,6 +42,7 @@ describe("knowledge chunker", () => {
       domain: "platform",
       category: "faq",
       city: null,
+      isDemo: false,
       contentMarkdown: `# 标题\r\n\r\n${Array(12).fill(paragraph).join("\r\n\r\n")}`,
     });
 

@@ -67,6 +67,7 @@ export interface KnowledgeVersionForIndex {
   domain: KnowledgeDomain;
   category: string;
   city: string | null;
+  isDemo: boolean;
   status: KnowledgeStatus;
 }
 

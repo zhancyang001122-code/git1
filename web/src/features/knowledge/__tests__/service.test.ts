@@ -163,6 +163,7 @@ const publishedVersion: KnowledgeVersionForIndex = {
   domain: "group_buy",
   category: "refund",
   city: "杭州",
+  isDemo: false,
   status: "published",
 };
 
@@ -197,6 +198,29 @@ describe("DefaultKnowledgeService indexVersion", () => {
       skippedChunks: first.totalChunks,
     });
     expect(repo.upsertChunks).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves simulated provenance when indexing demo knowledge", async () => {
+    const repo = repository([]);
+    vi.mocked(repo.getVersionForIndex).mockResolvedValue({
+      ...publishedVersion,
+      isDemo: true,
+    });
+    const service = new DefaultKnowledgeService({
+      repository: repo,
+      embedding,
+      lowConfidenceThreshold: 0.45,
+      vectorWeight: 0.65,
+      textWeight: 0.35,
+      recallCount: 12,
+      finalCount: 5,
+    });
+
+    await service.indexVersion(publishedVersion.versionId);
+
+    const indexed = vi.mocked(repo.upsertChunks).mock.calls[0]![0];
+    expect(indexed).not.toHaveLength(0);
+    expect(indexed.every((chunk) => chunk.metadata.isDemo === true)).toBe(true);
   });
 
   it("marks pending chunks failed when embedding fails", async () => {

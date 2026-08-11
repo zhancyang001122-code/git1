@@ -94,4 +94,41 @@ describe("Supabase knowledge repository", () => {
       retryable: true,
     });
   });
+
+  it("inherits demo provenance from the article when loading a version for indexing", async () => {
+    const maybeSingle = vi.fn(async () => ({
+      data: {
+        id: "62000000-0000-4000-8000-000000000001",
+        article_id: "61000000-0000-4000-8000-000000000001",
+        version_label: "v1.0",
+        content_markdown: "演示规则",
+        status: "published",
+        is_demo: false,
+        kb_articles: {
+          title: "团购券退款规则",
+          city: "杭州",
+          is_demo: true,
+          kb_categories: { domain: "group_buy", slug: "refund" },
+        },
+      },
+      error: null,
+    }));
+    const builder = {
+      select: vi.fn(() => builder),
+      eq: vi.fn(() => builder),
+      maybeSingle,
+    };
+    const client = {
+      from: vi.fn(() => builder),
+    } as unknown as SupabaseClient;
+
+    const version = await createSupabaseKnowledgeRepository(
+      client,
+    ).getVersionForIndex("62000000-0000-4000-8000-000000000001");
+
+    expect(version).toMatchObject({ isDemo: true });
+    expect(builder.select).toHaveBeenCalledWith(
+      expect.stringContaining("is_demo"),
+    );
+  });
 });

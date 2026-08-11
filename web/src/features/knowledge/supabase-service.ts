@@ -46,9 +46,11 @@ const versionRowSchema = z.object({
   version_label: z.string(),
   content_markdown: z.string(),
   status,
+  is_demo: z.boolean().default(false),
   kb_articles: z.object({
     title: z.string(),
     city: z.string().nullable(),
+    is_demo: z.boolean().default(false),
     kb_categories: z.object({
       domain: z.enum(knowledgeDomains),
       slug: z.string(),
@@ -131,7 +133,7 @@ export function createSupabaseKnowledgeRepository(
       const query = client
         .from("kb_article_versions")
         .select(
-          "id,article_id,version_label,content_markdown,status,kb_articles!inner(title,city,kb_categories!inner(domain,slug))",
+          "id,article_id,version_label,content_markdown,status,is_demo,kb_articles!inner(title,city,is_demo,kb_categories!inner(domain,slug))",
         )
         .eq("id", versionId);
       if (signal) query.abortSignal(signal);
@@ -162,6 +164,7 @@ export function createSupabaseKnowledgeRepository(
         domain: row.kb_articles.kb_categories.domain,
         category: row.kb_articles.kb_categories.slug,
         city: row.kb_articles.city,
+        isDemo: row.is_demo || row.kb_articles.is_demo,
         status: row.status,
       };
     },

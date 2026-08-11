@@ -9,6 +9,7 @@ interface ChunkVersionInput {
   domain: KnowledgeDomain;
   category: string;
   city: string | null;
+  isDemo: boolean;
   contentMarkdown: string;
 }
 
@@ -99,6 +100,7 @@ export function chunkKnowledgeVersion(input: ChunkVersionInput): ChunkDraft[] {
           domain: input.domain,
           category: input.category,
           city: input.city,
+          isDemo: input.isDemo,
           headingPath: section.headingPath,
           contentHash: hash(content),
         },
