@@ -88,6 +88,15 @@ RAG_FINAL_K=5
 5. 部署后访问 `/api/health`，再运行 staging/live smoke tests。
 6. 生成二维码并准备本地录屏备份。
 
+Production 切到 Live 后，在 `web/` 运行：
+
+```powershell
+$env:EXPECTED_PRODUCTION_MODE='live'
+pnpm deploy:verify-production
+```
+
+该检查要求 Supabase、历史房源、千问和高德都报告 `configured`，并通过真实多工具对话、来源标识和反馈持久化。它会产生一条测试对话和一条点赞反馈，不应用于高频监控。
+
 ## 7. Demo 与真实模式
 
 ```env
