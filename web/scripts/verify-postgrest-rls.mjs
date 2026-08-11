@@ -1,9 +1,55 @@
 import { createHmac, randomUUID } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import { resolve } from "node:path";
 
-const apiUrl = process.env.SUPABASE_TEST_API_URL ?? "http://127.0.0.1:55433";
+function readLocalSupabaseEnvironment() {
+  const cliEntry = resolve(
+    process.cwd(),
+    "node_modules",
+    "supabase",
+    "dist",
+    "supabase.js",
+  );
+  const result = spawnSync(
+    process.execPath,
+    [
+      cliEntry,
+      "--workdir",
+      resolve(process.cwd(), ".."),
+      "status",
+      "--output",
+      "env",
+      "--output-format",
+      "text",
+      "--agent",
+      "no",
+    ],
+    { encoding: "utf8" },
+  );
+
+  if (result.status !== 0) {
+    throw new Error(
+      `Local Supabase is unavailable. Run pnpm db:start first.\n${result.error?.message || result.stderr || result.stdout}`,
+    );
+  }
+
+  return Object.fromEntries(
+    result.stdout
+      .split(/\r?\n/)
+      .map((line) => line.match(/^([A-Z_]+)="(.*)"$/))
+      .filter(Boolean)
+      .map((match) => [match[1], match[2]]),
+  );
+}
+
+const localEnvironment =
+  process.env.SUPABASE_TEST_API_URL && process.env.SUPABASE_TEST_JWT_SECRET
+    ? {}
+    : readLocalSupabaseEnvironment();
+const apiUrl =
+  process.env.SUPABASE_TEST_API_URL ?? `${localEnvironment.API_URL}/rest/v1`;
 const jwtSecret =
-  process.env.SUPABASE_TEST_JWT_SECRET ??
-  "xiaozhi-task4-local-jwt-secret-32-bytes-minimum";
+  process.env.SUPABASE_TEST_JWT_SECRET ?? localEnvironment.JWT_SECRET;
 const userA = "70000000-0000-0000-0000-000000000001";
 const userB = "70000000-0000-0000-0000-000000000002";
 

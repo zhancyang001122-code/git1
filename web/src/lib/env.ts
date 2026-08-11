@@ -62,6 +62,7 @@ const publicEnvSchema = z.object({
 
 const serverEnvSchema = z
   .object({
+    SUPABASE_SECRET_KEY: optionalString,
     SUPABASE_SERVICE_ROLE_KEY: optionalString,
     SUPABASE_FALLBACK_TO_DEMO: stringBoolean(false),
     ANONYMOUS_COOKIE_SECRET: z.preprocess(

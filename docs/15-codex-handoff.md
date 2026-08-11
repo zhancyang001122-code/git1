@@ -31,7 +31,7 @@
 
 开发到对应阶段时再提供，不要写进聊天截图或提交：
 
-- Supabase Project URL、publishable key、service role key
+- Supabase Project URL、publishable key、新版 secret key（`sb_secret_`）
 - 百炼北京地域 API Key
 - 高德 Web Service Key
 - Vercel 项目和环境变量权限

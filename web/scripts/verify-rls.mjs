@@ -1,6 +1,18 @@
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 
-const container = process.env.SUPABASE_TEST_DB_CONTAINER ?? "xiaozhi-task4-db";
+const supabaseConfig = readFileSync(
+  new URL("../../supabase/config.toml", import.meta.url),
+  "utf8",
+);
+const projectId = supabaseConfig.match(/^project_id\s*=\s*"([^"]+)"/m)?.[1];
+
+if (!projectId) {
+  throw new Error("Could not read project_id from supabase/config.toml");
+}
+
+const container =
+  process.env.SUPABASE_TEST_DB_CONTAINER ?? `supabase_db_${projectId}`;
 const userA = "70000000-0000-0000-0000-000000000001";
 const userB = "70000000-0000-0000-0000-000000000002";
 const sessionId = "71000000-0000-0000-0000-000000000001";

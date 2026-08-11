@@ -40,9 +40,9 @@ Demo Preview 不需要 Supabase、高德或百炼账号。页面必须持续显�
 
 ## 4. Live 环境准备
 
-1. 创建 Supabase 项目并配置 URL、publishable key、service role key。
+1. 创建 Supabase 项目并配置 URL、publishable key、新版 secret key（`sb_secret_`）；禁用不再使用的旧版 anon/service_role keys。
 2. 使用 Supabase CLI link 项目，在根目录按顺序应用 `supabase/migrations/`。
-3. 执行 `pnpm db:verify-http`，验证 anon、authenticated 和 service role 边界。
+3. 执行 `pnpm db:verify-http`，验证匿名、authenticated 和 server secret 边界。
 4. 配置百炼文本模型、`text-embedding-v4`，按需配置 `qwen3-rerank`。
 5. 配置高德 Web 服务 Key，不使用浏览器 JS Key。
 6. 房源方案二选一：将清洗后的历史数据导入 Supabase，或把 `services/housing-api` 独立部署到可由 Vercel 服务端访问的 HTTPS 环境。`127.0.0.1` 只适用于本机，Vercel 无法访问用户电脑。

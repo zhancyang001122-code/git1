@@ -225,7 +225,10 @@ export async function createRepositories(
   let aiOps = createUnavailableAIOpsRepository();
   if (options.adminClient) {
     aiOps = createSupabaseAIOpsRepository(options.adminClient);
-  } else if (serverConfiguration.SUPABASE_SERVICE_ROLE_KEY) {
+  } else if (
+    serverConfiguration.SUPABASE_SECRET_KEY ||
+    serverConfiguration.SUPABASE_SERVICE_ROLE_KEY
+  ) {
     aiOps = createSupabaseAIOpsRepository(await defaultAdminClient());
   }
 

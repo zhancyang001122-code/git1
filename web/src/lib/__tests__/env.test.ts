@@ -36,12 +36,14 @@ describe("environment contract", () => {
   it("does not expose server secrets through the public parser", () => {
     const value = parsePublicEnv({
       NEXT_PUBLIC_DEMO_MODE: "true",
+      SUPABASE_SECRET_KEY: "sb_secret_server-only",
       SUPABASE_SERVICE_ROLE_KEY: "supabase-secret",
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
       SUPABASE_FALLBACK_TO_DEMO: "true",
     });
 
+    expect(value).not.toHaveProperty("SUPABASE_SECRET_KEY");
     expect(value).not.toHaveProperty("SUPABASE_SERVICE_ROLE_KEY");
     expect(value).not.toHaveProperty("DASHSCOPE_API_KEY");
     expect(value).not.toHaveProperty("AMAP_WEB_SERVICE_KEY");
@@ -49,6 +51,7 @@ describe("environment contract", () => {
 
   it("keeps server credentials in the server parser", () => {
     const value = parseServerEnv({
+      SUPABASE_SECRET_KEY: "sb_secret_preferred",
       SUPABASE_SERVICE_ROLE_KEY: "supabase-secret",
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
@@ -56,6 +59,7 @@ describe("environment contract", () => {
     });
 
     expect(value).toMatchObject({
+      SUPABASE_SECRET_KEY: "sb_secret_preferred",
       SUPABASE_SERVICE_ROLE_KEY: "supabase-secret",
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",

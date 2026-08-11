@@ -71,7 +71,7 @@ Browser
 
 浏览器只允许获得 Supabase Project URL 和 publishable key。以下值必须仅存在于 Vercel Server 环境：
 
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SECRET_KEY`（新版 `sb_secret_`；`SUPABASE_SERVICE_ROLE_KEY` 仅作旧变量名兼容）
 - `DASHSCOPE_API_KEY`
 - `AMAP_WEB_SERVICE_KEY`
 - `ANONYMOUS_COOKIE_SECRET`

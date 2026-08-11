@@ -24,11 +24,13 @@ export function publicSupabaseConfig() {
 
 export function adminSupabaseConfig() {
   const publicConfig = publicSupabaseConfig();
-  const key = serverEnv().SUPABASE_SERVICE_ROLE_KEY;
+  const serverConfig = serverEnv();
+  const key =
+    serverConfig.SUPABASE_SECRET_KEY ?? serverConfig.SUPABASE_SERVICE_ROLE_KEY;
   if (!key)
     throw new AppError({
       code: "SUPABASE_ADMIN_NOT_CONFIGURED",
       message: "Supabase 管理端尚未配置",
     });
-  return { ...publicConfig, serviceRoleKey: key };
+  return { ...publicConfig, secretKey: key };
 }

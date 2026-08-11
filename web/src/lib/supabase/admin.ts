@@ -6,7 +6,7 @@ import { adminSupabaseConfig } from "@/lib/supabase/config";
 
 export function createAdminSupabaseClient() {
   const config = adminSupabaseConfig();
-  return createClient(config.url, config.serviceRoleKey, {
+  return createClient(config.url, config.secretKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 }

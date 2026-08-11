@@ -85,16 +85,19 @@ UI
 ## 8. 密钥和权限
 
 浏览器只允许：
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - 其他 `NEXT_PUBLIC_*` 非密钥配置
 
 服务端专用：
+
+- `SUPABASE_SECRET_KEY`（优先使用新版 `sb_secret_`）
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `DASHSCOPE_API_KEY`
 - `AMAP_WEB_SERVICE_KEY`
 
-所有表启用 RLS。日志不得输出密钥、完整 Prompt、完整用户隐私。
+`SUPABASE_SERVICE_ROLE_KEY` 仅作为旧环境变量名兼容，不得在新部署中使用旧版 service_role JWT。所有表启用 RLS。日志不得输出密钥、完整 Prompt、完整用户隐私。
 
 ## 9. 开发纪律
 

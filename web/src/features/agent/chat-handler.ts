@@ -158,7 +158,10 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
   if (
     !publicConfiguration.NEXT_PUBLIC_SUPABASE_URL ||
     !publicConfiguration.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    !serverConfiguration.SUPABASE_SERVICE_ROLE_KEY
+    !(
+      serverConfiguration.SUPABASE_SECRET_KEY ||
+      serverConfiguration.SUPABASE_SERVICE_ROLE_KEY
+    )
   ) {
     throw new AppError({
       code: "SUPABASE_ADMIN_NOT_CONFIGURED",

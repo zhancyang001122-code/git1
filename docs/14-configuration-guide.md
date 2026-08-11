@@ -16,11 +16,11 @@ pnpm --version
 ## 2. Supabase
 
 1. 创建 Supabase 项目，记录 Project URL 和 publishable key。
-2. 在项目设置中取得 service role key，仅用于服务端。
+2. 在项目设置中取得新版 secret key（`sb_secret_`），仅用于服务端；不要在新部署中使用旧版 service_role JWT。
 3. 使用 Supabase CLI link 项目，按顺序应用根目录 `supabase/migrations/`。
 4. 验证业务种子、知识文章和评测案例存在。
-5. 用 anon key验证可读业务数据、不可写业务表和 AI Ops；用测试用户验证自己的偏好可读写、跨用户不可读。
-6. 将 `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 和 `SUPABASE_SERVICE_ROLE_KEY` 配置到本地/部署环境。
+5. 用 publishable key 验证可读业务数据、不可写业务表和 AI Ops；用测试用户验证自己的偏好可读写、跨用户不可读。
+6. 将 `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 和 `SUPABASE_SECRET_KEY` 配置到本地/部署环境。
 
 RAG embedding 列固定为 1024 维。改模型维度必须创建新迁移、重建 `kb_chunks.embedding` 和索引，不能只改环境变量。
 
@@ -102,6 +102,7 @@ NEXT_PUBLIC_DEMO_MODE=true
 
 服务端专用：
 
+- `SUPABASE_SECRET_KEY`（优先，新版 `sb_secret_`）
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `DASHSCOPE_API_KEY`
 - `AMAP_WEB_SERVICE_KEY`

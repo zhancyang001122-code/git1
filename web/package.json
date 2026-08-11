@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "db:check": "node scripts/validate-migrations.mjs",
+    "db:start": "supabase --workdir .. start --output-format text --agent no",
     "db:verify-rls": "node scripts/verify-rls.mjs",
     "db:verify-http": "node scripts/verify-postgrest-rls.mjs",
     "start": "next start",
@@ -49,6 +50,7 @@
     "jsdom": "^30.0.1",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
+    "supabase": "^2.113.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.10"
