@@ -27,6 +27,9 @@ export const candidateEvidenceSchema = z
     chunkId: uuid,
     title: z.string().trim().max(160).optional(),
     versionLabel: z.string().trim().max(80).optional(),
+    effectiveFrom: isoDate.optional(),
+    excerpt: z.string().trim().max(1_000).optional(),
+    score: z.number().finite().optional(),
   })
   .strict();
 export const candidateInputSchema = z

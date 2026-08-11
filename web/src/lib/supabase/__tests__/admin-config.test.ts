@@ -31,4 +31,12 @@ describe("adminSupabaseConfig", () => {
 
     expect(adminSupabaseConfig().secretKey).toBe("legacy-service-role");
   });
+
+  it("prefers the server-only Supabase URL for admin traffic", () => {
+    configurePublicSupabase();
+    vi.stubEnv("SUPABASE_URL", "http://127.0.0.1:54321");
+    vi.stubEnv("SUPABASE_SECRET_KEY", "sb_secret_local");
+
+    expect(adminSupabaseConfig().url).toBe("http://127.0.0.1:54321");
+  });
 });

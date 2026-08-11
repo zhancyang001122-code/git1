@@ -53,7 +53,7 @@ const feedbackReason = z.enum([
 ]);
 const feedbackSchema = z
   .object({
-    userId: uuid,
+    userId: uuid.nullable(),
     sessionId: uuid,
     messageId: uuid,
     rating: z.enum(["up", "down"]),
@@ -177,7 +177,7 @@ export function createSupabaseAIOpsRepository(
             reason: value.reason ?? null,
             comment: value.comment ?? null,
           },
-          { onConflict: "message_id,user_id" },
+          { onConflict: "message_id" },
         )
         .select(FEEDBACK_COLUMNS)
         .single();

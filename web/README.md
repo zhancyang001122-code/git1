@@ -38,6 +38,7 @@ $env:PLAYWRIGHT_PORT='3310'; pnpm test:e2e
 ```powershell
 pnpm db:check
 pnpm db:verify-rls
+pnpm feedback:verify-local
 ```
 
 `db:verify-http` 需要已配置的 Supabase 测试项目。
@@ -57,6 +58,6 @@ React 页面不直接执行 SQL，不使用 service role 客户端。价格、�
 
 `NEXT_PUBLIC_DEMO_MODE=true`：使用确定性演示数据，UI 显示 Demo 来源，不写远程数据。
 
-`NEXT_PUBLIC_DEMO_MODE=false`：要求完整配置 Supabase、百炼、高德、匿名 Cookie 密钥和管理口令。当前知识运营 Live Runtime 仍保持关闭，需在真实知识材料和数据库发布链完成后才能启用。
+`NEXT_PUBLIC_DEMO_MODE=false`：Supabase、匿名 Cookie 密钥和管理口令可先启用持久化会话、反馈、候选、草稿与审核。没有百炼 Key 时，发布会在任何数据库变更前明确返回 `KNOWLEDGE_INDEXING_NOT_CONFIGURED`；配置百炼后才允许发布、索引和评测。高德能力缺 Key 时同样明确显示未配置，不会伪装为在线结果。
 
 详细步骤见 [deployment.md](docs/deployment.md) 与 [runbook.md](docs/runbook.md)。

@@ -96,11 +96,10 @@ describe("SupabaseAIOpsRepository", () => {
     expect(fake.calls).toHaveLength(0);
   });
 
-  it("upserts one feedback record per user and message", async () => {
-    const userId = "70000000-0000-0000-0000-000000000001";
+  it("upserts one feedback record per message for anonymous sessions", async () => {
     const row = {
       id: "75000000-0000-0000-0000-000000000001",
-      user_id: userId,
+      user_id: null,
       session_id: sessionId,
       message_id: messageId,
       rating: "down",
@@ -110,7 +109,7 @@ describe("SupabaseAIOpsRepository", () => {
     };
     const fake = fakeClient({ data: row });
     await createSupabaseAIOpsRepository(fake.client).upsertFeedback({
-      userId,
+      userId: null,
       sessionId,
       messageId,
       rating: "down",
@@ -120,6 +119,6 @@ describe("SupabaseAIOpsRepository", () => {
 
     expect(
       fake.calls.find((call) => call.method === "upsert")?.args[1],
-    ).toEqual({ onConflict: "message_id,user_id" });
+    ).toEqual({ onConflict: "message_id" });
   });
 });

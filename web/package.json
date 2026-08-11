@@ -12,6 +12,7 @@
     "db:verify-rls": "node scripts/verify-rls.mjs",
     "db:verify-http": "node scripts/verify-postgrest-rls.mjs",
     "auth:verify-local": "node scripts/verify-auth-preferences.mjs",
+    "feedback:verify-local": "node scripts/verify-live-feedback.mjs",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",

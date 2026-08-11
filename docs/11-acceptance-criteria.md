@@ -54,7 +54,7 @@
 - [x] 流式多轮协议、取消、超时和确定性 Demo Provider
 - [ ] 使用用户百炼账号在线验证千问流式多轮和 Function Calling
 - [x] `search_houses` 可查询本机 2024-11 只读历史房源；未配置时明确降级
-- [ ] `search_houses` 查询用户远端 Supabase
+- [x] `search_houses` 查询用户远端 Supabase，并验证 60,202 条 2024-11 历史房源
 - [x] `search_nearby_places` 的 Adapter、fixture 契约和缺 Key 降级
 - [ ] 使用用户高德 Key 在线验证 POI、地理编码和路线
 - [x] Demo `search_knowledge` 返回来源和版本
@@ -80,7 +80,8 @@
 - [x] 候选发布前不可检索
 - [x] Demo Admin 审核发布
 - [x] Demo 发布后索引和评测
-- [ ] Supabase 中持久化完成候选、审核、发布、索引和评测闭环
+- [x] Supabase 持久化候选、草稿、审核、发布、结果和回滚，Live 反馈 API 已完成远端冒烟
+- [ ] 配置千问并用正式材料完成真实索引和评测闭环
 
 ## P1
 
@@ -105,4 +106,4 @@
 2. 带来源的退款规则
 3. 房源 + 超市 + 押金规则组合任务
 
-正式发布仍需完成生产 Auth 配置，并让三个在线业务链路分别通过：Supabase 业务数据、高德位置服务、千问与正式知识检索。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；其余证据和当前阻塞见 `docs/task-reports/2026-08-11-task-12-local-release-readiness.md`。
+远端 Supabase 房源和知识反馈持久化已经通过。正式发布仍需完成生产 Auth 配置，并让高德位置服务、千问与正式知识检索通过在线验证。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；远端知识运营证据见 `docs/task-reports/2026-08-12-live-knowledge-ops.md`。

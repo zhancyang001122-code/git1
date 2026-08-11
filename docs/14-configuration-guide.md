@@ -20,7 +20,7 @@ pnpm --version
 3. 使用 Supabase CLI link 项目，按顺序应用根目录 `supabase/migrations/`。
 4. 验证业务种子、知识文章和评测案例存在。
 5. 用 publishable key 验证可读业务数据、不可写业务表和 AI Ops；用测试用户验证自己的偏好可读写、跨用户不可读。
-6. 将 `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 和 `SUPABASE_SECRET_KEY` 配置到本地/部署环境。
+6. 将 `NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 和 `SUPABASE_SECRET_KEY` 配置到本地/部署环境。需要让服务端管理流量使用独立地址时，可额外设置 `SUPABASE_URL`；未设置时兼容使用公开 URL。
 
 RAG embedding 列固定为 1024 维。改模型维度必须创建新迁移、重建 `kb_chunks.embedding` 和索引，不能只改环境变量。
 
@@ -104,6 +104,7 @@ NEXT_PUBLIC_DEMO_MODE=true
 
 - `SUPABASE_SECRET_KEY`（优先，新版 `sb_secret_`）
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_URL`（可选，仅覆盖服务端管理流量地址）
 - `DASHSCOPE_API_KEY`
 - `AMAP_WEB_SERVICE_KEY`
 - `DEMO_ADMIN_TOKEN`

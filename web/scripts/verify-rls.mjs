@@ -228,13 +228,26 @@ success(
   insert into public.conversation_messages (id, session_id, role, content) values ('${messageId}', '${sessionId}', 'assistant', 'test');
   insert into public.ai_feedback (user_id, session_id, message_id, rating, comment)
   values ('${userA}', '${sessionId}', '${messageId}', 'down', 'first')
-  on conflict (message_id, user_id) do update set comment = excluded.comment;
+  on conflict (message_id) do update set comment = excluded.comment;
   insert into public.ai_feedback (user_id, session_id, message_id, rating, comment)
   values ('${userA}', '${sessionId}', '${messageId}', 'up', 'updated')
-  on conflict (message_id, user_id) do update set rating = excluded.rating, comment = excluded.comment;
+  on conflict (message_id) do update set rating = excluded.rating, comment = excluded.comment;
   select rating || ':' || comment from public.ai_feedback where message_id = '${messageId}';
 `,
   "up:updated",
+);
+
+success(
+  "authenticated user cannot update another user's feedback",
+  `
+  set role authenticated;
+  set "request.jwt.claim.sub" = '${userB}';
+  update public.ai_feedback
+  set comment = 'tampered'
+  where message_id = '${messageId}'
+  returning id;
+`,
+  "",
 );
 
 success(
@@ -248,4 +261,4 @@ success(
   "1",
 );
 
-console.log("RLS verification completed with 16 role-boundary checks.");
+console.log("RLS verification completed with 17 role-boundary checks.");

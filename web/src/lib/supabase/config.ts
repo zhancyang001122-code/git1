@@ -32,5 +32,9 @@ export function adminSupabaseConfig() {
       code: "SUPABASE_ADMIN_NOT_CONFIGURED",
       message: "Supabase 管理端尚未配置",
     });
-  return { ...publicConfig, secretKey: key };
+  return {
+    ...publicConfig,
+    url: serverConfig.SUPABASE_URL ?? publicConfig.url,
+    secretKey: key,
+  };
 }

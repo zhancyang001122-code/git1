@@ -1,10 +1,18 @@
 import { z } from "zod";
 
+import { createSupabaseAIOpsRepository } from "@/features/ai-ops/repository";
+import {
+  ANONYMOUS_SESSION_COOKIE,
+  readAnonymousSessionCookie,
+} from "@/features/conversation/anonymous-session";
 import { findDemoMessage } from "@/features/conversation/demo-message-registry";
+import { createSupabaseConversationRepository } from "@/features/conversation/repository";
+import { createLiveFeedbackRuntime } from "@/features/feedback/live-runtime";
 import { createDemoKnowledgeOpsService } from "@/features/knowledge-ops/demo-store";
+import { createKnowledgeOpsRuntime } from "@/features/knowledge-ops/runtime";
 import type { CandidateInput } from "@/features/knowledge-ops/schemas";
 import { AppError, toPublicError } from "@/lib/errors";
-import { parsePublicEnv } from "@/lib/env";
+import { parsePublicEnv, parseServerEnv } from "@/lib/env";
 import { requestIdFor } from "@/lib/request-id";
 import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
 import {
@@ -84,10 +92,37 @@ const demoFeedback = new Map<string, string>();
 async function defaultRuntime(): Promise<FeedbackRuntime> {
   const configuration = parsePublicEnv(process.env);
   if (!configuration.NEXT_PUBLIC_DEMO_MODE) {
-    throw new AppError({
-      code: "FEEDBACK_LIVE_NOT_CONFIGURED",
-      message: "真实反馈服务尚未配置完成",
-      status: 503,
+    const serverConfiguration = parseServerEnv(process.env);
+    if (!serverConfiguration.ANONYMOUS_COOKIE_SECRET) {
+      throw new AppError({
+        code: "ANONYMOUS_COOKIE_SECRET_MISSING",
+        message: "匿名会话服务尚未配置",
+        status: 503,
+      });
+    }
+    const { cookies } = await import("next/headers");
+    const { createAdminSupabaseClient } = await import("@/lib/supabase/admin");
+    const cookieStore = await cookies();
+    const anonymousId = readAnonymousSessionCookie(
+      cookieStore.get(ANONYMOUS_SESSION_COOKIE)?.value,
+      serverConfiguration.ANONYMOUS_COOKIE_SECRET,
+    );
+    if (!anonymousId) {
+      throw new AppError({
+        code: "FEEDBACK_FORBIDDEN",
+        message: "无法验证当前浏览器的匿名会话",
+        status: 403,
+      });
+    }
+    const adminClient = createAdminSupabaseClient();
+    const knowledgeOps = await createKnowledgeOpsRuntime({
+      supabase: adminClient,
+    });
+    return createLiveFeedbackRuntime({
+      anonymousId,
+      conversations: createSupabaseConversationRepository(adminClient),
+      aiOps: createSupabaseAIOpsRepository(adminClient),
+      knowledgeOps: knowledgeOps.service,
     });
   }
   const service = createDemoKnowledgeOpsService();
