@@ -93,7 +93,8 @@
 - [x] embedding 状态字段和发布后索引流程
 - [ ] 独立 worker 的队列式 embedding
 - [x] 知识运营页的 Demo 评测指标
-- [ ] 可观察趋势和线上质量的生产 RAG 仪表盘
+- [x] service-role RAG 日趋势 RPC、受保护质量视图与 Production 部署
+- [ ] 配置 Production 管理口令并完成受保护 RAG 趋势页在线登录验收
 - [x] 受保护的 Vercel Demo Preview 部署与冒烟；未复用 Production 数据库或密钥
 - [ ] Vercel GitHub Login Connection 与自动部署；当前使用已验证的 CLI 手动部署
 - [x] 单实例错误与耗时统计

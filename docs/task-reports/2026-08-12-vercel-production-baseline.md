@@ -4,13 +4,13 @@
 
 - Vercel project：`xiaozhi-local-life`
 - Production URL：`https://xiaozhi-local-life.vercel.app`
-- Deployment ID：`dpl_BQdQDhN5axsHeq71VWM4SrExbJs3`
+- Deployment ID：`dpl_CqLaji4DBf18a32Tu9goZV1fYNWi`
 - 状态：`READY`
 - 部署模式：Live
 
 Vercel 远端使用 `pnpm@10.14.0` 安装锁定依赖，并完成 Next.js 16.3.0 production build、TypeScript 检查和 42 个页面生成。
 
-2026-08-12 06:43（Asia/Shanghai）重新部署提交 `e45190b`。除远端房源、Live 反馈、知识运营、百炼工具分片、演示知识来源保护及商品参数治理外，还包含 service-role 专用 AI Ops 汇总 RPC、Zod 响应校验和知识运营页概览。
+2026-08-12 06:58（Asia/Shanghai）重新部署提交 `161323b`。除远端房源、Live 反馈、知识运营、百炼工具分片、演示知识来源保护及商品参数治理外，还包含 service-role 专用 AI Ops 汇总、RAG 日趋势 RPC、Zod 响应校验和知识运营页概览。
 
 ## 已配置环境变量
 
@@ -51,7 +51,7 @@ Vercel 远端使用 `pnpm@10.14.0` 安装锁定依赖，并完成 Next.js 16.3.0
 演示知识来源标记保护部署后，最新 Production 版本再次执行完整 Live 公网流程并通过。
 商品参数治理部署后，包含上述两条核心场景的完整 Live 公网流程连续执行两次均通过。
 隔离 Preview 修复部署到 Production 后，完整 Live 公网流程再次通过，证明 Live Proxy 仍刷新 Supabase 会话，历史房源、高德、商品、偏好提案和反馈持久化未回归。
-AI Ops 部署后，远端迁移 `202608120017_ai_ops_dashboard.sql` 已应用；服务端密钥可读取汇总，publishable key 被拒绝。验证时近 7 天真实记录为 24 个会话、23 条 assistant 消息、251315 输入 Token、13875 输出 Token、173 次工具调用和 10 条反馈；RAG 工具运行与评测均为 0，报告保留真实零值。当前 4 个发布版本全部仍标记为 Demo，ready embedding chunk 为 0。
+AI Ops 部署后，远端迁移 `202608120017_ai_ops_dashboard.sql` 已应用；服务端密钥可读取汇总，publishable key 被拒绝。初版把 `queued`、`running` 和终态状态行都计为工具调用，得到误导性的 173。迁移 `202608120018_rag_ops_trend.sql` 将口径纠正为仅统计 `succeeded`、`failed`、`timed_out` 终态，并增加 7 日 RAG 趋势。纠正后近 7 天为 64 次实际工具调用、8 次失败或超时；RAG 工具运行、RAG 评测和趋势候选均为 0，报告保留真实零值。当前 4 个发布版本全部仍标记为 Demo，ready embedding chunk 为 0。
 
 本机网络一度把 `*.vercel.app` 解析到非 Vercel 地址，直连验证失败；未修改系统 DNS 或 `hosts`，改为只让 Playwright 验证进程通过现有 SOCKS5 代理访问。随后完整 Live 健康、移动布局、房源、高德、商品、偏好提案和反馈流程通过。验证器支持可选 `DEPLOYMENT_PROXY_SERVER`，不记录代理凭证。
 
@@ -65,7 +65,7 @@ AI Ops 部署后，远端迁移 `202608120017_ai_ops_dashboard.sql` 已应用；
 
 质量门禁：
 
-- Vitest：111 个测试文件、411 个测试通过。
+- Vitest：111 个测试文件、415 个测试通过。
 - Playwright：47 个通过；真实本机 OTP 和本机 HTTP 房源两个条件测试按配置跳过。
 - ESLint、TypeScript strict 和 Next.js production build 通过。
 
@@ -73,5 +73,6 @@ AI Ops 部署后，远端迁移 `202608120017_ai_ops_dashboard.sql` 已应用；
 
 - `AUTH_ALLOWED_EMAIL` 尚未配置，因此邮箱 OTP 登录继续安全停用；游客 Live 对话不受影响。
 - `DEMO_ADMIN_TOKEN` 尚未配置，因此公网知识运营管理入口不能作为已验收能力演示。
+- RAG 日趋势 RPC、公开密钥拒绝和页面代码已完成远端验证与部署，但受保护页面在线登录仍需配置上述管理口令后验收。
 - 当前预置知识仅为明确标注的演示资料；本报告证明千问、Supabase 房源、高德和反馈链路，不等于正式 RAG 语料、索引与固定评测集已经完成验收。
 - Vercel 项目尚未连接 GitHub Login Connection，Git push 不会自动部署；当前 Production 由已登录 CLI 手动部署并核验。
