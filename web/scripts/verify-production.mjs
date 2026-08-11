@@ -76,7 +76,9 @@ try {
   await expect(
     page.getByRole("link", { name: /查看房源 武林晴川一居室/ }),
   ).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByText(/Demo/).first()).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: "当前为本地确定性演示" }),
+  ).toBeVisible();
 
   if (browserErrors.length > 0) {
     throw new Error(`production browser errors: ${browserErrors.join(" | ")}`);
