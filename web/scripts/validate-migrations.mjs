@@ -28,6 +28,14 @@ const migrations = await Promise.all(
   })),
 );
 
+const historicalHousingMigration = migrations.find((migration) =>
+  migration.name.endsWith("_historical_housing.sql"),
+);
+assert(
+  historicalHousingMigration,
+  "Historical housing migration is missing",
+);
+
 for (const migration of migrations) {
   const normalized = migration.sql.trim().toLowerCase();
   assert(
@@ -45,6 +53,7 @@ for (const migration of migrations) {
 }
 
 const allSql = migrations.map(({ sql }) => sql).join("\n");
+const historicalHousingSql = historicalHousingMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -60,6 +69,95 @@ const rlsTables = new Set(
 );
 const missingRls = createdTables.filter((table) => !rlsTables.has(table));
 assert(missingRls.length === 0, `RLS is missing for: ${missingRls.join(", ")}`);
+
+for (const table of ["housing_dataset_releases", "historical_houses"]) {
+  assert(
+    new RegExp(`create table public\\.${table}\\b`, "i").test(
+      historicalHousingSql,
+    ),
+    `${table} must be created by the historical housing migration`,
+  );
+  assert(
+    new RegExp(
+      `alter table public\\.${table} enable row level security`,
+      "i",
+    ).test(historicalHousingSql),
+    `${table} must enable RLS in its migration`,
+  );
+  assert(
+    !new RegExp(`create policy [^;]+ on public\\.${table}\\b`, "i").test(
+      historicalHousingSql,
+    ),
+    `${table} must remain server-only without client policies`,
+  );
+}
+
+for (const requirement of [
+  {
+    pattern: /create extension if not exists postgis with schema extensions/i,
+    message: "PostGIS must be enabled in the extensions schema",
+  },
+  {
+    pattern:
+      /create index historical_houses_location_idx[\s\S]+using gist\s*\(location\)/i,
+    message: "Historical housing must have a GiST location index",
+  },
+  {
+    pattern: /create index historical_houses_filter_idx[\s\S]+price_monthly/i,
+    message: "Historical housing must have a business filter index",
+  },
+  {
+    pattern:
+      /create or replace function public\.search_historical_houses\s*\(/i,
+    message: "Historical housing search RPC is missing",
+  },
+  {
+    pattern:
+      /create or replace function public\.activate_housing_dataset\s*\(/i,
+    message: "Historical housing activation RPC is missing",
+  },
+  {
+    pattern: /set search_path = ''/i,
+    message: "Historical housing functions must fix search_path",
+  },
+  {
+    pattern: /greatest\s*\(1,\s*least\(p_limit,\s*24\)\)/i,
+    message: "Historical housing RPC must bound p_limit to 1..24",
+  },
+  {
+    pattern: /p_radius_m\s+between\s+100\s+and\s+5000/i,
+    message: "Historical housing RPC must bound radius to 100..5000m",
+  },
+  {
+    pattern: /r\.status\s*=\s*'active'/i,
+    message: "Historical housing RPC must only query the active release",
+  },
+]) {
+  assert(requirement.pattern.test(historicalHousingSql), requirement.message);
+}
+
+for (const role of ["public", "anon", "authenticated"]) {
+  assert(
+    new RegExp(
+      `revoke all on table[\\s\\S]+public\\.housing_dataset_releases[\\s\\S]+public\\.historical_houses[\\s\\S]+from ${role}\\b`,
+      "i",
+    ).test(historicalHousingSql),
+    `Historical housing tables must revoke client access from ${role}`,
+  );
+}
+
+assert(
+  /grant execute on function public\.search_historical_houses\([^;]+\) to service_role/i.test(
+    historicalHousingSql,
+  ),
+  "Historical housing search RPC must be service-role only",
+);
+assert(
+  /grant execute on function public\.activate_housing_dataset\(uuid\)\s+to service_role/i.test(
+    historicalHousingSql,
+  ),
+  "Historical housing activation RPC must be service-role only",
+);
 
 const publicReadTables = [
   "stores",

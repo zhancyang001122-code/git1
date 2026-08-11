@@ -8,6 +8,7 @@
     "build": "next build",
     "db:check": "node scripts/validate-migrations.mjs",
     "db:start": "supabase --workdir .. start --output-format text --agent no",
+    "db:test": "supabase --workdir .. test db",
     "db:verify-rls": "node scripts/verify-rls.mjs",
     "db:verify-http": "node scripts/verify-postgrest-rls.mjs",
     "auth:verify-local": "node scripts/verify-auth-preferences.mjs",
