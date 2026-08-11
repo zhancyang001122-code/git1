@@ -1,4 +1,7 @@
-import type { AIOpsDashboard } from "@/features/ai-ops/dashboard";
+import type {
+  AIOpsDashboard,
+  RAGOpsTrendPoint,
+} from "@/features/ai-ops/dashboard";
 
 type DashboardStatus = "ready" | "demo" | "unavailable";
 
@@ -117,6 +120,95 @@ export function AIOpsOverview({
       <p className="mt-3 text-xs leading-5 text-text-subtle">
         未配置模型价格，不估算人民币成本；Token 是实际记录值，不等于账单金额。
       </p>
+    </section>
+  );
+}
+
+export function RAGOpsTrend({
+  trend,
+  status,
+}: {
+  trend: readonly RAGOpsTrendPoint[] | null;
+  status: DashboardStatus;
+}) {
+  if (status !== "ready" || !trend) {
+    return (
+      <section
+        aria-label="RAG 近 7 天趋势"
+        className="mx-4 mt-4 rounded-card border border-border bg-surface p-4 shadow-card"
+      >
+        <h2 className="text-base font-semibold text-text">RAG 近 7 天趋势</h2>
+        <p className="mt-2 text-sm leading-6 text-text-muted">
+          {status === "demo"
+            ? "Demo 不生成生产 RAG 趋势，避免把预置交互当成线上质量。"
+            : "RAG 趋势暂时不可用；请检查最新数据库迁移和服务端配置。"}
+        </p>
+      </section>
+    );
+  }
+
+  const maxSearches = Math.max(
+    1,
+    ...trend.map((point) => point.knowledgeSearches),
+  );
+  return (
+    <section
+      aria-label="RAG 近 7 天趋势"
+      className="mx-4 mt-4 rounded-feature border border-border bg-surface p-4 shadow-card"
+    >
+      <h2 className="text-lg font-semibold text-text">RAG 近 7 天趋势</h2>
+      <p className="mt-1 text-xs leading-5 text-text-subtle">
+        按北京时间汇总真实终态工具记录；没有调用的日期保留为 0。
+      </p>
+      <ol className="mt-4 space-y-3">
+        {trend.map((point) => {
+          const successRate = percentage(
+            point.knowledgeSuccesses,
+            point.knowledgeSearches,
+          );
+          const width = `${Math.max(
+            point.knowledgeSearches === 0 ? 0 : 6,
+            (point.knowledgeSearches / maxSearches) * 100,
+          )}%`;
+          return (
+            <li
+              key={point.date}
+              aria-label={point.date}
+              className="rounded-card bg-surface-tint p-3"
+            >
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <time dateTime={point.date} className="font-medium text-text">
+                  {point.date.slice(5)}
+                </time>
+                <span className="text-text-muted">
+                  {point.knowledgeSearches} 次检索 · 成功率 {successRate}
+                </span>
+              </div>
+              <div
+                aria-hidden="true"
+                className="mt-2 h-2 overflow-hidden rounded-control bg-page"
+              >
+                <div
+                  className="h-full rounded-control bg-brand"
+                  style={{ width }}
+                />
+              </div>
+              <p className="mt-2 text-xs leading-5 text-text-subtle">
+                零结果 {point.noResultSearches} · 平均耗时{" "}
+                {point.averageDurationMs === null
+                  ? "无样本"
+                  : `${point.averageDurationMs}ms`}{" "}
+                · RAG 反馈 +{point.feedbackUp}/-
+                {point.feedbackDown}
+              </p>
+              <p className="text-xs leading-5 text-text-subtle">
+                RAG 评测 {point.evalPassed}/{point.evalRuns} · 新增知识候选{" "}
+                {point.candidatesCreated}
+              </p>
+            </li>
+          );
+        })}
+      </ol>
     </section>
   );
 }

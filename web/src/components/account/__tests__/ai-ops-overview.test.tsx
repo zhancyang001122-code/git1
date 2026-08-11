@@ -1,8 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { AIOpsOverview } from "@/components/account/ai-ops-overview";
-import type { AIOpsDashboard } from "@/features/ai-ops/dashboard";
+import {
+  AIOpsOverview,
+  RAGOpsTrend,
+} from "@/components/account/ai-ops-overview";
+import type {
+  AIOpsDashboard,
+  RAGOpsTrendPoint,
+} from "@/features/ai-ops/dashboard";
 
 const dashboard: AIOpsDashboard = {
   windowHours: 168,
@@ -45,5 +51,54 @@ describe("AIOpsOverview", () => {
     expect(
       screen.getByText(/Demo 不读取集中式 AI Ops 数据/),
     ).toBeInTheDocument();
+  });
+});
+
+const trend: readonly RAGOpsTrendPoint[] = [
+  {
+    date: "2026-08-10",
+    knowledgeSearches: 0,
+    knowledgeSuccesses: 0,
+    noResultSearches: 0,
+    averageDurationMs: null,
+    feedbackUp: 0,
+    feedbackDown: 0,
+    evalRuns: 0,
+    evalPassed: 0,
+    candidatesCreated: 0,
+  },
+  {
+    date: "2026-08-11",
+    knowledgeSearches: 4,
+    knowledgeSuccesses: 3,
+    noResultSearches: 1,
+    averageDurationMs: 220,
+    feedbackUp: 2,
+    feedbackDown: 1,
+    evalRuns: 3,
+    evalPassed: 2,
+    candidatesCreated: 1,
+  },
+];
+
+describe("RAGOpsTrend", () => {
+  it("renders an accessible real-data daily trend", () => {
+    render(<RAGOpsTrend trend={trend} status="ready" />);
+
+    expect(
+      screen.getByRole("region", { name: "RAG 近 7 天趋势" }),
+    ).toBeInTheDocument();
+    const latest = screen.getByRole("listitem", { name: "2026-08-11" });
+    expect(latest).toHaveTextContent("成功率 75.0%");
+    expect(latest).toHaveTextContent("零结果 1");
+    expect(
+      screen.getByText(/按北京时间汇总真实终态工具记录/),
+    ).toBeInTheDocument();
+  });
+
+  it("does not invent trend data in Demo mode", () => {
+    render(<RAGOpsTrend trend={null} status="demo" />);
+
+    expect(screen.getByText(/Demo 不生成生产 RAG 趋势/)).toBeInTheDocument();
   });
 });

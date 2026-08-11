@@ -1,7 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
 
-import { loadAIOpsDashboard } from "@/features/ai-ops/dashboard";
+import {
+  loadAIOpsDashboard,
+  loadRAGOpsTrend,
+} from "@/features/ai-ops/dashboard";
 
 const row = {
   window_hours: 168,
@@ -27,6 +30,14 @@ const row = {
 function fakeClient(result: { data: unknown; error: unknown }) {
   const single = vi.fn(async () => result);
   const rpc = vi.fn(() => ({ single }));
+  return {
+    client: { rpc } as unknown as SupabaseClient,
+    rpc,
+  };
+}
+
+function fakeListClient(result: { data: unknown; error: unknown }) {
+  const rpc = vi.fn(async () => result);
   return {
     client: { rpc } as unknown as SupabaseClient,
     rpc,
@@ -83,5 +94,52 @@ describe("AI Ops dashboard", () => {
     await expect(loadAIOpsDashboard(fake.client)).rejects.toMatchObject({
       code: "INVALID_AI_OPS_DASHBOARD_DATA",
     });
+  });
+});
+
+describe("RAG Ops trend", () => {
+  it("maps daily server aggregates without loading raw tool payloads", async () => {
+    const fake = fakeListClient({
+      data: [
+        {
+          bucket_date: "2026-08-11",
+          knowledge_searches: 4,
+          knowledge_successes: 3,
+          no_result_searches: 1,
+          avg_duration_ms: 220,
+          feedback_up: 2,
+          feedback_down: 1,
+          eval_runs: 3,
+          eval_passed: 2,
+          candidates_created: 1,
+        },
+      ],
+      error: null,
+    });
+
+    await expect(loadRAGOpsTrend(fake.client, 7)).resolves.toEqual([
+      {
+        date: "2026-08-11",
+        knowledgeSearches: 4,
+        knowledgeSuccesses: 3,
+        noResultSearches: 1,
+        averageDurationMs: 220,
+        feedbackUp: 2,
+        feedbackDown: 1,
+        evalRuns: 3,
+        evalPassed: 2,
+        candidatesCreated: 1,
+      },
+    ]);
+    expect(fake.rpc).toHaveBeenCalledWith("get_rag_ops_trend", { p_days: 7 });
+  });
+
+  it("rejects an invalid trend window before calling Supabase", async () => {
+    const fake = fakeListClient({ data: [], error: null });
+
+    await expect(loadRAGOpsTrend(fake.client, 31)).rejects.toMatchObject({
+      code: "INVALID_RAG_OPS_TREND_INPUT",
+    });
+    expect(fake.rpc).not.toHaveBeenCalled();
   });
 });

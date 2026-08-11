@@ -43,6 +43,10 @@ const aiOpsDashboardMigration = migrations.find((migration) =>
   migration.name.endsWith("_ai_ops_dashboard.sql"),
 );
 assert(aiOpsDashboardMigration, "AI Ops dashboard migration is missing");
+const ragOpsTrendMigration = migrations.find((migration) =>
+  migration.name.endsWith("_rag_ops_trend.sql"),
+);
+assert(ragOpsTrendMigration, "RAG Ops trend migration is missing");
 
 for (const migration of migrations) {
   const normalized = migration.sql.trim().toLowerCase();
@@ -64,6 +68,7 @@ const allSql = migrations.map(({ sql }) => sql).join("\n");
 const historicalHousingSql = historicalHousingMigration.sql;
 const housingImportStatusSql = housingImportStatusMigration.sql;
 const aiOpsDashboardSql = aiOpsDashboardMigration.sql;
+const ragOpsTrendSql = ragOpsTrendMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -227,6 +232,43 @@ for (const requirement of [
   },
 ]) {
   assert(requirement.pattern.test(aiOpsDashboardSql), requirement.message);
+}
+
+for (const requirement of [
+  {
+    pattern:
+      /create or replace function public\.get_ai_ops_dashboard\s*\(p_window_hours integer default 168\)/i,
+    message: "AI Ops dashboard correction RPC is missing",
+  },
+  {
+    pattern: /runs\.status in \('succeeded', 'failed', 'timed_out'\)/i,
+    message: "AI Ops dashboard must count terminal tool runs only",
+  },
+  {
+    pattern:
+      /create or replace function public\.get_rag_ops_trend\s*\(p_days integer default 7\)/i,
+    message: "RAG Ops trend RPC is missing",
+  },
+  {
+    pattern: /greatest\s*\(1,\s*least\(p_days,\s*30\)\)/i,
+    message: "RAG Ops trend must bound its day window",
+  },
+  {
+    pattern: /set search_path = ''/i,
+    message: "RAG Ops trend RPC must fix search_path",
+  },
+  {
+    pattern:
+      /revoke all on function public\.get_rag_ops_trend\(integer\)[\s\S]+from public, anon, authenticated/i,
+    message: "RAG Ops trend must revoke client execution",
+  },
+  {
+    pattern:
+      /grant execute on function public\.get_rag_ops_trend\(integer\)[\s\S]+to service_role/i,
+    message: "RAG Ops trend must be service-role only",
+  },
+]) {
+  assert(requirement.pattern.test(ragOpsTrendSql), requirement.message);
 }
 
 const publicReadTables = [

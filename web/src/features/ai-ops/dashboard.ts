@@ -5,6 +5,7 @@ import { AppError } from "@/lib/errors";
 
 const windowHoursSchema = z.number().int().min(1).max(720);
 const metricSchema = z.coerce.number().int().nonnegative();
+const dayWindowSchema = z.number().int().min(1).max(30);
 const dashboardRowSchema = z.object({
   window_hours: metricSchema,
   generated_at: z.string().datetime({ offset: true }),
@@ -45,6 +46,32 @@ export interface AIOpsDashboard {
   publishedVersions: number;
   demoPublishedVersions: number;
   readyChunks: number;
+}
+
+const ragTrendRowSchema = z.object({
+  bucket_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  knowledge_searches: metricSchema,
+  knowledge_successes: metricSchema,
+  no_result_searches: metricSchema,
+  avg_duration_ms: metricSchema.nullable(),
+  feedback_up: metricSchema,
+  feedback_down: metricSchema,
+  eval_runs: metricSchema,
+  eval_passed: metricSchema,
+  candidates_created: metricSchema,
+});
+
+export interface RAGOpsTrendPoint {
+  date: string;
+  knowledgeSearches: number;
+  knowledgeSuccesses: number;
+  noResultSearches: number;
+  averageDurationMs: number | null;
+  feedbackUp: number;
+  feedbackDown: number;
+  evalRuns: number;
+  evalPassed: number;
+  candidatesCreated: number;
 }
 
 export async function loadAIOpsDashboard(
@@ -105,4 +132,55 @@ export async function loadAIOpsDashboard(
     demoPublishedVersions: row.demo_published_versions,
     readyChunks: row.ready_chunks,
   };
+}
+
+export async function loadRAGOpsTrend(
+  client: SupabaseClient,
+  days = 7,
+): Promise<readonly RAGOpsTrendPoint[]> {
+  const input = dayWindowSchema.safeParse(days);
+  if (!input.success) {
+    throw new AppError({
+      code: "INVALID_RAG_OPS_TREND_INPUT",
+      message: "RAG 趋势窗口必须是 1 至 30 天的整数",
+      status: 400,
+    });
+  }
+
+  const result = await client.rpc("get_rag_ops_trend", {
+    p_days: input.data,
+  });
+  if (result.error) {
+    throw new AppError({
+      code: "RAG_OPS_TREND_QUERY_FAILED",
+      message: "RAG 趋势暂时不可用",
+      status: 503,
+      retryable: true,
+      cause: result.error,
+    });
+  }
+
+  const parsed = z.array(ragTrendRowSchema).safeParse(result.data);
+  if (!parsed.success) {
+    throw new AppError({
+      code: "INVALID_RAG_OPS_TREND_DATA",
+      message: "RAG 趋势返回了无效数据",
+      status: 502,
+      retryable: true,
+      cause: parsed.error,
+    });
+  }
+
+  return parsed.data.map((row) => ({
+    date: row.bucket_date,
+    knowledgeSearches: row.knowledge_searches,
+    knowledgeSuccesses: row.knowledge_successes,
+    noResultSearches: row.no_result_searches,
+    averageDurationMs: row.avg_duration_ms,
+    feedbackUp: row.feedback_up,
+    feedbackDown: row.feedback_down,
+    evalRuns: row.eval_runs,
+    evalPassed: row.eval_passed,
+    candidatesCreated: row.candidates_created,
+  }));
 }
