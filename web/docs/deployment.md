@@ -38,6 +38,8 @@ DEMO_ADMIN_TOKEN=<至少 32 位随机值>
 
 Demo Preview 不需要 Supabase、高德或百炼账号。页面必须持续显示模拟来源，不能对外描述为实时服务。
 
+仓库在没有任何 Preview 环境变量时也必须能够构建和运行；`NEXT_PUBLIC_DEMO_MODE` 默认值就是 `true`。不要为了让 Preview 看起来像 Live 而复制 Production 的 Supabase 管理密钥，那会让预发布测试写入生产数据。需要 Live staging 时，应创建独立的 Supabase 项目和独立外部服务配置。
+
 ## 4. Live 环境准备
 
 1. 创建 Supabase 项目并配置 URL、publishable key、新版 secret key（`sb_secret_`）；禁用不再使用的旧版 anon/service_role keys。
@@ -65,6 +67,17 @@ Demo Preview 不需要 Supabase、高德或百炼账号。页面必须持续显�
 7. 浏览器源码和 Network 响应中不存在服务端密钥。
 
 未配置真实外部服务时，只能完成 Demo Preview 冒烟，不能记录为 Production Live 通过。
+
+受 Vercel Authentication 保护的 Preview 使用自动化 bypass 请求头验证，不关闭部署保护：
+
+```powershell
+$env:DEPLOYMENT_URL='https://your-preview.vercel.app'
+$env:EXPECTED_DEPLOYMENT_MODE='demo'
+$env:VERCEL_AUTOMATION_BYPASS_SECRET='<Vercel automation bypass>'
+pnpm deploy:verify
+```
+
+`VERCEL_AUTOMATION_BYPASS_SECRET` 只能存在于当前进程或受保护的 CI Secret 中。若出现在终端记录、URL 或文件中，立即撤销或重新生成。
 
 ## 6. 二维码与备份视频
 

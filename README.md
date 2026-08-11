@@ -93,6 +93,7 @@ pnpm deploy:verify-production
 - [零基础学习与面试路线](docs/17-beginner-learning-path.md)
 - [验收标准](docs/11-acceptance-criteria.md)
 - [Production Live 部署证据](docs/task-reports/2026-08-12-vercel-production-baseline.md)
+- [受保护 Preview 部署证据](docs/task-reports/2026-08-12-vercel-preview-baseline.md)
 - [面试问答指南](docs/10-interview-guide.md)
 - [Task 10 知识闭环报告](docs/task-reports/2026-08-11-task-10-governed-knowledge-loop.md)
 - [Task 11 安全加固报告](docs/task-reports/2026-08-11-task-11-service-hardening.md)

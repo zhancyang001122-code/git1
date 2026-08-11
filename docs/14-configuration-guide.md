@@ -97,6 +97,17 @@ pnpm deploy:verify-production
 
 该检查要求 Supabase、历史房源、千问和高德都报告 `configured`，并通过“历史房源 + 高德”和“演示商品 + 偏好提案”两条真实多工具对话、来源标识、偏好取消零写入及反馈持久化。它会产生两条测试对话和一条点赞反馈，不应用于高频监控。
 
+Preview 默认不复用 Production 数据库和服务端密钥；未配置独立 staging 后端时保持明确的 Demo 模式。对受 Vercel Authentication 保护的 Preview，可在当前 PowerShell 进程中临时设置自动化 bypass，再运行同一验证器：
+
+```powershell
+$env:DEPLOYMENT_URL='https://your-preview.vercel.app'
+$env:EXPECTED_DEPLOYMENT_MODE='demo'
+$env:VERCEL_AUTOMATION_BYPASS_SECRET='<仅放在当前进程，不写入文件>'
+pnpm deploy:verify
+```
+
+验证器只通过请求头使用 bypass；禁止把它写进 URL、Git 或日志。没有独立 Supabase staging 项目前，不得把 Demo Preview 描述成 Live staging。
+
 ## 7. Demo 与真实模式
 
 ```env

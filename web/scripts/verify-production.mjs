@@ -1,18 +1,32 @@
 import { chromium, expect } from "@playwright/test";
 
 const baseUrl =
-  process.env.PRODUCTION_URL?.trim() || "https://xiaozhi-local-life.vercel.app";
+  process.env.DEPLOYMENT_URL?.trim() ||
+  process.env.PRODUCTION_URL?.trim() ||
+  "https://xiaozhi-local-life.vercel.app";
 const url = new URL(baseUrl);
 if (url.protocol !== "https:") {
-  throw new Error("PRODUCTION_URL must use HTTPS");
+  throw new Error("DEPLOYMENT_URL must use HTTPS");
 }
-const expectedMode = process.env.EXPECTED_PRODUCTION_MODE?.trim() || "demo";
+const expectedMode =
+  process.env.EXPECTED_DEPLOYMENT_MODE?.trim() ||
+  process.env.EXPECTED_PRODUCTION_MODE?.trim() ||
+  "demo";
 if (!new Set(["demo", "live"]).has(expectedMode)) {
-  throw new Error("EXPECTED_PRODUCTION_MODE must be demo or live");
+  throw new Error("EXPECTED_DEPLOYMENT_MODE must be demo or live");
 }
+const protectionBypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim();
+const protectedDeploymentHeaders = protectionBypass
+  ? {
+      "x-vercel-protection-bypass": protectionBypass,
+      "x-vercel-set-bypass-cookie": "true",
+    }
+  : undefined;
 
 const browser = await chromium.launch();
-const healthPage = await browser.newPage();
+const healthPage = await browser.newPage({
+  extraHTTPHeaders: protectedDeploymentHeaders,
+});
 let health;
 for (let attempt = 1; attempt <= 3; attempt += 1) {
   try {
@@ -22,7 +36,7 @@ for (let attempt = 1; attempt <= 3; attempt += 1) {
     });
     if (!response?.ok()) {
       throw new Error(
-        `production health check returned ${response?.status() ?? "no response"}`,
+        `deployment health check returned ${response?.status() ?? "no response"}`,
       );
     }
     health = JSON.parse((await healthPage.locator("body").textContent()) ?? "");
@@ -43,7 +57,7 @@ if (
   )
 ) {
   throw new Error(
-    `production mode disclosure is unexpected: ${JSON.stringify(health)}`,
+    `deployment mode disclosure is unexpected: ${JSON.stringify(health)}`,
   );
 }
 
@@ -57,7 +71,10 @@ async function businessAlertTexts(targetPage) {
     .filter(Boolean);
 }
 
-const page = await browser.newPage({ viewport: { width: 430, height: 932 } });
+const page = await browser.newPage({
+  viewport: { width: 430, height: 932 },
+  extraHTTPHeaders: protectedDeploymentHeaders,
+});
 const browserErrors = [];
 page.on("pageerror", (error) => browserErrors.push(error.message));
 page.on("console", (message) => {
@@ -78,7 +95,7 @@ try {
   const hasOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth,
   );
-  if (hasOverflow) throw new Error("production page has horizontal overflow");
+  if (hasOverflow) throw new Error("deployment page has horizontal overflow");
 
   const searchbox = page.getByRole("searchbox");
   const query =
@@ -116,7 +133,7 @@ try {
     ).toBeVisible({ timeout: 60_000 });
     const alertTexts = await businessAlertTexts(page);
     if (alertTexts.length > 0) {
-      throw new Error(`production UI alerts: ${alertTexts.join(" | ")}`);
+      throw new Error(`deployment UI alerts: ${alertTexts.join(" | ")}`);
     }
     const helpfulButton = page.getByRole("button", { name: "回答有帮助" });
     await expect(helpfulButton).toBeVisible();
@@ -127,6 +144,7 @@ try {
   if (expectedMode === "live") {
     const commercePage = await browser.newPage({
       viewport: { width: 430, height: 932 },
+      extraHTTPHeaders: protectedDeploymentHeaders,
     });
     const commerceErrors = [];
     commercePage.on("pageerror", (error) => commerceErrors.push(error.message));
@@ -174,12 +192,12 @@ try {
       const commerceAlerts = await businessAlertTexts(commercePage);
       if (commerceAlerts.length > 0) {
         throw new Error(
-          `production commerce UI alerts: ${commerceAlerts.join(" | ")}`,
+          `deployment commerce UI alerts: ${commerceAlerts.join(" | ")}`,
         );
       }
       if (commerceErrors.length > 0) {
         throw new Error(
-          `production commerce browser errors: ${commerceErrors.join(" | ")}`,
+          `deployment commerce browser errors: ${commerceErrors.join(" | ")}`,
         );
       }
     } finally {
@@ -188,10 +206,10 @@ try {
   }
 
   if (browserErrors.length > 0) {
-    throw new Error(`production browser errors: ${browserErrors.join(" | ")}`);
+    throw new Error(`deployment browser errors: ${browserErrors.join(" | ")}`);
   }
   console.log(
-    `PASS production ${expectedMode} health, mobile layout, housing, maps, commerce, preference proposal and feedback flow.`,
+    `PASS deployment ${expectedMode} health, mobile layout, housing, maps, commerce, preference proposal and feedback flow.`,
   );
 } finally {
   await browser.close();

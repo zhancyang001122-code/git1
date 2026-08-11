@@ -3,11 +3,16 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { publicEnv } from "@/lib/env";
 import { publicSupabaseConfig } from "@/lib/supabase/config";
 
 export async function updateSupabaseSession(
   request: NextRequest,
 ): Promise<NextResponse> {
+  if (publicEnv().NEXT_PUBLIC_DEMO_MODE) {
+    return NextResponse.next({ request });
+  }
+
   const config = publicSupabaseConfig();
   let response = NextResponse.next({ request });
   const supabase = createServerClient(config.url, config.publishableKey, {
