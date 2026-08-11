@@ -44,6 +44,8 @@ PASS deployment demo health, mobile layout, housing, maps, commerce, preference 
 
 两处修复都先增加失败测试，再实现最小分支；最终 Preview 同时通过 Vercel 构建和受保护浏览器冒烟。
 
+修复随提交 `0542b94` 推送；同一提交随后手动部署到 Production，并通过完整 Live 回归，证明 Demo 分支修复没有破坏 Live 会话刷新。
+
 完整本地质量门同时通过：
 
 - Prettier format check、ESLint、TypeScript strict 和 Next.js production build 通过。
@@ -57,3 +59,7 @@ Preview 保持 Vercel Authentication，不为方便测试而公开。验证脚�
 排查 CLI 自动化访问时，一枚 bypass 曾因 Vercel API 把 secret 作为对象字段名而出现在本地命令输出中；随后一次空 PATCH 又生成了第二枚。处理方式是立即把两枚都视为泄露：撤销临时 secret，并重新生成系统 secret。最终只保留一枚未输出的替代 secret；任何值都未写入 Git、文档或环境文件。
 
 这次事件的工程结论是：脱敏检查不能只检查 JSON value，也必须考虑敏感信息可能出现在 key 中；自动化脚本不应打印原始项目保护配置。
+
+## 仍需账号操作
+
+Vercel 项目尚未建立 GitHub Login Connection。CLI 尝试连接 `zhancyang001122-code/git1` 时被 Vercel 以 400 拒绝，因此 Git push 目前不会自动部署。完成该 OAuth 前继续使用可审计的 `vercel deploy --prod`；连接时应只授权所需仓库，不在无人确认时扩大到所有仓库。

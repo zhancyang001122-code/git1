@@ -95,6 +95,7 @@
 - [x] 知识运营页的 Demo 评测指标
 - [ ] 可观察趋势和线上质量的生产 RAG 仪表盘
 - [x] 受保护的 Vercel Demo Preview 部署与冒烟；未复用 Production 数据库或密钥
+- [ ] Vercel GitHub Login Connection 与自动部署；当前使用已验证的 CLI 手动部署
 - [x] 单实例错误与耗时统计
 - [ ] Token 成本统计和集中可观测平台
 

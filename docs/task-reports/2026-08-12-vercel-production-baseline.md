@@ -4,13 +4,13 @@
 
 - Vercel project：`xiaozhi-local-life`
 - Production URL：`https://xiaozhi-local-life.vercel.app`
-- Deployment ID：`dpl_FhNFDVnH9nGFDzzTUtfiVxNMYrcX`
+- Deployment ID：`dpl_EQTUxD77usdJtf7cUN7pZKxXxFyj`
 - 状态：`READY`
 - 部署模式：Live
 
 Vercel 远端使用 `pnpm@10.14.0` 安装锁定依赖，并完成 Next.js 16.3.0 production build、TypeScript 检查和 42 个页面生成。
 
-2026-08-12 06:08（Asia/Shanghai）重新部署的代码内容与提交 `88de300` 一致，包含远端房源 Adapter、Live 反馈持久化、知识运营 Supabase Runtime、首页搜索参数修复、百炼流式工具分片兼容、演示知识来源保护，以及商品与偏好工具参数治理。
+2026-08-12 06:31（Asia/Shanghai）重新部署的代码与提交 `0542b94` 一致，除远端房源、Live 反馈、知识运营、百炼工具分片、演示知识来源保护及商品参数治理外，还包含无 Supabase 的隔离 Demo Preview 构建与运行时修复，以及支持 Vercel Deployment Protection 请求头的通用部署验证器。
 
 ## 已配置环境变量
 
@@ -50,6 +50,7 @@ Vercel 远端使用 `pnpm@10.14.0` 安装锁定依赖，并完成 Next.js 16.3.0
 兼容修复部署后，同一 Live 公网流程连续执行两次均通过。
 演示知识来源标记保护部署后，最新 Production 版本再次执行完整 Live 公网流程并通过。
 商品参数治理部署后，包含上述两条核心场景的完整 Live 公网流程连续执行两次均通过。
+隔离 Preview 修复部署到 Production 后，完整 Live 公网流程再次通过，证明 Live Proxy 仍刷新 Supabase 会话，历史房源、高德、商品、偏好提案和反馈持久化未回归。
 
 ## 集成故障与修复证据
 
@@ -61,7 +62,7 @@ Vercel 远端使用 `pnpm@10.14.0` 安装锁定依赖，并完成 Next.js 16.3.0
 
 质量门禁：
 
-- Vitest：108 个测试文件、402 个测试通过。
+- Vitest：109 个测试文件、405 个测试通过。
 - Playwright：47 个通过；真实本机 OTP 和本机 HTTP 房源两个条件测试按配置跳过。
 - ESLint、TypeScript strict 和 Next.js production build 通过。
 
@@ -70,3 +71,4 @@ Vercel 远端使用 `pnpm@10.14.0` 安装锁定依赖，并完成 Next.js 16.3.0
 - `AUTH_ALLOWED_EMAIL` 尚未配置，因此邮箱 OTP 登录继续安全停用；游客 Live 对话不受影响。
 - `DEMO_ADMIN_TOKEN` 尚未配置，因此公网知识运营管理入口不能作为已验收能力演示。
 - 当前预置知识仅为明确标注的演示资料；本报告证明千问、Supabase 房源、高德和反馈链路，不等于正式 RAG 语料、索引与固定评测集已经完成验收。
+- Vercel 项目尚未连接 GitHub Login Connection，Git push 不会自动部署；当前 Production 由已登录 CLI 手动部署并核验。
