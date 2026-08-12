@@ -22,6 +22,17 @@ GitHub App 需要对获授权仓库拥有构建、部署状态、Checks、Webhoo
 
 ## Canary 验收
 
-本报告所在的文档提交作为首次 Git-triggered canary。只有在 push 后观察到与该提交 SHA 对应的 Vercel Production deployment、状态为 `READY`、正式别名完成切换，并再次通过 Production Live 回归，才能把自动部署标记为完成。
+首次 Git-triggered canary 已完成：
 
-当前状态：Git 连接已建立，canary 尚待 push 后验证。
+- Git commit：`ea820c28462f89ca184e40bdc17bb1ae05041d9d`
+- Conventional Commit：`docs(deploy): add GitHub auto-deploy canary`
+- Vercel deployment：`dpl_DP1fXV5mwWfN5PLgXq3mprxSTMzc`
+- Source：`git` / `github`
+- Vercel `gitSource.sha` 与本次 Git commit 精确相同
+- Target：`production`
+- 状态：`READY` / `PROMOTED`
+- 正式别名：`https://xiaozhi-local-life.vercel.app`
+
+部署后运行 `pnpm deploy:verify-production`，通过 Live 健康检查、430px 移动布局、历史房源、真实高德地图、演示商业数据、偏好提案确认边界和反馈持久化。
+
+结论：GitHub 单仓库授权、Git 连接、Production 分支映射、`web` Root Directory、Git push 自动构建、Production 提升和部署后回归均已有在线证据。后续默认分支 push 不再依赖本机手工 Vercel 部署。

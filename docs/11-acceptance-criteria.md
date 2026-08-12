@@ -102,7 +102,7 @@
 - [x] service-role RAG 日趋势 RPC、受保护质量视图与 Production 部署
 - [x] Production 使用 256-bit 随机 Sensitive 管理口令；受保护 RAG/AI Ops 页面、Cookie 属性、主动退出和重新保护已在线验收
 - [x] 受保护的 Vercel Demo Preview 部署与冒烟；未复用 Production 数据库或密钥
-- [ ] Vercel GitHub Login Connection 与自动部署；当前使用已验证的 CLI 手动部署
+- [x] Vercel GitHub App 仅授权 `zhancyang001122-code/git1`；默认分支 push 已触发 SHA 精确匹配的 Production 自动部署并通过完整 Live 回归
 - [x] 单实例错误与耗时统计
 - [x] Chat、Feedback、公开 Knowledge Search 和地图直连使用 Supabase 原子共享限流；知识评测共用同一服务端边界且先鉴权后计数；HMAC 客户端摘要、RLS、service-role 专用 RPC 和 Production 写入已验证
 - [x] Auth、偏好、Feedback 和管理 Cookie 写操作执行 Same-Origin 校验；Bearer 管理自动化保持独立，管理登录表单在解析前限制为 4 KiB

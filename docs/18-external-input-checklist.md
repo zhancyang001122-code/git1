@@ -42,7 +42,7 @@
 
 GitHub App 已按最小范围安装，只授权公开仓库 `zhancyang001122-code/git1`，没有授权其他仓库。Vercel 项目已经连接该仓库，Production Branch 为 `codex/housing-http-adapter`，Root Directory 已修正并核验为 `web`。
 
-`docs/task-reports/2026-08-13-vercel-github-connection.md` 所在提交是首次自动部署 canary。只有观察到与该提交 SHA 对应的 Vercel Production deployment 并通过线上回归，才把这一项从“已连接”升级为“自动部署已验收”。
+首次自动部署 canary 已验收：提交 `ea820c2` 触发 GitHub 来源的 Vercel Production deployment `dpl_DP1fXV5mwWfN5PLgXq3mprxSTMzc`，提交 SHA 精确匹配，状态为 `READY` / `PROMOTED`，正式别名完成切换，完整 Production Live 回归通过。详细证据见 `docs/task-reports/2026-08-13-vercel-github-connection.md`。
 
 ## 可以延后的增强项
 
@@ -63,7 +63,7 @@ GitHub App 已按最小范围安装，只授权公开仓库 `zhancyang001122-cod
 1. Production 管理口令（已完成）；
 2. 作品集首方资料与评测（已完成）；
 3. 作者邮箱、域名和 SMTP；
-4. Vercel GitHub OAuth；
+4. Vercel GitHub OAuth（已完成）；
 5. 获得经授权的企业材料后建立独立评测集；
 6. 有企业评测集后再决定是否启用 rerank；
 7. 有真实通知接收人后再接外部告警。
