@@ -100,6 +100,30 @@ describe("environment contract", () => {
       parseServerEnv({ RAG_VECTOR_WEIGHT: "0.8", RAG_TEXT_WEIGHT: "0.3" }),
     ).toThrow();
     expect(() => parseServerEnv({ RAG_RERANK_ENABLED: "true" })).toThrow();
+    expect(() =>
+      parseServerEnv({
+        DASHSCOPE_RERANK_BASE_URL: "https://example.com/compatible-api/v1",
+      }),
+    ).toThrow();
+    expect(() =>
+      parseServerEnv({
+        DASHSCOPE_RERANK_BASE_URL:
+          "http://workspace.cn-beijing.maas.aliyuncs.com/compatible-api/v1",
+      }),
+    ).toThrow();
+    expect(() =>
+      parseServerEnv({
+        DASHSCOPE_RERANK_BASE_URL:
+          "https://workspace.cn-beijing.maas.aliyuncs.com/wrong-path",
+      }),
+    ).toThrow();
+    expect(
+      parseServerEnv({
+        RAG_RERANK_ENABLED: "true",
+        DASHSCOPE_RERANK_BASE_URL:
+          "https://workspace.cn-beijing.maas.aliyuncs.com/compatible-api/v1",
+      }),
+    ).toMatchObject({ RAG_RERANK_ENABLED: true });
   });
 
   it("bounds configurable tool timeouts and rounds", () => {

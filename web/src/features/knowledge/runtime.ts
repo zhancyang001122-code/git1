@@ -52,6 +52,8 @@ export function createKnowledgeRuntime(
   const embeddingClient = new OpenAI({
     apiKey: serverConfiguration.DASHSCOPE_API_KEY,
     baseURL: serverConfiguration.DASHSCOPE_BASE_URL,
+    timeout: serverConfiguration.AI_REQUEST_TIMEOUT_MS,
+    maxRetries: 1,
   });
   const embedding = new QwenEmbeddingProvider({
     client: embeddingClient as unknown as EmbeddingClient,
@@ -66,6 +68,8 @@ export function createKnowledgeRuntime(
     const rerankClient = new OpenAI({
       apiKey: serverConfiguration.DASHSCOPE_API_KEY,
       baseURL: serverConfiguration.DASHSCOPE_RERANK_BASE_URL,
+      timeout: serverConfiguration.TOOL_TIMEOUT_MS,
+      maxRetries: 0,
     });
     reranker = new QwenReranker({
       client: rerankClient as unknown as RerankClient,

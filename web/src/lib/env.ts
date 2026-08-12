@@ -15,6 +15,26 @@ const optionalUrl = z.preprocess(
   z.string().url().optional(),
 );
 
+const optionalDashscopeRerankUrl = z.preprocess(
+  emptyStringToUndefined,
+  z
+    .string()
+    .url()
+    .refine((value) => {
+      const url = new URL(value);
+      return (
+        url.protocol === "https:" &&
+        url.username === "" &&
+        url.password === "" &&
+        /^[a-z0-9-]+\.cn-beijing\.maas\.aliyuncs\.com$/i.test(url.hostname) &&
+        url.pathname.replace(/\/$/, "") === "/compatible-api/v1" &&
+        url.search === "" &&
+        url.hash === ""
+      );
+    }, "必须使用百炼北京工作空间专属 HTTPS compatible-api/v1 地址")
+    .optional(),
+);
+
 const optionalEmail = z.preprocess(
   emptyStringToUndefined,
   z
@@ -110,7 +130,7 @@ const serverEnvSchema = z
     DASHSCOPE_EMBEDDING_MODEL: z.string().min(1).default("text-embedding-v4"),
     DASHSCOPE_EMBEDDING_DIMENSIONS: integerFromString(1024, 1024, 1024),
     DASHSCOPE_RERANK_MODEL: z.string().min(1).default("qwen3-rerank"),
-    DASHSCOPE_RERANK_BASE_URL: optionalUrl,
+    DASHSCOPE_RERANK_BASE_URL: optionalDashscopeRerankUrl,
     DASHSCOPE_PRICING_MODEL: optionalString,
     DASHSCOPE_PRICING_MODE_LABEL: z.preprocess(
       emptyStringToUndefined,

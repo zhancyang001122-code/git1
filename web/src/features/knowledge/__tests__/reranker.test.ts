@@ -48,6 +48,35 @@ describe("QwenReranker", () => {
     });
   });
 
+  it("rejects partial or unsorted responses instead of dropping candidates", async () => {
+    const partial = new QwenReranker({
+      client: {
+        post: vi.fn(async () => ({
+          results: [{ index: 0, relevance_score: 0.9 }],
+        })),
+      },
+      model: "qwen3-rerank",
+    });
+    const unsorted = new QwenReranker({
+      client: {
+        post: vi.fn(async () => ({
+          results: [
+            { index: 0, relevance_score: 0.4 },
+            { index: 1, relevance_score: 0.8 },
+          ],
+        })),
+      },
+      model: "qwen3-rerank",
+    });
+
+    await expect(
+      partial.rerank("退款", ["规则一", "规则二"]),
+    ).rejects.toMatchObject({ code: "RERANK_INVALID_RESPONSE" });
+    await expect(
+      unsorted.rerank("退款", ["规则一", "规则二"]),
+    ).rejects.toMatchObject({ code: "RERANK_INVALID_RESPONSE" });
+  });
+
   it("retries one transient rerank failure", async () => {
     const post = vi
       .fn()

@@ -59,6 +59,8 @@ RAG_FINAL_K=5
 
 配置 Key 后运行 `pnpm external:verify-qwen`，该命令会以最小调用验证流式文本、流式 Function Calling 和 `text-embedding-v4` 的 1024 维输出，不打印 Key。
 
+拿到工作空间专属地址后，先只在本机进程中设置 `DASHSCOPE_RERANK_BASE_URL`，运行 `pnpm external:verify-qwen-rerank`。该脚本会验证完整结果、唯一索引、分数范围与降序，并要求直接回答房源时效问题的段落排在第一位；通过后再把地址写入 Vercel，并设置 `RAG_RERANK_ENABLED=true`。地址必须是 `https://<WorkspaceId>.cn-beijing.maas.aliyuncs.com/compatible-api/v1`，不接受其他域名、HTTP、查询参数或片段，避免 API Key 被错误发送到第三方地址。
+
 ## 4. 高德开放平台
 
 1. 创建 Web 服务应用和 Key，不是浏览器 JS Key。
@@ -81,7 +83,7 @@ RAG_FINAL_K=5
 4. 更新 embedding、model、embedded_at 和状态。
 5. 运行 RAG eval，确认退款、押金、配送、隐私和拒答案例。
 
-`RAG_RERANK_ENABLED=false` 时使用混合融合排序；验证 rerank 模型和预算后再启用。
+`RAG_RERANK_ENABLED=false` 时使用混合融合排序；验证 rerank 模型和预算后再启用。在线返回若缺少候选、索引重复/越界、分数非法或不是降序，整次重排结果作废并回退到混合排序，不能静默丢失候选。
 
 索引入口为 `POST /api/knowledge/index`，请求体只接受 `versionId`，并要求 `Authorization: Bearer <DEMO_ADMIN_TOKEN>`。Token 必须是至少 32 位的随机值，只能放在服务端环境变量或请求头中，禁止放入 URL、浏览器代码或日志。该入口只建立索引，不负责发布知识版本。
 

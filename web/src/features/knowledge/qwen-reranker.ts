@@ -109,10 +109,19 @@ export class QwenReranker implements KnowledgeReranker {
     const indexes = parsed.success
       ? parsed.data.results.map((item) => item.index)
       : [];
+    const sortedDescending = parsed.success
+      ? parsed.data.results.every(
+          (item, index, results) =>
+            index === 0 ||
+            results[index - 1]!.relevance_score >= item.relevance_score,
+        )
+      : false;
     if (
       !parsed.success ||
+      indexes.length !== documents.length ||
       new Set(indexes).size !== indexes.length ||
-      indexes.some((index) => index >= documents.length)
+      indexes.some((index) => index >= documents.length) ||
+      !sortedDescending
     ) {
       throw new AppError({
         code: "RERANK_INVALID_RESPONSE",
