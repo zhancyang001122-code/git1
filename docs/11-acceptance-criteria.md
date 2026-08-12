@@ -60,7 +60,8 @@
 - [x] `search_nearby_places` 的 Adapter、fixture 契约和缺 Key 降级
 - [x] 使用用户高德 Key 在线验证 POI、地理编码和路线
 - [x] Demo `search_knowledge` 返回来源和版本
-- [ ] 使用用户正式资料验证真实检索、Embedding 和引用
+- [x] 使用 4 份作品集首方公开资料验证真实发布、Embedding、检索和引用
+- [ ] 使用经授权的企业客服或制度资料验证客户场景内容质量
 - [x] Demo 至少三类工具组合
 - [x] 工具失败不编造
 - [x] 调试面板显示工具、耗时、来源、结果数
@@ -73,7 +74,8 @@
 - [x] 混合检索 RPC 迁移和测试
 - [x] 21 个 Demo QA 评测样例
 - [x] 无依据拒答
-- [ ] 使用正式材料运行真实检索与生成评测
+- [x] 使用作品集首方公开资料运行 Production 固定评测：20/20 通过；3/3 千问自然问法完成强制取证、事实、版本、首方来源与引用范围检查
+- [ ] 使用经授权的企业资料运行客户场景检索与生成评测
 
 ## P0 知识闭环
 
@@ -84,7 +86,8 @@
 - [x] Demo 发布后索引和评测
 - [x] Supabase 持久化候选、草稿、审核、发布、结果和回滚，Live 反馈 API 已完成远端冒烟
 - [x] 受保护管理页可把人工材料原子录入为 `drafted` 候选，保留来源、负责人、版本号和有效期，且不能绕过审核直接进入检索
-- [ ] 配置千问并用正式材料完成真实索引和评测闭环
+- [x] 配置千问并用作品集首方公开资料完成候选、审核、发布、真实索引和评测闭环
+- [ ] 用经授权的企业资料完成同一知识治理闭环
 
 ## P1
 
@@ -94,7 +97,7 @@
 - [x] 地理编码和步行路线 Adapter 与降级测试
 - [x] 地理编码和步行路线在线调用验证
 - [x] embedding 状态字段和发布后索引流程
-- [x] 独立 Worker 的持久化队列式 embedding：原子入队、租约、`SKIP LOCKED`、退避重试、Vercel Cron 与管理页即时触发均已实现；四个 Demo 版本已完成 Production 真实 Embedding
+- [x] 独立 Worker 的持久化队列式 embedding：原子入队、租约、`SKIP LOCKED`、退避重试、Vercel Cron 与管理页即时触发均已实现；四个 Demo 版本和四份作品集首方资料已完成 Production 真实 Embedding
 - [x] 知识运营页的 Demo 评测指标
 - [x] service-role RAG 日趋势 RPC、受保护质量视图与 Production 部署
 - [x] Production 使用 256-bit 随机 Sensitive 管理口令；受保护 RAG/AI Ops 页面、Cookie 属性、主动退出和重新保护已在线验收
@@ -115,4 +118,4 @@
 2. 带来源的退款规则
 3. 房源 + 超市 + 押金规则组合任务
 
-Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。四个明确标注 Demo 的知识版本已通过独立 Worker 生成真实百炼 Embedding，并在线返回版本化引用；这不等于正式知识材料验收，正式检索仍需用户提供真实材料。AI Ops 已能按线上逐请求 Token 和核验后的 `qwen-plus` 非思考模式公开原价估算人民币成本，但明确排除免费额度、优惠、Embedding 与 Rerank，因此不是阿里云账单。Production 管理页已使用 Sensitive 随机口令完成登录、Cookie 和主动退出验收；生产 Auth 仍需作者邮箱、域名和 SMTP 配置。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；Production 基线见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`；管理会话见 `web/docs/task-reports/2026-08-12-production-admin-session.md`；Worker 证据见 `docs/task-reports/2026-08-12-knowledge-index-worker.md`；成本估算证据见 `web/docs/task-reports/2026-08-12-ai-cost-estimate.md`。
+Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。四份作品集首方公开资料已完成受控发布、真实百炼 Embedding、Production 检索和版本化引用；固定评测 20/20 通过，其中 3/3 千问生成用例通过。该证据证明作品集公开边界的 RAG 链路和内容质量，不等于真实企业客服资料已经交付。AI Ops 已能按线上逐请求 Token 和核验后的 `qwen-plus` 非思考模式公开原价估算人民币成本，但明确排除免费额度、优惠、Embedding 与 Rerank，因此不是阿里云账单。Production 管理页已使用 Sensitive 随机口令完成登录、Cookie 和主动退出验收；生产 Auth 仍需作者邮箱、域名和 SMTP 配置。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；Production 基线见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`；首方 RAG 证据见 `docs/task-reports/2026-08-13-portfolio-first-party-rag.md`；管理会话见 `web/docs/task-reports/2026-08-12-production-admin-session.md`；Worker 证据见 `docs/task-reports/2026-08-12-knowledge-index-worker.md`；成本估算证据见 `web/docs/task-reports/2026-08-12-ai-cost-estimate.md`。
