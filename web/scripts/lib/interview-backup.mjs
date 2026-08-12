@@ -38,6 +38,8 @@ export function buildBackupIndex({
   recordedAt,
   commit,
   productionUrl,
+  screenshotsAvailable = false,
+  qrAvailable = false,
   scenes,
 }) {
   const cards = scenes
@@ -50,6 +52,12 @@ export function buildBackupIndex({
         </article>`,
     )
     .join("");
+  const screenshotItem = screenshotsAvailable
+    ? '<a href="screens/index.html">查看 26 个页面的完整离线截图</a>'
+    : "尚未生成页面截图";
+  const qrItem = qrAvailable
+    ? '<a href="production-qr.png">查看 Production 二维码</a>'
+    : "尚未生成二维码";
   return `<!doctype html>
 <html lang="zh-CN">
   <head>
@@ -65,7 +73,7 @@ export function buildBackupIndex({
       <h1>小智面试离线备份</h1>
       <p class="warning">这是此前成功回归的录屏证据，不代表面试当下网络仍然可用；现场切换到本页时必须明确说明。</p>
       <p>Production：<code>${escapeHtml(productionUrl)}</code><br>录制时间：<code>${escapeHtml(recordedAt)}</code><br>Git commit：<code>${escapeHtml(commit.slice(0, 8))}</code></p>
-      <p><a href="screens/index.html">查看 26 个页面的完整离线截图</a> · <a href="production-qr.png">查看 Production 二维码</a></p>
+      <p>${screenshotItem} · ${qrItem}</p>
     </header>
     <main>${cards}</main>
   </body>

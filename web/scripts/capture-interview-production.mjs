@@ -1,6 +1,6 @@
 import { chromium, expect } from "@playwright/test";
 import { execFileSync } from "node:child_process";
-import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
@@ -32,6 +32,15 @@ assertLiveHealth(await healthResponse.json());
 
 const videosDir = path.join(outputDir, "videos");
 await mkdir(videosDir, { recursive: true });
+
+async function exists(filePath) {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 const browser = await chromium.launch();
 const scenes = [];
@@ -159,9 +168,20 @@ const commit = execFileSync("git", ["rev-parse", "HEAD"], {
   encoding: "utf8",
 }).trim();
 const recordedAt = new Date().toISOString();
+const screenshotsAvailable = await exists(
+  path.join(outputDir, "screens", "index.html"),
+);
+const qrAvailable = await exists(path.join(outputDir, "production-qr.png"));
 await writeFile(
   path.join(outputDir, "index.html"),
-  buildBackupIndex({ recordedAt, commit, productionUrl, scenes }),
+  buildBackupIndex({
+    recordedAt,
+    commit,
+    productionUrl,
+    screenshotsAvailable,
+    qrAvailable,
+    scenes,
+  }),
   "utf8",
 );
 await writeFile(

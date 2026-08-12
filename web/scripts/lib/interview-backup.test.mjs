@@ -60,6 +60,8 @@ describe("interview backup evidence", () => {
       recordedAt: "2026-08-13T04:00:00.000Z",
       commit: "abcdef1234567890",
       productionUrl: PRODUCTION_INTERVIEW_URL,
+      screenshotsAvailable: true,
+      qrAvailable: true,
       scenes: [
         {
           title: "历史房源 + 高德",
@@ -73,5 +75,23 @@ describe("interview backup evidence", () => {
     expect(html).toContain("不代表面试当下网络仍然可用");
     expect(html).toContain("abcdef12");
     expect(html).toContain("01-housing-amap.webm");
+    expect(html).toContain('href="screens/index.html"');
+    expect(html).toContain('href="production-qr.png"');
+  });
+
+  it("does not advertise backup artifacts that were not generated", () => {
+    const html = buildBackupIndex({
+      recordedAt: "2026-08-13T04:00:00.000Z",
+      commit: "abcdef1234567890",
+      productionUrl: PRODUCTION_INTERVIEW_URL,
+      screenshotsAvailable: false,
+      qrAvailable: false,
+      scenes: [],
+    });
+
+    expect(html).not.toContain('href="screens/index.html"');
+    expect(html).not.toContain('href="production-qr.png"');
+    expect(html).toContain("尚未生成页面截图");
+    expect(html).toContain("尚未生成二维码");
   });
 });
