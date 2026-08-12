@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import {
+  ApiRouteLog,
   OperationalAlerts,
   ToolRunLog,
 } from "@/components/account/ai-ops-monitoring";
@@ -86,5 +87,42 @@ describe("ToolRunLog", () => {
     render(<ToolRunLog status="unavailable" entries={null} filters={{}} />);
 
     expect(screen.getByText(/工具审计暂时不可用/)).toBeInTheDocument();
+  });
+});
+
+describe("ApiRouteLog", () => {
+  it("renders safe cross-instance route metadata", () => {
+    render(
+      <ApiRouteLog
+        status="ready"
+        filters={{ method: "POST", statusClass: 5 }}
+        entries={[
+          {
+            id: "75000000-0000-4000-8000-000000000001",
+            routeKey: "/api/maps/nearby",
+            method: "POST",
+            statusCode: 502,
+            durationMs: 320,
+            requestId: "76000000-0000-4000-8000-000000000001",
+            errorCode: "AMAP_UPSTREAM_FAILED",
+            createdAt: "2026-08-12T00:00:00.000Z",
+          },
+        ]}
+      />,
+    );
+
+    expect(
+      screen.getByRole("form", { name: "API 日志筛选" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("/api/maps/nearby")).toBeInTheDocument();
+    expect(screen.getByText(/AMAP_UPSTREAM_FAILED/)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/request_body|cookie|authorization/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not invent centralized API logs in Demo mode", () => {
+    render(<ApiRouteLog status="demo" entries={null} filters={{}} />);
+    expect(screen.getByText(/Demo 不读取集中式API 日志/)).toBeInTheDocument();
   });
 });

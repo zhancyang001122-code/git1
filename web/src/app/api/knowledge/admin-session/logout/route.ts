@@ -6,6 +6,7 @@ import {
   knowledgeAdminCookieOptions,
 } from "@/features/knowledge-ops/admin-session";
 import { apiErrorResponse } from "@/lib/api-error-response";
+import { observeRoute } from "@/lib/route-observability";
 import { requestIdFor } from "@/lib/request-id";
 
 export function createKnowledgeAdminLogoutHandler(
@@ -40,4 +41,7 @@ export function createKnowledgeAdminLogoutHandler(
   };
 }
 
-export const POST = createKnowledgeAdminLogoutHandler();
+export const POST = observeRoute(
+  "/api/knowledge/admin-session/logout",
+  createKnowledgeAdminLogoutHandler(),
+);

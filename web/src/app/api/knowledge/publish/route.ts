@@ -7,6 +7,7 @@ import type { KnowledgeOpsRuntime } from "@/features/knowledge-ops/runtime";
 import { publishInputSchema } from "@/features/knowledge-ops/schemas";
 import { AppError } from "@/lib/errors";
 import { requestIdFor } from "@/lib/request-id";
+import { observeRoute } from "@/lib/route-observability";
 import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
 import {
   createFixedWindowRateLimiter,
@@ -49,4 +50,7 @@ export function createKnowledgePublishHandler(
   };
 }
 
-export const POST = createKnowledgePublishHandler();
+export const POST = observeRoute(
+  "/api/knowledge/publish",
+  createKnowledgePublishHandler(),
+);

@@ -8,6 +8,7 @@ import {
   knowledgeAdminCookieOptions,
 } from "@/features/knowledge-ops/admin-session";
 import { apiErrorResponse } from "@/lib/api-error-response";
+import { observeRoute } from "@/lib/route-observability";
 import { readTextWithLimit } from "@/lib/api-security";
 import { parseServerEnv } from "@/lib/env";
 import { AppError } from "@/lib/errors";
@@ -69,4 +70,7 @@ export function createKnowledgeAdminSessionHandler(
   };
 }
 
-export const POST = createKnowledgeAdminSessionHandler();
+export const POST = observeRoute(
+  "/api/knowledge/admin-session",
+  createKnowledgeAdminSessionHandler(),
+);

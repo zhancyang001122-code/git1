@@ -3,19 +3,23 @@ import {
   RAGOpsTrend,
 } from "@/components/account/ai-ops-overview";
 import {
+  ApiRouteLog,
   OperationalAlerts,
   ToolRunLog,
 } from "@/components/account/ai-ops-monitoring";
 import { KnowledgeAdminList } from "@/components/account/knowledge-admin-experiences";
 import { DetailShell } from "@/components/layout/detail-shell";
 import {
+  apiRouteLogFiltersFromSearchParams,
   loadAIOpsDashboard,
   loadAIModelUsage,
+  loadApiRouteLogs,
   loadOperationalAlerts,
   loadRAGOpsTrend,
   loadToolRunLogs,
   toolRunLogFiltersFromSearchParams,
   type AIOpsDashboard,
+  type ApiRouteLogEntry,
   type OperationalAlert,
   type RAGOpsTrendPoint,
   type ToolRunLogEntry,
@@ -39,10 +43,14 @@ export default async function Page({
   searchParams: Promise<{
     toolStatus?: string | string[];
     toolName?: string | string[];
+    routeMethod?: string | string[];
+    routeStatus?: string | string[];
   }>;
 }) {
   await requireKnowledgeAdminPage();
-  const toolRunFilters = toolRunLogFiltersFromSearchParams(await searchParams);
+  const params = await searchParams;
+  const toolRunFilters = toolRunLogFiltersFromSearchParams(params);
+  const apiRouteFilters = apiRouteLogFiltersFromSearchParams(params);
   const runtime = await createKnowledgeOpsRuntime();
   const candidates = await runtime.service.listCandidates();
   let dashboard: AIOpsDashboard | null = null;
@@ -50,11 +58,13 @@ export default async function Page({
   let costEstimate: AIModelCostEstimate | null = null;
   let alerts: readonly OperationalAlert[] | null = null;
   let toolRunLogs: readonly ToolRunLogEntry[] | null = null;
+  let apiRouteLogs: readonly ApiRouteLogEntry[] | null = null;
   let dashboardStatus: "ready" | "demo" | "unavailable" =
     runtime.mode === "demo" ? "demo" : "unavailable";
   let trendStatus: "ready" | "demo" | "unavailable" = dashboardStatus;
   let alertsStatus: "ready" | "demo" | "unavailable" = dashboardStatus;
   let toolRunLogsStatus: "ready" | "demo" | "unavailable" = dashboardStatus;
+  let apiRouteLogsStatus: "ready" | "demo" | "unavailable" = dashboardStatus;
   if (runtime.mode === "live") {
     const client = createAdminSupabaseClient();
     const [
@@ -63,12 +73,14 @@ export default async function Page({
       usageResult,
       alertsResult,
       logsResult,
+      routeLogsResult,
     ] = await Promise.allSettled([
       loadAIOpsDashboard(client),
       loadRAGOpsTrend(client),
       loadAIModelUsage(client),
       loadOperationalAlerts(client),
       loadToolRunLogs(client, toolRunFilters),
+      loadApiRouteLogs(client, apiRouteFilters),
     ]);
     if (dashboardResult.status === "fulfilled") {
       dashboard = dashboardResult.value;
@@ -132,6 +144,18 @@ export default async function Page({
             : "UNKNOWN_TOOL_LOG_ERROR",
       });
     }
+    if (routeLogsResult.status === "fulfilled") {
+      apiRouteLogs = routeLogsResult.value;
+      apiRouteLogsStatus = "ready";
+    } else {
+      logger.warn("api_ops.route_logs_unavailable", {
+        requestId: crypto.randomUUID(),
+        errorCode:
+          routeLogsResult.reason instanceof AppError
+            ? routeLogsResult.reason.code
+            : "UNKNOWN_API_ROUTE_LOG_ERROR",
+      });
+    }
   }
   return (
     <DetailShell title="知识运营演示" backHref="/me">
@@ -156,6 +180,11 @@ export default async function Page({
         entries={toolRunLogs}
         filters={toolRunFilters}
         status={toolRunLogsStatus}
+      />
+      <ApiRouteLog
+        entries={apiRouteLogs}
+        filters={apiRouteFilters}
+        status={apiRouteLogsStatus}
       />
       <KnowledgeAdminList
         candidates={candidates}

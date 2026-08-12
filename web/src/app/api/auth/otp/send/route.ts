@@ -8,6 +8,7 @@ import { otpSendSchema } from "@/features/auth/schemas";
 import { apiErrorResponse, noStoreHeaders } from "@/lib/api-error-response";
 import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
 import { AppError } from "@/lib/errors";
+import { observeRoute } from "@/lib/route-observability";
 import {
   createFixedWindowRateLimiter,
   type RateLimitResult,
@@ -88,4 +89,4 @@ export function createOtpSendHandler(options: OtpSendHandlerOptions = {}) {
   };
 }
 
-export const POST = createOtpSendHandler();
+export const POST = observeRoute("/api/auth/otp/send", createOtpSendHandler());

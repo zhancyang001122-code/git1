@@ -8,6 +8,7 @@ import { rollbackInputSchema } from "@/features/knowledge-ops/schemas";
 import { readJsonWithLimit } from "@/lib/api-security";
 import { AppError } from "@/lib/errors";
 import { requestIdFor } from "@/lib/request-id";
+import { observeRoute } from "@/lib/route-observability";
 
 export function createKnowledgeRollbackHandler(
   runtimeFactory: () => Promise<KnowledgeOpsRuntime> = createKnowledgeOpsRuntime,
@@ -38,4 +39,7 @@ export function createKnowledgeRollbackHandler(
   };
 }
 
-export const POST = createKnowledgeRollbackHandler();
+export const POST = observeRoute(
+  "/api/knowledge/rollback",
+  createKnowledgeRollbackHandler(),
+);

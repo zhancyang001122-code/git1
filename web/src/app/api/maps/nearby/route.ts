@@ -10,6 +10,7 @@ import { createEnvironmentFixedWindowRateLimiter } from "@/lib/distributed-rate-
 import { AppError, toPublicError } from "@/lib/errors";
 import { requestClientKey, type RateLimiter } from "@/lib/rate-limit";
 import { requestIdFor } from "@/lib/request-id";
+import { observeRoute } from "@/lib/route-observability";
 
 type MapsRuntimeFactory = () => Promise<MapsRuntime> | MapsRuntime;
 
@@ -24,7 +25,10 @@ function errorResponse(error: unknown, requestId: string): Response {
   const status = error instanceof AppError ? error.status : 500;
   return Response.json(
     { error: normalized },
-    { status, headers: { "x-request-id": requestId } },
+    {
+      status,
+      headers: { "x-error-code": normalized.code, "x-request-id": requestId },
+    },
   );
 }
 
@@ -119,4 +123,4 @@ export function createNearbyMapsHandler(
   };
 }
 
-export const POST = createNearbyMapsHandler();
+export const POST = observeRoute("/api/maps/nearby", createNearbyMapsHandler());

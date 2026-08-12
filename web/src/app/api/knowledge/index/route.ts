@@ -7,6 +7,7 @@ import { AppError, toPublicError } from "@/lib/errors";
 import { postgresUuidSchema } from "@/lib/database-id";
 import { parseServerEnv } from "@/lib/env";
 import { requestIdFor } from "@/lib/request-id";
+import { observeRoute } from "@/lib/route-observability";
 import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
 import {
   createFixedWindowRateLimiter,
@@ -36,11 +37,16 @@ async function defaultRuntime(): Promise<IndexRuntime> {
 
 function errorResponse(error: unknown, requestId: string): Response {
   const status = error instanceof AppError ? error.status : 500;
+  const normalized = toPublicError(error, requestId);
   return Response.json(
-    { error: toPublicError(error, requestId) },
+    { error: normalized },
     {
       status,
-      headers: { "cache-control": "no-store", "x-request-id": requestId },
+      headers: {
+        "cache-control": "no-store",
+        "x-error-code": normalized.code,
+        "x-request-id": requestId,
+      },
     },
   );
 }
@@ -92,4 +98,7 @@ export function createKnowledgeIndexHandler(
   };
 }
 
-export const POST = createKnowledgeIndexHandler();
+export const POST = observeRoute(
+  "/api/knowledge/index",
+  createKnowledgeIndexHandler(),
+);

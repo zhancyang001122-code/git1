@@ -63,6 +63,7 @@ export function rateLimitResponse(
       headers: {
         "cache-control": "no-store",
         "retry-after": String(result.retryAfterSeconds),
+        "x-error-code": error.code,
         "x-request-id": requestId,
       },
     },

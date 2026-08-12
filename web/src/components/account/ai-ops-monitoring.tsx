@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import type {
+  ApiRouteLogEntry,
+  ApiRouteLogFilters,
   OperationalAlert,
   ToolRunLogEntry,
   ToolRunLogFilters,
@@ -216,6 +218,144 @@ export function ToolRunLog({
                 来源 {entry.sourceLabel ?? "未标注"} · 耗时{" "}
                 {entry.durationMs ?? "—"}
                 {entry.durationMs === null ? "" : "ms"}
+              </p>
+              {entry.errorCode ? (
+                <p className="text-xs leading-5 text-danger">
+                  错误码 {entry.errorCode}
+                </p>
+              ) : null}
+              <p className="break-all text-xs leading-5 text-text-subtle">
+                requestId {entry.requestId}
+              </p>
+              <time
+                dateTime={entry.createdAt}
+                className="text-xs leading-5 text-text-subtle"
+              >
+                {new Date(entry.createdAt).toLocaleString("zh-CN", {
+                  timeZone: "Asia/Shanghai",
+                  hour12: false,
+                })}
+              </time>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
+}
+
+export function ApiRouteLog({
+  entries,
+  filters,
+  status,
+}: {
+  entries: readonly ApiRouteLogEntry[] | null;
+  filters: ApiRouteLogFilters;
+  status: MonitoringStatus;
+}) {
+  if (status !== "ready" || !entries) {
+    return (
+      <section
+        aria-label="跨实例 API 日志"
+        className="mx-4 mt-4 rounded-card border border-border bg-surface p-4 shadow-card"
+      >
+        <h2 className="text-base font-semibold text-text">跨实例 API 日志</h2>
+        <p className="mt-2 text-sm leading-6 text-text-muted">
+          {unavailableMessage(status, "API 日志")}
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section
+      aria-label="跨实例 API 日志"
+      className="mx-4 mt-4 rounded-feature border border-border bg-surface p-4 shadow-card"
+    >
+      <h2 className="text-lg font-semibold text-text">跨实例 API 日志</h2>
+      <p className="mt-1 text-xs leading-5 text-text-subtle">
+        汇总所有 Vercel
+        实例的路由、状态和耗时；不记录查询参数、正文、Cookie、Authorization、IP
+        或响应正文。
+      </p>
+
+      <form
+        aria-label="API 日志筛选"
+        action="/knowledge-admin"
+        method="get"
+        className="mt-4 grid gap-3 rounded-card bg-surface-tint p-3"
+      >
+        <label className="text-xs text-text-muted">
+          方法
+          <select
+            name="routeMethod"
+            defaultValue={filters.method ?? ""}
+            className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-3 text-sm text-text"
+          >
+            <option value="">全部方法</option>
+            {(["GET", "POST", "PUT", "PATCH", "DELETE"] as const).map(
+              (method) => (
+                <option key={method} value={method}>
+                  {method}
+                </option>
+              ),
+            )}
+          </select>
+        </label>
+        <label className="text-xs text-text-muted">
+          状态
+          <select
+            name="routeStatus"
+            defaultValue={filters.statusClass ?? ""}
+            className="mt-1 min-h-11 w-full rounded-control border border-border bg-surface px-3 text-sm text-text"
+          >
+            <option value="">全部状态</option>
+            <option value="2">2xx 成功</option>
+            <option value="3">3xx 重定向</option>
+            <option value="4">4xx 客户端错误</option>
+            <option value="5">5xx 服务端错误</option>
+          </select>
+        </label>
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            className="min-h-11 flex-1 rounded-control bg-brand px-3 text-sm font-semibold text-white"
+          >
+            查询
+          </button>
+          <Link
+            href="/knowledge-admin"
+            className="inline-flex min-h-11 flex-1 items-center justify-center rounded-control border border-border bg-surface px-3 text-sm text-text-muted"
+          >
+            清除筛选
+          </Link>
+        </div>
+      </form>
+
+      {entries.length === 0 ? (
+        <p className="mt-4 text-sm text-text-muted">当前筛选条件没有记录。</p>
+      ) : (
+        <ol className="mt-4 space-y-3">
+          {entries.map((entry) => (
+            <li key={entry.id} className="rounded-card bg-surface-tint p-3">
+              <div className="flex items-center justify-between gap-3">
+                <code className="break-all text-xs font-medium text-text">
+                  {entry.routeKey}
+                </code>
+                <span
+                  className={`text-xs font-medium ${
+                    entry.statusCode >= 500
+                      ? "text-danger"
+                      : entry.statusCode >= 400
+                        ? "text-warning"
+                        : "text-success"
+                  }`}
+                >
+                  {entry.method} {entry.statusCode}
+                </span>
+              </div>
+              <p className="mt-2 text-xs leading-5 text-text-muted">
+                耗时 {entry.durationMs}ms
               </p>
               {entry.errorCode ? (
                 <p className="text-xs leading-5 text-danger">

@@ -8,6 +8,7 @@ import { assertSameOrigin } from "@/features/auth/same-origin";
 import { otpVerifySchema } from "@/features/auth/schemas";
 import { apiErrorResponse, noStoreHeaders } from "@/lib/api-error-response";
 import { readJsonWithLimit } from "@/lib/api-security";
+import { observeRoute } from "@/lib/route-observability";
 import { AppError } from "@/lib/errors";
 import { requestIdFor } from "@/lib/request-id";
 import { serverEnv } from "@/lib/env";
@@ -64,4 +65,7 @@ export function createOtpVerifyHandler(options: OtpVerifyHandlerOptions = {}) {
   };
 }
 
-export const POST = createOtpVerifyHandler();
+export const POST = observeRoute(
+  "/api/auth/otp/verify",
+  createOtpVerifyHandler(),
+);

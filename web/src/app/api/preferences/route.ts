@@ -8,6 +8,7 @@ import { apiErrorResponse, noStoreHeaders } from "@/lib/api-error-response";
 import { readJsonWithLimit } from "@/lib/api-security";
 import { AppError } from "@/lib/errors";
 import { requestIdFor } from "@/lib/request-id";
+import { observeRoute } from "@/lib/route-observability";
 
 export type { PreferencesApiRuntime } from "@/features/preferences/runtime";
 
@@ -76,5 +77,5 @@ export function createPreferencesHandlers(
 }
 
 const handlers = createPreferencesHandlers();
-export const GET = handlers.GET;
-export const PATCH = handlers.PATCH;
+export const GET = observeRoute("/api/preferences", handlers.GET);
+export const PATCH = observeRoute("/api/preferences", handlers.PATCH);

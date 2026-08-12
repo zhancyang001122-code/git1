@@ -1,16 +1,23 @@
 import { getServiceConfiguration } from "@/lib/env";
 import { requestIdFor } from "@/lib/request-id";
+import { observeRoute } from "@/lib/route-observability";
 
-export function GET(request?: Request): Response {
-  const configuration = getServiceConfiguration();
-  const requestId = request ? requestIdFor(request) : crypto.randomUUID();
+export function createHealthHandler() {
+  return function GET(request: Request): Response {
+    const configuration = getServiceConfiguration();
+    const requestId = requestIdFor(request);
 
-  return Response.json(
-    {
-      app: "xiaozhi",
-      mode: configuration.mode,
-      services: configuration.services,
-    },
-    { headers: { "cache-control": "no-store", "x-request-id": requestId } },
-  );
+    return Response.json(
+      {
+        app: "xiaozhi",
+        mode: configuration.mode,
+        services: configuration.services,
+      },
+      {
+        headers: { "cache-control": "no-store", "x-request-id": requestId },
+      },
+    );
+  };
 }
+
+export const GET = observeRoute("/api/health", createHealthHandler());

@@ -43,9 +43,11 @@ chat -> model -> tool -> external API -> response
 
 禁止记录密钥、完整系统 Prompt、未脱敏隐私。
 
-当前实现提供进程内聚合耗时指标、JSON 结构化日志，以及由 Supabase `get_ai_ops_dashboard`、`get_rag_ops_trend` 和 `get_ai_model_usage` RPC 生成的持久化汇总。`search_ai_tool_run_logs` 可以跨 Vercel 实例按终态和工具名检索安全审计元数据，但刻意不返回 `input_json`、`output_summary`、对话正文或 Prompt。`get_ai_ops_alerts` 集中计算四类阈值状态；RPC 只向 `service_role` 授权。受保护的知识运营页展示 Token、终态工具失败率、反馈、评测、知识库存、RAG 日趋势、逐请求分档的 `qwen-plus` 公开原价估算、站内告警和工具审计。
+当前实现提供进程内聚合耗时指标、JSON 结构化日志，以及由 Supabase `get_ai_ops_dashboard`、`get_rag_ops_trend` 和 `get_ai_model_usage` RPC 生成的持久化汇总。`search_ai_tool_run_logs` 可以跨 Vercel 实例按终态和工具名检索安全审计元数据，但刻意不返回 `input_json`、`output_summary`、对话正文或 Prompt。21 个 API Route 文件中的 23 个方法统一经过 `observeRoute()`，用 Next.js `after()` 在响应完成后向 `api_route_logs` 写入路由静态键、HTTP 方法、状态码、耗时、`requestId` 和稳定错误码；不记录 URL 查询参数、请求正文、Cookie、Authorization、IP、响应正文或异常详情。自动覆盖测试会阻止未包装的新 Route 合入。`search_api_route_logs` 只允许按 HTTP 方法、状态类和最多 50 条记录查询。两张审计表和两个查询 RPC 均只向 `service_role` 授权。
 
-这仍不是完整企业监控：当前没有跨实例的全部 Route 日志检索、首 Token P95、单会话成本告警，也没有短信、飞书、Slack、邮件或 PagerDuty 外发、事故认领和值班升级。因此验收清单继续把“完整告警平台”保留为未完成项。
+`get_ai_ops_alerts` 集中计算四类阈值状态。受保护的知识运营页展示 Token、终态工具失败率、反馈、评测、知识库存、RAG 日趋势、逐请求分档的 `qwen-plus` 公开原价估算、站内告警、工具审计和 API Route 日志。审计持久化采用 fail-open：写日志失败会输出不含异常详情的稳定告警，但不会把原本成功的用户请求改成失败。
+
+这仍不是完整企业监控：当前没有首 Token P95、单会话成本告警，也没有短信、飞书、Slack、邮件或 PagerDuty 外发、事故认领和值班升级。因此验收清单继续把“完整主动告警平台”保留为未完成项。
 
 ## 企业告警
 

@@ -8,6 +8,7 @@ import { createEnvironmentFixedWindowRateLimiter } from "@/lib/distributed-rate-
 import { AppError, toPublicError } from "@/lib/errors";
 import { requestClientKey, type RateLimiter } from "@/lib/rate-limit";
 import { requestIdFor } from "@/lib/request-id";
+import { observeRoute } from "@/lib/route-observability";
 
 const knowledgeSearchRateLimiter = createEnvironmentFixedWindowRateLimiter({
   scope: "knowledge_search_ip",
@@ -29,11 +30,16 @@ type RuntimeFactory = () => Promise<KnowledgeService>;
 
 function errorResponse(error: unknown, requestId: string): Response {
   const status = error instanceof AppError ? error.status : 500;
+  const normalized = toPublicError(error, requestId);
   return Response.json(
-    { error: toPublicError(error, requestId) },
+    { error: normalized },
     {
       status,
-      headers: { "cache-control": "no-store", "x-request-id": requestId },
+      headers: {
+        "cache-control": "no-store",
+        "x-error-code": normalized.code,
+        "x-request-id": requestId,
+      },
     },
   );
 }
@@ -69,4 +75,7 @@ export function createKnowledgeSearchHandler(
   };
 }
 
-export const POST = createKnowledgeSearchHandler();
+export const POST = observeRoute(
+  "/api/knowledge/search",
+  createKnowledgeSearchHandler(),
+);

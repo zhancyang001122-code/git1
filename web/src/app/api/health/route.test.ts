@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { GET } from "./route";
+import { createHealthHandler } from "./route";
+
+const GET = createHealthHandler();
+const request = () => new Request("http://localhost/api/health");
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -10,7 +13,7 @@ describe("GET /api/health", () => {
   it("reports demo mode without contacting external services", async () => {
     vi.stubEnv("NEXT_PUBLIC_DEMO_MODE", "true");
 
-    const response = await GET();
+    const response = await GET(request());
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -33,7 +36,7 @@ describe("GET /api/health", () => {
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "public-key");
     vi.stubEnv("DASHSCOPE_API_KEY", "qwen-secret");
 
-    const response = await GET();
+    const response = await GET(request());
     const body = await response.json();
 
     expect(body.services).toEqual({
@@ -62,7 +65,7 @@ describe("GET /api/health", () => {
       "housing-secret-value-that-is-at-least-32-characters",
     );
 
-    const response = await GET();
+    const response = await GET(request());
     const serializedBody = JSON.stringify(await response.json());
 
     expect(serializedBody).not.toContain("supabase-secret-value");

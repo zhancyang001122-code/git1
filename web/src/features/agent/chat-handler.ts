@@ -81,9 +81,13 @@ function invalidRequest(cause: unknown): AppError {
 
 function jsonError(error: unknown, requestId: string): Response {
   const status = error instanceof AppError ? error.status : 500;
+  const normalized = toPublicError(error, requestId);
   return Response.json(
-    { error: toPublicError(error, requestId) },
-    { status, headers: { "x-request-id": requestId } },
+    { error: normalized },
+    {
+      status,
+      headers: { "x-error-code": normalized.code, "x-request-id": requestId },
+    },
   );
 }
 

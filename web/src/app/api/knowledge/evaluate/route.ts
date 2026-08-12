@@ -8,6 +8,7 @@ import { createKnowledgeOpsRuntime } from "@/features/knowledge-ops/runtime";
 import type { KnowledgeOpsRuntime } from "@/features/knowledge-ops/runtime";
 import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
 import { createEnvironmentFixedWindowRateLimiter } from "@/lib/distributed-rate-limit";
+import { observeRoute } from "@/lib/route-observability";
 import { AppError } from "@/lib/errors";
 import { requestClientKey, type RateLimiter } from "@/lib/rate-limit";
 import { requestIdFor } from "@/lib/request-id";
@@ -54,4 +55,7 @@ export function createKnowledgeEvaluateHandler(
   };
 }
 
-export const POST = createKnowledgeEvaluateHandler();
+export const POST = observeRoute(
+  "/api/knowledge/evaluate",
+  createKnowledgeEvaluateHandler(),
+);

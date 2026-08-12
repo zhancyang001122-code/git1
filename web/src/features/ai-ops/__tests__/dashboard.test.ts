@@ -2,8 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  apiRouteLogFiltersFromSearchParams,
   loadAIOpsDashboard,
   loadAIModelUsage,
+  loadApiRouteLogs,
   loadOperationalAlerts,
   loadRAGOpsTrend,
   loadToolRunLogs,
@@ -315,5 +317,62 @@ describe("central operational monitoring", () => {
     await expect(loadOperationalAlerts(fake.client)).rejects.toMatchObject({
       code: "INVALID_AI_OPS_ALERT_DATA",
     });
+  });
+
+  it("loads bounded cross-instance API route metadata", async () => {
+    const fake = fakeListClient({
+      data: [
+        {
+          id: "75000000-0000-4000-8000-000000000001",
+          route_key: "/api/maps/nearby",
+          method: "POST",
+          status_code: 502,
+          duration_ms: 320,
+          request_id: "76000000-0000-4000-8000-000000000001",
+          error_code: "AMAP_UPSTREAM_FAILED",
+          created_at: "2026-08-12T00:00:00.000Z",
+        },
+      ],
+      error: null,
+    });
+
+    await expect(
+      loadApiRouteLogs(fake.client, {
+        limit: 20,
+        method: "POST",
+        statusClass: 5,
+      }),
+    ).resolves.toEqual([
+      {
+        id: "75000000-0000-4000-8000-000000000001",
+        routeKey: "/api/maps/nearby",
+        method: "POST",
+        statusCode: 502,
+        durationMs: 320,
+        requestId: "76000000-0000-4000-8000-000000000001",
+        errorCode: "AMAP_UPSTREAM_FAILED",
+        createdAt: "2026-08-12T00:00:00.000Z",
+      },
+    ]);
+    expect(fake.rpc).toHaveBeenCalledWith("search_api_route_logs", {
+      p_limit: 20,
+      p_method: "POST",
+      p_status_class: 5,
+    });
+  });
+
+  it("fails closed to safe API route filters", () => {
+    expect(
+      apiRouteLogFiltersFromSearchParams({
+        routeMethod: ["GET", "POST"],
+        routeStatus: "9",
+      }),
+    ).toEqual({ limit: 20 });
+    expect(
+      apiRouteLogFiltersFromSearchParams({
+        routeMethod: "POST",
+        routeStatus: "5",
+      }),
+    ).toEqual({ limit: 20, method: "POST", statusClass: 5 });
   });
 });

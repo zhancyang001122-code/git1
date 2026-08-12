@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { observeRoute } from "@/lib/route-observability";
 
 import { assertSameOrigin } from "@/features/auth/same-origin";
 import { createSupabaseAIOpsRepository } from "@/features/ai-ops/repository";
@@ -166,7 +167,11 @@ function errorResponse(error: unknown, requestId: string): Response {
     { error: normalized },
     {
       status,
-      headers: { "cache-control": "no-store", "x-request-id": requestId },
+      headers: {
+        "cache-control": "no-store",
+        "x-error-code": normalized.code,
+        "x-request-id": requestId,
+      },
     },
   );
 }
@@ -243,4 +248,4 @@ export function createFeedbackHandler(
   };
 }
 
-export const POST = createFeedbackHandler();
+export const POST = observeRoute("/api/feedback", createFeedbackHandler());

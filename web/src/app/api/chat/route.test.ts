@@ -3,8 +3,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createChatHandler } from "@/features/agent/chat-handler";
 import { SseEventParser } from "@/features/agent/sse";
 
-import { POST } from "./route";
-
 afterEach(() => {
   vi.unstubAllEnvs();
 });
@@ -20,7 +18,7 @@ function chatRequest(message = "你好") {
 describe("POST /api/chat", () => {
   it("uses the visible deterministic provider in demo mode", async () => {
     vi.stubEnv("NEXT_PUBLIC_DEMO_MODE", "true");
-    const response = await POST(chatRequest());
+    const response = await createChatHandler()(chatRequest());
     const events = new SseEventParser().push(await response.text());
 
     expect(response.status).toBe(200);
@@ -36,7 +34,7 @@ describe("POST /api/chat", () => {
   it("executes demo business tools and emits typed cards", async () => {
     vi.stubEnv("NEXT_PUBLIC_DEMO_MODE", "true");
     vi.stubEnv("NEXT_PUBLIC_ENABLE_AI_DEBUG", "false");
-    const response = await POST(
+    const response = await createChatHandler()(
       chatRequest("找武林广场附近3500元以内的一居室"),
     );
     const responseText = await response.text();
@@ -74,7 +72,7 @@ describe("POST /api/chat", () => {
     vi.stubEnv("DASHSCOPE_API_KEY", "qwen-secret-value");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "");
-    const response = await POST(chatRequest());
+    const response = await createChatHandler()(chatRequest());
 
     expect(await response.text()).not.toContain("qwen-secret-value");
   });

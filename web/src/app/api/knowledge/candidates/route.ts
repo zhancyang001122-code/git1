@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { observeRoute } from "@/lib/route-observability";
 
 import {
   knowledgeOpsErrorResponse,
@@ -99,5 +100,5 @@ export function createKnowledgeCandidatesHandlers(
 }
 
 const handlers = createKnowledgeCandidatesHandlers();
-export const GET = handlers.GET;
-export const POST = handlers.POST;
+export const GET = observeRoute("/api/knowledge/candidates", handlers.GET);
+export const POST = observeRoute("/api/knowledge/candidates", handlers.POST);

@@ -109,6 +109,27 @@ const toolRunLogFiltersSchema = z
       .optional(),
   })
   .strict();
+const apiRouteMethodSchema = z.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]);
+const apiRouteLogRowSchema = z.object({
+  id: uuidSchema,
+  route_key: z.string().regex(/^\/api\/[a-z0-9_\-/[\]]{1,180}$/),
+  method: apiRouteMethodSchema,
+  status_code: z.coerce.number().int().min(100).max(599),
+  duration_ms: metricSchema.max(300_000),
+  request_id: uuidSchema,
+  error_code: z
+    .string()
+    .regex(/^[A-Z][A-Z0-9_]{1,119}$/)
+    .nullable(),
+  created_at: z.string().datetime({ offset: true }),
+});
+const apiRouteLogFiltersSchema = z
+  .object({
+    limit: z.number().int().min(1).max(50).default(20),
+    method: apiRouteMethodSchema.optional(),
+    statusClass: z.number().int().min(2).max(5).optional(),
+  })
+  .strict();
 
 export interface RAGOpsTrendPoint {
   date: string;
@@ -151,6 +172,22 @@ export interface ToolRunLogEntry {
   requestId: string;
   createdAt: string;
 }
+export type ApiRouteMethod = z.infer<typeof apiRouteMethodSchema>;
+export interface ApiRouteLogFilters {
+  limit?: number;
+  method?: ApiRouteMethod;
+  statusClass?: number;
+}
+export interface ApiRouteLogEntry {
+  id: string;
+  routeKey: string;
+  method: ApiRouteMethod;
+  statusCode: number;
+  durationMs: number;
+  requestId: string;
+  errorCode: string | null;
+  createdAt: string;
+}
 
 export function toolRunLogFiltersFromSearchParams(input: {
   toolStatus?: unknown;
@@ -164,6 +201,24 @@ export function toolRunLogFiltersFromSearchParams(input: {
     limit: 20,
     status: toolStatus || undefined,
     toolName: toolName || undefined,
+  });
+  return parsed.success ? parsed.data : { limit: 20 };
+}
+
+export function apiRouteLogFiltersFromSearchParams(input: {
+  routeMethod?: unknown;
+  routeStatus?: unknown;
+}): ApiRouteLogFilters {
+  const method =
+    typeof input.routeMethod === "string" ? input.routeMethod : undefined;
+  const statusClass =
+    typeof input.routeStatus === "string" && /^[2-5]$/.test(input.routeStatus)
+      ? Number(input.routeStatus)
+      : undefined;
+  const parsed = apiRouteLogFiltersSchema.safeParse({
+    limit: 20,
+    method: method || undefined,
+    statusClass,
   });
   return parsed.success ? parsed.data : { limit: 20 };
 }
@@ -414,6 +469,56 @@ export async function loadToolRunLogs(
     durationMs: row.duration_ms,
     errorCode: row.error_code,
     requestId: row.request_id,
+    createdAt: row.created_at,
+  }));
+}
+
+export async function loadApiRouteLogs(
+  client: SupabaseClient,
+  filters: ApiRouteLogFilters = {},
+): Promise<readonly ApiRouteLogEntry[]> {
+  const parsedFilters = apiRouteLogFiltersSchema.safeParse(filters);
+  if (!parsedFilters.success) {
+    throw new AppError({
+      code: "INVALID_API_ROUTE_LOG_FILTER",
+      message: "API 日志筛选参数无效",
+      status: 400,
+      cause: parsedFilters.error,
+    });
+  }
+  const input = parsedFilters.data;
+  const result = await client.rpc("search_api_route_logs", {
+    p_limit: input.limit,
+    p_method: input.method ?? null,
+    p_status_class: input.statusClass ?? null,
+  });
+  if (result.error) {
+    throw new AppError({
+      code: "API_ROUTE_LOG_QUERY_FAILED",
+      message: "跨实例 API 日志暂时不可用",
+      status: 503,
+      retryable: true,
+      cause: result.error,
+    });
+  }
+  const parsed = z.array(apiRouteLogRowSchema).safeParse(result.data);
+  if (!parsed.success) {
+    throw new AppError({
+      code: "INVALID_API_ROUTE_LOG_DATA",
+      message: "API 日志返回了无效数据",
+      status: 502,
+      retryable: true,
+      cause: parsed.error,
+    });
+  }
+  return parsed.data.map((row) => ({
+    id: row.id,
+    routeKey: row.route_key,
+    method: row.method,
+    statusCode: row.status_code,
+    durationMs: row.duration_ms,
+    requestId: row.request_id,
+    errorCode: row.error_code,
     createdAt: row.created_at,
   }));
 }

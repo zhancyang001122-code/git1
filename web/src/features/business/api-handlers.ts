@@ -209,6 +209,7 @@ function errorResponse(error: unknown, requestId: string): Response {
       status: error instanceof AppError ? error.status : 500,
       headers: {
         "cache-control": "no-store",
+        "x-error-code": normalized.code,
         "x-request-id": requestId,
       },
     },

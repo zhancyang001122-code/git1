@@ -1,6 +1,7 @@
 import { createChatHandler } from "@/features/agent/chat-handler";
+import { observeRoute } from "@/lib/route-observability";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export const POST = createChatHandler();
+export const POST = observeRoute("/api/chat", createChatHandler());

@@ -5,6 +5,7 @@ import {
 import { assertSameOrigin } from "@/features/auth/same-origin";
 import { apiErrorResponse, noStoreHeaders } from "@/lib/api-error-response";
 import { requestIdFor } from "@/lib/request-id";
+import { observeRoute } from "@/lib/route-observability";
 
 interface SignOutHandlerOptions {
   runtimeFactory?: () => Promise<AuthRuntime>;
@@ -32,4 +33,4 @@ export function createSignOutHandler(options: SignOutHandlerOptions = {}) {
   };
 }
 
-export const POST = createSignOutHandler();
+export const POST = observeRoute("/api/auth/sign-out", createSignOutHandler());

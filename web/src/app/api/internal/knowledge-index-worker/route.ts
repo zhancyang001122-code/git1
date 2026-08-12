@@ -8,6 +8,7 @@ import {
 } from "@/features/knowledge-ops/admin-session";
 import { AppError, toPublicError } from "@/lib/errors";
 import { requestIdFor } from "@/lib/request-id";
+import { observeRoute } from "@/lib/route-observability";
 import { rateLimitResponse } from "@/lib/api-security";
 import {
   createFixedWindowRateLimiter,
@@ -25,11 +26,16 @@ const workerRateLimiter = createFixedWindowRateLimiter({
 type RuntimeFactory = () => Promise<KnowledgeIndexWorkerRuntime>;
 
 function errorResponse(error: unknown, requestId: string): Response {
+  const normalized = toPublicError(error, requestId);
   return Response.json(
-    { error: toPublicError(error, requestId) },
+    { error: normalized },
     {
       status: error instanceof AppError ? error.status : 500,
-      headers: { "cache-control": "no-store", "x-request-id": requestId },
+      headers: {
+        "cache-control": "no-store",
+        "x-error-code": normalized.code,
+        "x-request-id": requestId,
+      },
     },
   );
 }
@@ -87,5 +93,8 @@ export function createKnowledgeIndexWorkerHandler(
 
 const handle = createKnowledgeIndexWorkerHandler();
 
-export const GET = handle;
-export const POST = handle;
+export const GET = observeRoute("/api/internal/knowledge-index-worker", handle);
+export const POST = observeRoute(
+  "/api/internal/knowledge-index-worker",
+  handle,
+);

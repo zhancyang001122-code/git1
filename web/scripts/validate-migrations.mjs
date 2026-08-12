@@ -69,6 +69,10 @@ assert(
   distributedRateLimitsMigration,
   "distributed rate limits migration is missing",
 );
+const apiRouteLogsMigration = migrations.find((migration) =>
+  migration.name.endsWith("_api_route_logs.sql"),
+);
+assert(apiRouteLogsMigration, "API route logs migration is missing");
 
 for (const migration of migrations) {
   const normalized = migration.sql.trim().toLowerCase();
@@ -95,6 +99,7 @@ const knowledgeIndexQueueSql = knowledgeIndexQueueMigration.sql;
 const aiModelCostSql = aiModelCostMigration.sql;
 const aiOpsAlertsSql = aiOpsAlertsMigration.sql;
 const distributedRateLimitsSql = distributedRateLimitsMigration.sql;
+const apiRouteLogsSql = apiRouteLogsMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -153,6 +158,33 @@ for (const requirement of [
   },
 ]) {
   assert(requirement.pattern.test(knowledgeIndexQueueSql), requirement.message);
+}
+
+for (const requirement of [
+  {
+    pattern: /create table public\.api_route_logs/i,
+    message: "API route log table is missing",
+  },
+  {
+    pattern: /create or replace function public\.search_api_route_logs/i,
+    message: "bounded API route log search RPC is missing",
+  },
+  {
+    pattern: /alter table public\.api_route_logs enable row level security/i,
+    message: "API route log table must enable RLS",
+  },
+  {
+    pattern:
+      /revoke all on table public\.api_route_logs[\s\S]+from public, anon, authenticated/i,
+    message: "API route logs must revoke client table access",
+  },
+  {
+    pattern:
+      /grant execute on function public\.search_api_route_logs\(integer, text, integer\)[\s\S]+to service_role/i,
+    message: "API route log search must be service-role only",
+  },
+]) {
+  assert(requirement.pattern.test(apiRouteLogsSql), requirement.message);
 }
 
 for (const requirement of [
@@ -485,6 +517,7 @@ const serverOnlyTables = [
   "knowledge_reviews",
   "ai_eval_cases",
   "ai_eval_runs",
+  "api_route_logs",
 ];
 for (const table of serverOnlyTables) {
   assert(
