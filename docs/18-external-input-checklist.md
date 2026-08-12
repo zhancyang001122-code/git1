@@ -58,7 +58,7 @@ GitHub App 已按最小范围安装，只授权公开仓库 `zhancyang001122-cod
 
 1. Production 管理口令（已完成）；
 2. 作品集首方资料与评测（已完成）；
-3. 固定演示码 Production Auth（进行中）；
+3. 固定演示码 Production Auth（已完成）；
 4. Vercel GitHub OAuth（已完成）；
 5. 获得经授权的企业材料后建立独立评测集；
 6. 有企业评测集后再决定是否启用 rerank；

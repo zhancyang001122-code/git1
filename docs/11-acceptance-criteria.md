@@ -49,7 +49,7 @@
 - [x] 关闭长期记忆删除整行偏好；登出不等同于删除数据
 - [x] 面试演示 Auth 无 CAPTCHA；公开固定码只映射服务端隔离演示账号，不下发 Supabase 凭据
 - [x] Production 子域名、DNS、TLS、Supabase Auth Site URL 与完整 Live 回归
-- [ ] Production 固定演示码完成真实 Supabase Session、偏好、退出、重登和清理冒烟
+- [x] Production 固定演示码完成真实 Supabase Session、偏好、退出、重登和清理冒烟
 
 ## P0 AI
 
