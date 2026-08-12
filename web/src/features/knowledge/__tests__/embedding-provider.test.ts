@@ -64,4 +64,49 @@ describe("QwenEmbeddingProvider", () => {
     await expect(provider.embed(["退款规则"])).resolves.toHaveLength(1);
     expect(create).toHaveBeenCalledTimes(2);
   });
+
+  it("logs only allowlisted upstream diagnostics after retries are exhausted", async () => {
+    const upstreamError = Object.assign(
+      new Error("401 api-key=sk-sensitive input=private-customer-question"),
+      {
+        status: 401,
+        code: "InvalidApiKey",
+        type: "authentication_error",
+        requestID: "req-safe-123",
+        headers: { authorization: "Bearer sk-sensitive" },
+        error: { message: "private-customer-question" },
+      },
+    );
+    const create = vi.fn().mockRejectedValue(upstreamError);
+    const warn = vi.fn();
+    const provider = new QwenEmbeddingProvider({
+      client: { embeddings: { create } },
+      model: "text-embedding-v4",
+      dimensions: 1024,
+      retryJitterMs: () => 0,
+      warn,
+    });
+
+    await expect(
+      provider.embed(["private-customer-question"]),
+    ).rejects.toMatchObject({ code: "EMBEDDING_FAILED" });
+
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith("embedding.upstream_failed", {
+      requestId: expect.stringMatching(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      ),
+      errorCode: "EMBEDDING_FAILED",
+      upstreamStatus: 401,
+      upstreamCode: "InvalidApiKey",
+      upstreamType: "authentication_error",
+      upstreamRequestId: "req-safe-123",
+      upstreamErrorClass: "Error",
+    });
+    const serializedLog = JSON.stringify(warn.mock.calls);
+    expect(serializedLog).not.toContain("sk-sensitive");
+    expect(serializedLog).not.toContain("private-customer-question");
+    expect(serializedLog).not.toContain("authorization");
+  });
 });

@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import type { EmbeddingProvider } from "@/features/knowledge/types";
 import { AppError } from "@/lib/errors";
+import { logger, type LogContext } from "@/lib/logger";
 import {
   createCircuitBreaker,
   retryTransient,
@@ -35,6 +36,55 @@ export interface QwenEmbeddingProviderOptions {
   dimensions: number;
   circuitBreaker?: CircuitBreaker;
   retryJitterMs?: () => number;
+  warn?: EmbeddingWarningWriter;
+}
+
+interface UpstreamDiagnostic {
+  upstreamStatus?: number;
+  upstreamCode?: string;
+  upstreamType?: string;
+  upstreamRequestId?: string;
+  upstreamErrorClass?: string;
+}
+
+interface EmbeddingWarningContext extends LogContext, UpstreamDiagnostic {
+  requestId: string;
+  errorCode: "EMBEDDING_FAILED";
+}
+
+type EmbeddingWarningWriter = (
+  event: string,
+  context: EmbeddingWarningContext,
+) => void;
+
+const safeDiagnosticToken = /^[A-Za-z0-9._:-]{1,160}$/;
+
+function diagnosticToken(value: unknown): string | undefined {
+  return typeof value === "string" && safeDiagnosticToken.test(value)
+    ? value
+    : undefined;
+}
+
+function upstreamDiagnostic(error: unknown): UpstreamDiagnostic {
+  if (!error || typeof error !== "object") return {};
+  const record = error as Record<string, unknown>;
+  const constructorName = diagnosticToken(
+    (error as { constructor?: { name?: unknown } }).constructor?.name,
+  );
+  const status = record.status;
+  const code = diagnosticToken(record.code);
+  const type = diagnosticToken(record.type);
+  const requestId = diagnosticToken(record.requestID ?? record.request_id);
+  return {
+    ...(typeof status === "number" &&
+      Number.isInteger(status) &&
+      status >= 100 &&
+      status <= 599 && { upstreamStatus: status }),
+    ...(code && { upstreamCode: code }),
+    ...(type && { upstreamType: type }),
+    ...(requestId && { upstreamRequestId: requestId }),
+    ...(constructorName && { upstreamErrorClass: constructorName }),
+  };
 }
 
 const responseSchema = z.object({
@@ -52,6 +102,7 @@ export class QwenEmbeddingProvider implements EmbeddingProvider {
   private readonly dimensions: number;
   private readonly circuitBreaker: CircuitBreaker;
   private readonly retryJitterMs?: () => number;
+  private readonly warn: EmbeddingWarningWriter;
 
   constructor(options: QwenEmbeddingProviderOptions) {
     this.client = options.client;
@@ -60,6 +111,7 @@ export class QwenEmbeddingProvider implements EmbeddingProvider {
     this.circuitBreaker =
       options.circuitBreaker ?? sharedEmbeddingCircuitBreaker;
     this.retryJitterMs = options.retryJitterMs;
+    this.warn = options.warn ?? logger.warn;
   }
 
   async embed(
@@ -128,13 +180,24 @@ export class QwenEmbeddingProvider implements EmbeddingProvider {
       }
       return embeddings;
     } catch (error) {
-      if (error instanceof AppError) throw error;
-      throw new AppError({
-        code: "EMBEDDING_FAILED",
-        message: "Embedding 服务暂时不可用",
-        retryable: true,
-        cause: error,
-      });
+      const normalizedError =
+        error instanceof AppError
+          ? error
+          : new AppError({
+              code: "EMBEDDING_FAILED",
+              message: "Embedding 服务暂时不可用",
+              retryable: true,
+              cause: error,
+            });
+      if (normalizedError.code === "EMBEDDING_FAILED") {
+        const diagnostic = upstreamDiagnostic(normalizedError.cause);
+        this.warn("embedding.upstream_failed", {
+          requestId: crypto.randomUUID(),
+          errorCode: "EMBEDDING_FAILED",
+          ...diagnostic,
+        });
+      }
+      throw normalizedError;
     }
   }
 }
