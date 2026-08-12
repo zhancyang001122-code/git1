@@ -4,7 +4,10 @@ import { describe, expect, it, vi } from "vitest";
 import {
   loadAIOpsDashboard,
   loadAIModelUsage,
+  loadOperationalAlerts,
   loadRAGOpsTrend,
+  loadToolRunLogs,
+  toolRunLogFiltersFromSearchParams,
 } from "@/features/ai-ops/dashboard";
 
 const row = {
@@ -181,6 +184,136 @@ describe("AI model usage", () => {
     ]);
     expect(fake.rpc).toHaveBeenCalledWith("get_ai_model_usage", {
       p_window_hours: 168,
+    });
+  });
+});
+
+describe("central operational monitoring", () => {
+  it("fails closed to unfiltered safe defaults for malformed URL filters", () => {
+    expect(
+      toolRunLogFiltersFromSearchParams({
+        toolStatus: ["failed", "succeeded"],
+        toolName: ["search_knowledge", "search_products"],
+      }),
+    ).toEqual({ limit: 20 });
+    expect(
+      toolRunLogFiltersFromSearchParams({
+        toolStatus: "running",
+        toolName: "search_knowledge; drop table",
+      }),
+    ).toEqual({ limit: 20 });
+  });
+
+  it("maps alert thresholds and sample sufficiency without raw payloads", async () => {
+    const fake = fakeListClient({
+      data: [
+        {
+          alert_key: "tool_failure_rate",
+          severity: "warning",
+          state: "alert",
+          title: "工具失败率",
+          metric_value: "12.5",
+          threshold_value: "5",
+          sample_count: 24,
+          detail: "3 / 24 次终态工具调用失败或超时",
+          measured_at: "2026-08-12T00:00:00.000Z",
+        },
+      ],
+      error: null,
+    });
+
+    await expect(loadOperationalAlerts(fake.client, 24)).resolves.toEqual([
+      {
+        key: "tool_failure_rate",
+        severity: "warning",
+        state: "alert",
+        title: "工具失败率",
+        metricValue: 12.5,
+        thresholdValue: 5,
+        sampleCount: 24,
+        detail: "3 / 24 次终态工具调用失败或超时",
+        measuredAt: "2026-08-12T00:00:00.000Z",
+      },
+    ]);
+    expect(fake.rpc).toHaveBeenCalledWith("get_ai_ops_alerts", {
+      p_window_hours: 24,
+    });
+  });
+
+  it("loads filtered cross-instance tool audit logs", async () => {
+    const fake = fakeListClient({
+      data: [
+        {
+          id: "73000000-0000-4000-8000-000000000001",
+          tool_name: "search_knowledge",
+          status: "failed",
+          source_label: "知识库",
+          duration_ms: 250,
+          error_code: "KNOWLEDGE_TIMEOUT",
+          request_id: "74000000-0000-4000-8000-000000000001",
+          created_at: "2026-08-12T00:00:00.000Z",
+        },
+      ],
+      error: null,
+    });
+
+    await expect(
+      loadToolRunLogs(fake.client, {
+        limit: 20,
+        status: "failed",
+        toolName: "search_knowledge",
+      }),
+    ).resolves.toEqual([
+      {
+        id: "73000000-0000-4000-8000-000000000001",
+        toolName: "search_knowledge",
+        status: "failed",
+        sourceLabel: "知识库",
+        durationMs: 250,
+        errorCode: "KNOWLEDGE_TIMEOUT",
+        requestId: "74000000-0000-4000-8000-000000000001",
+        createdAt: "2026-08-12T00:00:00.000Z",
+      },
+    ]);
+    expect(fake.rpc).toHaveBeenCalledWith("search_ai_tool_run_logs", {
+      p_limit: 20,
+      p_status: "failed",
+      p_tool_name: "search_knowledge",
+    });
+  });
+
+  it("rejects unsafe log filters before calling Supabase", async () => {
+    const fake = fakeListClient({ data: [], error: null });
+
+    await expect(
+      loadToolRunLogs(fake.client, {
+        status: "running" as never,
+        toolName: "search_knowledge; drop table",
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_TOOL_RUN_LOG_FILTER" });
+    expect(fake.rpc).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid alert rows instead of rendering false assurance", async () => {
+    const fake = fakeListClient({
+      data: [
+        {
+          alert_key: "tool_failure_rate",
+          severity: "warning",
+          state: "healthy-ish",
+          title: "工具失败率",
+          metric_value: 0,
+          threshold_value: 5,
+          sample_count: 20,
+          detail: "invalid state",
+          measured_at: "2026-08-12T00:00:00.000Z",
+        },
+      ],
+      error: null,
+    });
+
+    await expect(loadOperationalAlerts(fake.client)).rejects.toMatchObject({
+      code: "INVALID_AI_OPS_ALERT_DATA",
     });
   });
 });

@@ -42,13 +42,16 @@ chat -> model -> tool -> external API -> response
 
 禁止记录密钥、完整系统 Prompt、未脱敏隐私。
 
-当前实现提供进程内聚合耗时指标、JSON 结构化日志，以及由 Supabase `get_ai_ops_dashboard`、`get_rag_ops_trend` 和 `get_ai_model_usage` RPC 生成的持久化汇总。RPC 只向 `service_role` 授权，受保护的知识运营页展示 Token、终态工具失败率、反馈、评测、知识库存、按北京时间补零的 RAG 日趋势，以及逐请求分档的 `qwen-plus` 公开原价估算，不读取原始对话。成本同时显示覆盖率、价格核验日和排除项，不冒充账单。跨实例日志检索和主动告警仍需接入托管可观测平台，不能把现有汇总描述成完整生产监控。
+当前实现提供进程内聚合耗时指标、JSON 结构化日志，以及由 Supabase `get_ai_ops_dashboard`、`get_rag_ops_trend` 和 `get_ai_model_usage` RPC 生成的持久化汇总。`search_ai_tool_run_logs` 可以跨 Vercel 实例按终态和工具名检索安全审计元数据，但刻意不返回 `input_json`、`output_summary`、对话正文或 Prompt。`get_ai_ops_alerts` 集中计算四类阈值状态；RPC 只向 `service_role` 授权。受保护的知识运营页展示 Token、终态工具失败率、反馈、评测、知识库存、RAG 日趋势、逐请求分档的 `qwen-plus` 公开原价估算、站内告警和工具审计。
+
+这仍不是完整企业监控：当前没有跨实例的全部 Route 日志检索、首 Token P95、单会话成本告警，也没有短信、飞书、Slack、邮件或 PagerDuty 外发、事故认领和值班升级。因此验收清单继续把“完整告警平台”保留为未完成项。
 
 ## 企业告警
 
-- 工具失败率 > 5%
-- RAG 无结果率异常
-- 首 token P95 > 6s
-- 单会话成本超阈值
-- embedding 队列积压
-- 发布后回归失败
+- 已实现：工具终态失败/超时率 > 5%，最少 20 个样本。
+- 已实现：RAG 零结果率 > 20%，最少 10 个样本。
+- 已实现：存在失败索引任务，或任务超时/可执行后等待超过 15 分钟。
+- 已实现：RAG/拒答评测失败率 > 10%，最少 5 个样本。
+- 未实现：首 Token P95 > 6s。
+- 未实现：单会话成本超阈值。
+- 未实现：外部通知、事故认领和值班升级。

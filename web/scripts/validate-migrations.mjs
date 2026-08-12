@@ -58,6 +58,10 @@ const aiModelCostMigration = migrations.find((migration) =>
   migration.name.endsWith("_ai_model_cost.sql"),
 );
 assert(aiModelCostMigration, "AI model cost migration is missing");
+const aiOpsAlertsMigration = migrations.find((migration) =>
+  migration.name.endsWith("_ai_ops_alerts.sql"),
+);
+assert(aiOpsAlertsMigration, "AI Ops alerts migration is missing");
 
 for (const migration of migrations) {
   const normalized = migration.sql.trim().toLowerCase();
@@ -82,6 +86,7 @@ const aiOpsDashboardSql = aiOpsDashboardMigration.sql;
 const ragOpsTrendSql = ragOpsTrendMigration.sql;
 const knowledgeIndexQueueSql = knowledgeIndexQueueMigration.sql;
 const aiModelCostSql = aiModelCostMigration.sql;
+const aiOpsAlertsSql = aiOpsAlertsMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -165,6 +170,34 @@ for (const requirement of [
   },
 ]) {
   assert(requirement.pattern.test(aiModelCostSql), requirement.message);
+}
+
+for (const requirement of [
+  {
+    pattern: /create or replace function public\.search_ai_tool_run_logs/i,
+    message: "central tool-run log search RPC is missing",
+  },
+  {
+    pattern: /create or replace function public\.get_ai_ops_alerts/i,
+    message: "AI Ops alert evaluation RPC is missing",
+  },
+  {
+    pattern:
+      /tool_failure_rate[\s\S]+rag_no_result_rate[\s\S]+knowledge_index_backlog[\s\S]+rag_eval_failure_rate/i,
+    message: "AI Ops alert set is incomplete",
+  },
+  {
+    pattern:
+      /revoke all on function public\.search_ai_tool_run_logs\(integer, text, text\)[\s\S]+from public, anon, authenticated/i,
+    message: "tool-run log search must revoke client execution",
+  },
+  {
+    pattern:
+      /grant execute on function public\.get_ai_ops_alerts\(integer\)[\s\S]+to service_role/i,
+    message: "AI Ops alerts must be service-role only",
+  },
+]) {
+  assert(requirement.pattern.test(aiOpsAlertsSql), requirement.message);
 }
 
 for (const table of ["housing_dataset_releases", "historical_houses"]) {

@@ -13,6 +13,7 @@ Production Live：[https://xiaozhi-local-life.vercel.app](https://xiaozhi-local-
 - 用户反馈形成候选知识，经过草稿、人工审核、发布、索引、评测和可用时回滚。
 - requestId、日志脱敏、请求体上限、限流、超时、幂等重试和进程级共享熔断（非跨实例）。
 - 持久化索引队列、独立 Worker、租约与退避重试，以及受保护的 RAG/AI Ops 质量视图。
+- Supabase 跨实例工具审计检索与站内阈值告警；不返回工具载荷，尚不包含外部通知和值班升级。
 
 ## 本地运行
 
