@@ -48,7 +48,8 @@
 - [x] 模型偏好工具只生成无副作用提案；取消零写入，确认才调用 API
 - [x] 关闭长期记忆删除整行偏好；登出不等同于删除数据
 - [x] 面试演示 Auth 无 CAPTCHA；Production 单邮箱白名单在发送与验证两端均失败关闭
-- [ ] 生产域名、自定义 SMTP、发件域名验证与真实邮箱冒烟
+- [x] Production 子域名、DNS、TLS、Supabase Auth Site URL 与完整 Live 回归
+- [ ] 自定义 SMTP、发件域名验证与真实邮箱冒烟
 - [ ] 生产环境使用作者邮箱完成一次真实 OTP 冒烟
 
 ## P0 AI
@@ -118,4 +119,4 @@
 2. 带来源的退款规则
 3. 房源 + 超市 + 押金规则组合任务
 
-Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。四份作品集首方公开资料已完成受控发布、真实百炼 Embedding、Production 检索和版本化引用；固定评测 20/20 通过，其中 3/3 千问生成用例通过。该证据证明作品集公开边界的 RAG 链路和内容质量，不等于真实企业客服资料已经交付。AI Ops 已能按线上逐请求 Token 和核验后的 `qwen-plus` 非思考模式公开原价估算人民币成本，但明确排除免费额度、优惠、Embedding 与 Rerank，因此不是阿里云账单。Production 管理页已使用 Sensitive 随机口令完成登录、Cookie 和主动退出验收；生产 Auth 仍需作者邮箱、域名和 SMTP 配置。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；Production 基线见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`；首方 RAG 证据见 `docs/task-reports/2026-08-13-portfolio-first-party-rag.md`；管理会话见 `web/docs/task-reports/2026-08-12-production-admin-session.md`；Worker 证据见 `docs/task-reports/2026-08-12-knowledge-index-worker.md`；成本估算证据见 `web/docs/task-reports/2026-08-12-ai-cost-estimate.md`。
+Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。四份作品集首方公开资料已完成受控发布、真实百炼 Embedding、Production 检索和版本化引用；固定评测 20/20 通过，其中 3/3 千问生成用例通过。该证据证明作品集公开边界的 RAG 链路和内容质量，不等于真实企业客服资料已经交付。AI Ops 已能按线上逐请求 Token 和核验后的 `qwen-plus` 非思考模式公开原价估算人民币成本，但明确排除免费额度、优惠、Embedding 与 Rerank，因此不是阿里云账单。Production 管理页已使用 Sensitive 随机口令完成登录、Cookie 和主动退出验收；`xiaozhi.zaneyang.xyz` 已完成 DNS、TLS、Supabase Site URL 和完整 Live 回归，生产 Auth 仍需作者邮箱、自定义 SMTP 与真实 OTP 冒烟。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；Production 基线见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`；自定义域名见 `docs/task-reports/2026-08-13-production-domain.md`；首方 RAG 证据见 `docs/task-reports/2026-08-13-portfolio-first-party-rag.md`；管理会话见 `web/docs/task-reports/2026-08-12-production-admin-session.md`；Worker 证据见 `docs/task-reports/2026-08-12-knowledge-index-worker.md`；成本估算证据见 `web/docs/task-reports/2026-08-12-ai-cost-estimate.md`。

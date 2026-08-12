@@ -26,17 +26,18 @@
 
 在线验收已覆盖登录 `/knowledge-admin/login`、RAG/AI Ops 页面、Cookie 安全属性、主动退出和重新保护。作者需要登录时，在 `web/` 运行 `.\scripts\copy-admin-token.ps1`，粘贴后立即用 `Set-Clipboard -Value $null` 清空剪贴板。
 
-### 3. 作者邮箱、域名和 SMTP
+### 3. 作者邮箱和 SMTP（域名已完成）
 
-需要作者确认一个专用于演示的邮箱和准备使用的域名，然后完成：
+Production 使用现有域名的独立子域名 `xiaozhi.zaneyang.xyz`，没有移动或覆盖作品集根域名。Vercel 绑定、阿里云 DNS、TLS、Supabase Auth Site URL 和完整 Live 回归均已完成，证据见 `docs/task-reports/2026-08-13-production-domain.md`。
 
-1. 在 Vercel 绑定 Production 域名；
-2. 在 Supabase Auth 设置 Site URL 和允许的 Redirect URL；
-3. 在 Supabase 配置自定义 SMTP，并验证发件域名；
-4. 把作者邮箱写入服务端环境变量 `AUTH_ALLOWED_EMAIL`；
-5. 用该邮箱真实收取一次验证码，验证登录、偏好保存、退出和再次登录。
+当前还需要作者确认一个专用于演示的收件邮箱，然后完成：
 
-域名购买和 SMTP 服务商会产生外部账号、费用与长期归属，必须由作者选择。Codex 可以在选择完成后继续做配置和脱敏验收，但不应擅自代购或替作者决定账号归属。
+1. 建议使用 Resend 和独立发信子域名 `auth.zaneyang.xyz`，避免影响网站与根域名的邮件声誉；
+2. 在 Supabase 配置自定义 SMTP，并验证发件域名；
+3. 把作者邮箱写入服务端环境变量 `AUTH_ALLOWED_EMAIL`；
+4. 用该邮箱真实收取一次验证码，验证登录、偏好保存、退出和再次登录。
+
+当前代码使用 6 位数字 OTP 并由服务端直接调用 `verifyOtp()`，没有 Magic Link 或 OAuth callback，因此 Supabase Redirect URLs 留空是有意设计，不是漏配。SMTP 服务账号、API Key 和长期归属必须由作者确认；Codex 可以在确认后继续配置和脱敏验收。
 
 ### 4. Vercel 连接 GitHub
 
