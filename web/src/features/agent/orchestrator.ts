@@ -1,6 +1,10 @@
 import type { ChatStreamEvent } from "@/features/agent/chat-events";
 import type { ChatTurnCompletion } from "@/features/agent/completion";
-import type { AIProvider, ProviderMessage } from "@/features/agent/provider";
+import type {
+  AIProvider,
+  ProviderMessage,
+  ProviderToolChoice,
+} from "@/features/agent/provider";
 import { runAgentToolLoop } from "@/features/agent/tool-loop";
 import type { ToolExecutor } from "@/features/agent/tools/executor";
 import type { ToolContext } from "@/features/agent/tools/types";
@@ -19,6 +23,7 @@ interface OrchestrateChatTurnInput {
   toolContext?: ToolContext;
   debug?: boolean;
   maxToolRounds?: number;
+  initialToolChoice?: ProviderToolChoice;
   onComplete?: (completion: ChatTurnCompletion) => Promise<void> | void;
 }
 
@@ -78,6 +83,9 @@ export async function* orchestrateChatTurn(
       }),
       debug: input.debug ?? false,
       maxRounds: input.maxToolRounds ?? 8,
+      ...(input.initialToolChoice && {
+        initialToolChoice: input.initialToolChoice,
+      }),
       onComplete: input.onComplete,
     })) {
       yield event;

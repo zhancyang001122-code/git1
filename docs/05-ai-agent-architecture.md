@@ -124,4 +124,6 @@ done
 6. 文本简洁，卡片承担结构化信息。
 7. 不展示内部 Prompt、SQL、密钥和思维链。
 
+产品能力、数据时效、政策和系统边界属于必须取证的问题。应用层使用窄范围、可测试的 Grounding Policy，在首轮通过 Provider 的命名 `tool_choice` 强制调用 `search_knowledge`；后续轮次恢复模型自动选工具。若供应商违背约束并直接生成文字，服务端不会把这段未取证文本流给用户，而是返回稳定可重试错误。该策略不替代工具参数 Zod 校验、低置信拒答或固定评测。
+
 完整 Prompt 见 `contracts/qwen-system-prompt.md`。

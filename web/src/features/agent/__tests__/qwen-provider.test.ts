@@ -100,6 +100,42 @@ describe("QwenProvider", () => {
     expect(events.at(-1)).toEqual({ type: "finish", reason: "tool_calls" });
   });
 
+  it("maps a required named tool choice to the OpenAI-compatible request", async () => {
+    const factory: QwenStreamFactory = vi.fn(async () =>
+      chunks([{ choices: [{ delta: {}, finish_reason: "stop" }] }]),
+    );
+    const provider = new QwenProvider({
+      model: "qwen-plus",
+      streamFactory: factory,
+    });
+
+    for await (const event of provider.streamTurn(
+      {
+        messages: [{ role: "user", content: "房源数据是哪一期？" }],
+        tools: [
+          {
+            name: "search_knowledge",
+            description: "Search knowledge",
+            parameters: { type: "object", properties: {} },
+          },
+        ],
+        toolChoice: { name: "search_knowledge" },
+      },
+      new AbortController().signal,
+    ))
+      void event;
+
+    expect(factory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tool_choice: {
+          type: "function",
+          function: { name: "search_knowledge" },
+        },
+      }),
+      expect.any(AbortSignal),
+    );
+  });
+
   it("accepts OpenAI-compatible null placeholders in streamed tool fragments", async () => {
     const provider = new QwenProvider({
       model: "qwen-plus",

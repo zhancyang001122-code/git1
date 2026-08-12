@@ -7,6 +7,7 @@ import {
   type ChatRequest,
 } from "@/features/agent/chat-request";
 import { DemoToolCallingProvider } from "@/features/agent/demo-tool-provider";
+import { requiredEvidenceTool } from "@/features/agent/grounding-policy";
 import { orchestrateChatTurn } from "@/features/agent/orchestrator";
 import type { AIProvider } from "@/features/agent/provider";
 import { createQwenProvider } from "@/features/agent/qwen-provider";
@@ -297,6 +298,9 @@ export function createChatHandler(
             recentMessages: prepared.messages,
             pageContext: chatRequest.context,
           });
+          const evidenceTool = runtime.tools
+            ? requiredEvidenceTool(chatRequest.message)
+            : null;
           for await (const event of orchestrateChatTurn({
             sessionId: prepared.sessionId,
             messageId: prepared.messageId,
@@ -304,6 +308,9 @@ export function createChatHandler(
             messages: contextWindow.messages,
             signal: streamController.signal,
             timeoutMs: runtime.timeoutMs,
+            ...(evidenceTool && {
+              initialToolChoice: { name: evidenceTool },
+            }),
             ...(runtime.tools && {
               toolExecutor: runtime.tools.executor,
               toolContext: {

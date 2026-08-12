@@ -332,6 +332,16 @@ export class DemoToolCallingProvider implements AIProvider {
       ),
     );
 
+    if (
+      !exchange &&
+      input.toolChoice?.name === "search_knowledge" &&
+      !completedToolNames.has("search_knowledge")
+    ) {
+      yield { type: "tool_calls", calls: [knowledgeCall(userText)] };
+      yield { type: "finish", reason: "tool_calls" };
+      return;
+    }
+
     if (exchange) {
       if (
         exchange.name === "search_houses" &&

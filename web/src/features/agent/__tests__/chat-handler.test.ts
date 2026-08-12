@@ -273,4 +273,48 @@ describe("POST /api/chat handler", () => {
       citations: [expect.objectContaining({ title: "团购券退款规则" })],
     });
   });
+
+  it("forces a knowledge lookup for a dataset-boundary question", async () => {
+    const post = createChatHandler(async () => ({
+      provider: new DemoToolCallingProvider(),
+      persistence: createEphemeralChatPersistence(),
+      timeoutMs: 1_000,
+      tools: {
+        executor: new ToolExecutor(),
+        context: {
+          business: createDemoRepository(),
+          maps: new FakeMapsService(),
+          knowledge: new FakeKnowledgeService(),
+          memory: {
+            getPreferences: async () => null,
+            upsertPreferences: async () => {
+              throw new Error("not available");
+            },
+            deletePreferences: async () => {
+              throw new Error("not available");
+            },
+          },
+          audit: createInMemoryToolAudit(),
+          businessSource: "supabase_mock",
+          userId: null,
+        },
+        debugEnabled: false,
+        maxRounds: 8,
+      },
+    }));
+
+    const response = await post(
+      new Request("http://localhost/api/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: "房源数据是哪一期，共有多少条？",
+        }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    const events = new SseEventParser().push(await response.text());
+
+    expect(events.some((event) => event.type === "tool_progress")).toBe(true);
+    expect(events.at(-1)).toEqual({ type: "done", finishReason: "stop" });
+  });
 });

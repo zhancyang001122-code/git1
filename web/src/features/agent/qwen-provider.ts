@@ -58,6 +58,10 @@ export interface QwenStreamRequest {
   stream_options: { include_usage: true };
   messages: readonly Record<string, unknown>[];
   tools?: readonly Record<string, unknown>[];
+  tool_choice?: {
+    type: "function";
+    function: { name: string };
+  };
 }
 
 export type QwenStreamFactory = (
@@ -153,6 +157,12 @@ export class QwenProvider implements AIProvider {
             ...(tool.strict !== undefined && { strict: tool.strict }),
           },
         })),
+      }),
+      ...(input.toolChoice && {
+        tool_choice: {
+          type: "function" as const,
+          function: { name: input.toolChoice.name },
+        },
       }),
     };
 

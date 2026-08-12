@@ -20,9 +20,14 @@ export interface ProviderToolDefinition {
   strict?: boolean;
 }
 
+export interface ProviderToolChoice {
+  name: string;
+}
+
 export interface ProviderTurnInput {
   messages: readonly ProviderMessage[];
   tools?: readonly ProviderToolDefinition[];
+  toolChoice?: ProviderToolChoice;
 }
 
 export type ProviderEvent =

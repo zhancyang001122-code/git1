@@ -50,7 +50,11 @@ function toolCall(id: string, args: unknown = houseArgs): ProviderEvent {
 
 async function collect(
   provider: AIProvider,
-  options: { debug?: boolean; executor?: ToolExecutor } = {},
+  options: {
+    debug?: boolean;
+    executor?: ToolExecutor;
+    requiredToolName?: string;
+  } = {},
 ) {
   const events: ChatStreamEvent[] = [];
   const completions: unknown[] = [];
@@ -61,6 +65,9 @@ async function collect(
     executor: options.executor ?? new ToolExecutor(),
     toolContext: createToolTestContext(),
     debug: options.debug ?? false,
+    ...(options.requiredToolName && {
+      initialToolChoice: { name: options.requiredToolName },
+    }),
     onComplete: async (completion) => {
       completions.push(completion);
     },
@@ -115,6 +122,37 @@ describe("agent tool loop", () => {
         ]),
       }),
     ]);
+  });
+
+  it("requires a named evidence tool only on the first model round", async () => {
+    const provider = new SequenceProvider([
+      [toolCall("call-required"), { type: "finish", reason: "tool_calls" }],
+      [
+        { type: "text_delta", delta: "已根据工具证据回答。" },
+        { type: "finish", reason: "stop" },
+      ],
+    ]);
+
+    await collect(provider, { requiredToolName: "search_houses" });
+
+    expect(provider.turns[0]?.toolChoice).toEqual({ name: "search_houses" });
+    expect(provider.turns[1]?.toolChoice).toBeUndefined();
+  });
+
+  it("rejects an ungrounded first-round answer when a tool is required", async () => {
+    const provider = new SequenceProvider([
+      [
+        { type: "text_delta", delta: "我直接猜一个答案。" },
+        { type: "finish", reason: "stop" },
+      ],
+    ]);
+
+    const read = async () =>
+      collect(provider, { requiredToolName: "search_knowledge" });
+
+    await expect(read()).rejects.toMatchObject({
+      code: "REQUIRED_TOOL_NOT_CALLED",
+    });
   });
 
   it("keeps model usage split by request round for tiered pricing", async () => {

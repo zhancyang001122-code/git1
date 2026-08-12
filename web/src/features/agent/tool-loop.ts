@@ -8,6 +8,7 @@ import type {
   AIProvider,
   ProviderMessage,
   ProviderToolCall,
+  ProviderToolChoice,
 } from "@/features/agent/provider";
 import { buildToolModelPayload } from "@/features/agent/result-synthesizer";
 import type { ToolExecutor } from "@/features/agent/tools/executor";
@@ -27,6 +28,7 @@ interface AgentToolLoopInput {
   toolContext?: ToolContext;
   debug?: boolean;
   maxRounds?: number;
+  initialToolChoice?: ProviderToolChoice;
   onComplete?: (completion: ChatTurnCompletion) => Promise<void> | void;
 }
 
@@ -160,11 +162,14 @@ export async function* runAgentToolLoop(
     let finished = false;
     let roundInputTokens: number | undefined;
     let roundOutputTokens: number | undefined;
+    const requiredToolChoice =
+      round === 1 ? input.initialToolChoice : undefined;
     const providerInput = {
       messages,
       ...(input.executor && {
         tools: input.executor.registry.providerDefinitions(),
       }),
+      ...(requiredToolChoice && { toolChoice: requiredToolChoice }),
     };
 
     for await (const event of input.provider.streamTurn(
@@ -173,8 +178,10 @@ export async function* runAgentToolLoop(
     )) {
       if (event.type === "text_delta") {
         roundText += event.delta;
-        assistantText += event.delta;
-        yield { type: "assistant_delta", delta: event.delta };
+        if (!requiredToolChoice) {
+          assistantText += event.delta;
+          yield { type: "assistant_delta", delta: event.delta };
+        }
       } else if (event.type === "usage") {
         if (event.inputTokens !== undefined)
           roundInputTokens = (roundInputTokens ?? 0) + event.inputTokens;
@@ -191,6 +198,16 @@ export async function* runAgentToolLoop(
       throw new AppError({
         code: "QWEN_STREAM_INCOMPLETE",
         message: "模型响应未完整结束，请重试",
+        retryable: true,
+      });
+    }
+    if (
+      requiredToolChoice &&
+      !calls.some((call) => call.name === requiredToolChoice.name)
+    ) {
+      throw new AppError({
+        code: "REQUIRED_TOOL_NOT_CALLED",
+        message: "模型未按要求核验事实，请重试",
         retryable: true,
       });
     }
