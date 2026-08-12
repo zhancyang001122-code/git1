@@ -1,6 +1,6 @@
 {
   "materialSet": "portfolio_first_party",
-  "version": "2026.08.2",
+  "version": "2026.08.3",
   "public": true,
   "owner": "小智作品集作者",
   "materials": [
@@ -40,13 +40,13 @@
       "question": "游客、登录和长期偏好在小智中分别是什么关系？",
       "draft": {
         "title": "小智作品集：账号与长期偏好边界",
-        "changeSummary": "建立游客访问、登录会话和云端长期偏好的授权边界说明",
+        "changeSummary": "将已取消的邮箱 OTP 更新为 Production 固定演示码、共享账号和真实 Session/RLS 边界",
         "sourceReference": "knowledge-base/portfolio-first-party/account-and-memory-boundary.md",
         "owner": "小智作品集作者",
         "domain": "platform",
         "category": "portfolio_data_memory",
-        "versionLabel": "2026.08.1",
-        "effectiveFrom": "2026-08-12"
+        "versionLabel": "2026.08.2",
+        "effectiveFrom": "2026-08-13"
       }
     },
     {

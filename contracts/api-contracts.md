@@ -13,15 +13,11 @@
 }
 ```
 
-所有 Auth 与用户数据响应使用 `cache-control: no-store` 和 `x-request-id`。状态变更接口校验同源请求。当前面试演示版本不开放公众注册：Production 必须用服务端 `AUTH_ALLOWED_EMAIL` 指定唯一演示邮箱；未配置时 Auth 安全停用。
+所有 Auth 与用户数据响应使用 `cache-control: no-store` 和 `x-request-id`。状态变更接口校验同源请求。当前面试演示版本不开放公众注册，也不发送邮箱或短信验证码。Production 使用公开固定演示码 `666666`，服务端将它映射到一个隔离、共享的 Supabase 演示用户；`DEMO_AUTH_EMAIL` 与 `DEMO_AUTH_PASSWORD` 只存在于服务端环境变量，任一缺失时 Auth 安全停用。该方案用于低频作品集演示，不等于生产级用户认证。
 
-## `POST /api/auth/otp/send`
+## `POST /api/auth/demo-login`
 
-请求使用 strict Schema，只有 `email` 字段。服务端规范化邮箱、限制请求体大小、校验演示邮箱白名单，并按客户端和邮箱摘要分别执行轻量限流；非白名单邮箱不会调用 Supabase。成功返回 `{ "ok": true }`。
-
-## `POST /api/auth/otp/verify`
-
-请求包含规范化邮箱、6 位数字 `token` 和可选 `next`。服务端再次校验演示邮箱白名单，随后调用 Supabase `verifyOtp({ type: "email" })` 并写入 SSR Auth Cookie；响应只返回经过校验的内部跳转路径。外部 URL、协议相对 URL、反斜杠和控制字符回退到 `/me`。
+请求使用 strict Schema，包含 6 位数字 `code` 和可选 `next`。服务端执行 Same-Origin、4 KiB 请求体上限和轻量固定窗口限流，只接受 `666666`，随后以服务端保存的随机凭据调用 Supabase `signInWithPassword()` 并写入真实 SSR Auth Cookie。响应只返回 `{ "ok": true, "next": "..." }`，不会返回演示邮箱、密码或 Session 内容；外部 URL、协议相对 URL、反斜杠和控制字符回退到 `/me`。错误码固定为 `AUTH_DEMO_CODE_INVALID`、`AUTH_RATE_LIMITED` 或 `AUTH_UNAVAILABLE`。
 
 ## `POST /api/auth/sign-out`
 

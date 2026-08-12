@@ -57,6 +57,12 @@ describe("portfolio first-party knowledge suite", () => {
     const titles = new Set(
       manifest.materials.map((material) => material.draft.title),
     );
+    const currentVersions = new Map(
+      manifest.materials.map((material) => [
+        material.draft.title,
+        material.draft.versionLabel,
+      ]),
+    );
 
     expect(suite.materialSet).toBe("portfolio_first_party");
     expect(suite.cases).toHaveLength(20);
@@ -64,7 +70,7 @@ describe("portfolio first-party knowledge suite", () => {
     expect(
       suite.cases.filter((item) => item.category === "no_answer"),
     ).toHaveLength(4);
-    expect(suite.cases.filter((item) => item.generation)).toHaveLength(3);
+    expect(suite.cases.filter((item) => item.generation)).toHaveLength(4);
     expect(
       suite.cases
         .filter((item) => item.generation)
@@ -81,6 +87,9 @@ describe("portfolio first-party knowledge suite", () => {
         );
         for (const title of evaluationCase.expected.requiredTitles) {
           expect(titles.has(title)).toBe(true);
+          expect(evaluationCase.expected.requiredVersionLabel).toBe(
+            currentVersions.get(title),
+          );
         }
       }
     }

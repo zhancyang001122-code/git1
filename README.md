@@ -2,7 +2,7 @@
 
 面向 AI FDE / Solutions Engineer 面试的移动端 Web 作品集。产品以微信小程序式 430px 画布演示，将结构化业务查询、地图工具、可追溯 RAG、多工具编排和受控知识运营闭环组合在同一套 Agent 架构中。
 
-**Production Live：** [https://xiaozhi-local-life.vercel.app](https://xiaozhi-local-life.vercel.app)
+**Production Live：** [https://xiaozhi.zaneyang.xyz](https://xiaozhi.zaneyang.xyz)
 
 ## 当前真实状态
 
@@ -13,10 +13,10 @@
 - 四份作品集首方公开资料已通过候选、审核、原子发布、持久化队列和独立 Worker 生成真实百炼 Embedding；Production 固定评测 20/20 通过，其中 3/3 千问自然问法用例同时通过强制取证、事实、版本、首方来源与引用范围检查。
 - 受保护的 AI Ops 视图会按每次 `qwen-plus` 请求的输入长度分档估算人民币成本，并显示覆盖率、价格核验日和排除项；它不是阿里云账单。
 - Supabase 提供跨 Vercel 实例的工具审计、全部 API Route 安全元数据检索和六类站内阈值状态，并已实现事故认领、解决、自动恢复与不可变事件审计；检索不返回工具载荷、查询参数、正文、Cookie、Authorization、IP 或响应正文。外部通知和真实值班升级尚未接入，不能称为完整企业告警平台。
-- Chat、Feedback、公开 Knowledge Search、地图直连和受保护的知识评测已使用 Supabase 原子共享限流；客户端标识先经服务端 HMAC-SHA256，不保存原始 IP。低频单邮箱 OTP 仍保留已确认的简化边界。
+- Chat、Feedback、公开 Knowledge Search、地图直连和受保护的知识评测已使用 Supabase 原子共享限流；客户端标识先经服务端 HMAC-SHA256，不保存原始 IP。登录使用公开固定演示码映射到隔离的共享 Supabase 演示账号，并明确提示不要填写真实隐私。
 - 团购、商品、库存、订单和社区内容仍是明确标注的演示业务，不对应真实交易。
 - 作品集首方资料只证明本项目公开边界的 RAG 质量；用户尚未提供企业客服话术、内部制度或客户业务政策，因此不能宣称已经完成真实企业知识库交付。
-- Production 知识运营管理员口令已经配置并完成登录、Cookie、退出和受控材料录入验收。邮箱 OTP 与 `qwen3-rerank` 在线调用仍未配置；游客 Live 演示不受影响。
+- Production 知识运营管理员口令已经配置并完成登录、Cookie、退出和受控材料录入验收。固定演示码 Auth 已完成真实 Session、RLS 偏好、退出、重登和清理验收；`qwen3-rerank` 在线调用仍未配置。
 
 ## 数据真实性
 

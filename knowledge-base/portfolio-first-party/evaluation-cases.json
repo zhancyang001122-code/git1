@@ -1,6 +1,6 @@
 {
   "materialSet": "portfolio_first_party",
-  "version": "2026.08.2",
+  "version": "2026.08.3",
   "cases": [
     {
       "id": "portfolio-first-party-product-form",
@@ -190,7 +190,7 @@
       },
       "expected": {
         "requiredTitles": ["小智作品集：账号与长期偏好边界"],
-        "requiredVersionLabel": "2026.08.1",
+        "requiredVersionLabel": "2026.08.2",
         "requiredConcepts": [
           "浏览公开页面",
           "匿名对话",
@@ -214,7 +214,7 @@
       },
       "expected": {
         "requiredTitles": ["小智作品集：账号与长期偏好边界"],
-        "requiredVersionLabel": "2026.08.1",
+        "requiredVersionLabel": "2026.08.2",
         "requiredConcepts": [
           "不会自动开启长期记忆",
           "不会自动把一次性聊天需求保存为长期偏好"
@@ -226,10 +226,10 @@
       }
     },
     {
-      "id": "portfolio-first-party-otp-status",
+      "id": "portfolio-first-party-demo-auth-status",
       "category": "rag",
       "input": {
-        "query": "Production 的公共邮箱 OTP 是否已经完成验收？",
+        "query": "Production 现在用什么方式登录，是否已经完成验收？",
         "domain": "platform",
         "category": "portfolio_data_memory",
         "city": null,
@@ -237,16 +237,19 @@
       },
       "expected": {
         "requiredTitles": ["小智作品集：账号与长期偏好边界"],
-        "requiredVersionLabel": "2026.08.1",
+        "requiredVersionLabel": "2026.08.2",
         "requiredConcepts": [
-          "仍是明确待办",
-          "不能宣称公共邮箱登录已经完成生产验收"
+          "固定演示码 `666666`",
+          "真实 Session、RLS 偏好、退出、重登和清理已完成 Production 验收",
+          "不等于生产级用户认证"
         ],
+        "generationRequiredConcepts": ["666666", "Supabase", "不是", "生产级"],
         "requireCitation": true,
         "requireNonDemo": true,
         "requireHighConfidence": true,
         "expectNoCitations": false
-      }
+      },
+      "generation": true
     },
     {
       "id": "portfolio-first-party-memory-consent",
@@ -260,7 +263,7 @@
       },
       "expected": {
         "requiredTitles": ["小智作品集：账号与长期偏好边界"],
-        "requiredVersionLabel": "2026.08.1",
+        "requiredVersionLabel": "2026.08.2",
         "requiredConcepts": ["点击确认后", "RLS", "单纯退出登录不会删除"],
         "requireCitation": true,
         "requireNonDemo": true,
