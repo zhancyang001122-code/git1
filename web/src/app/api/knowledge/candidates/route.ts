@@ -9,6 +9,7 @@ import { createKnowledgeOpsRuntime } from "@/features/knowledge-ops/runtime";
 import type { KnowledgeOpsRuntime } from "@/features/knowledge-ops/runtime";
 import {
   candidateDraftSchema,
+  manualMaterialInputSchema,
   reviewInputSchema,
 } from "@/features/knowledge-ops/schemas";
 import { readJsonWithLimit } from "@/lib/api-security";
@@ -16,6 +17,12 @@ import { AppError } from "@/lib/errors";
 import { requestIdFor } from "@/lib/request-id";
 
 const actionSchema = z.discriminatedUnion("action", [
+  z
+    .object({
+      action: z.literal("create_draft"),
+      material: manualMaterialInputSchema,
+    })
+    .strict(),
   z
     .object({
       action: z.literal("draft"),
@@ -69,6 +76,21 @@ export function createKnowledgeCandidatesHandlers(
             status: 400,
             cause: parsed.error,
           });
+        }
+        if (parsed.data.action === "create_draft") {
+          const result = await runtime.service.createManualDraft(
+            parsed.data.material,
+          );
+          return Response.json(
+            { ...result, isDemo: runtime.mode === "demo" },
+            {
+              status: 201,
+              headers: {
+                "cache-control": "no-store",
+                "x-request-id": requestId,
+              },
+            },
+          );
         }
         if (parsed.data.action === "draft") {
           const candidate = await runtime.service.draftCandidate(

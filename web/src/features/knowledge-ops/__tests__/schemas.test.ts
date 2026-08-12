@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   candidateInputSchema,
+  manualMaterialInputSchema,
   reviewInputSchema,
 } from "@/features/knowledge-ops/schemas";
 
@@ -50,5 +51,34 @@ describe("knowledge ops schemas", () => {
 
     expect(result.question).toBe("团购券过期两天可以退款吗？");
     expect(JSON.stringify(result)).not.toContain("conversation");
+  });
+
+  it("rejects impossible or inverted manual material dates", () => {
+    const material = {
+      question: "历史房源能代表当前可租状态吗？",
+      draft: {
+        title: "历史房源数据使用边界",
+        answerMarkdown:
+          "历史房源数据只用于筛选能力演示，不能代表当前可租状态。",
+        changeSummary: "首次录入",
+        sourceReference: "housing-data-readme.md",
+        owner: "作品集作者",
+        domain: "housing" as const,
+        category: "data_freshness",
+        versionLabel: "v1.0",
+        effectiveFrom: "2026-02-31",
+      },
+    };
+    expect(manualMaterialInputSchema.safeParse(material).success).toBe(false);
+    expect(
+      manualMaterialInputSchema.safeParse({
+        ...material,
+        draft: {
+          ...material.draft,
+          effectiveFrom: "2026-08-12",
+          effectiveUntil: "2026-08-11",
+        },
+      }).success,
+    ).toBe(false);
   });
 });

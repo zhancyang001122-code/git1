@@ -79,6 +79,87 @@ describe("/api/knowledge/candidates", () => {
     });
   });
 
+  it("creates a manually entered material as a draft without publishing it", async () => {
+    const value = runtime();
+    const handlers = createKnowledgeCandidatesHandlers(async () => value);
+    const response = await handlers.POST(
+      new Request("http://localhost/api/knowledge/candidates", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "create_draft",
+          material: {
+            question: "历史房源数据能否代表当前可租状态？",
+            draft: {
+              title: "历史房源数据使用边界",
+              answerMarkdown:
+                "房源数据来自 2024 年 11 月，只能用于历史筛选演示，不能据此判断当前是否可租。",
+              changeSummary: "首次录入历史房源数据说明",
+              sourceReference: "housing-data-readme.md",
+              owner: "作品集作者",
+              domain: "housing",
+              category: "data_freshness",
+              versionLabel: "v1.0",
+              effectiveFrom: "2026-08-12",
+            },
+          },
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(201);
+    await expect(response.json()).resolves.toMatchObject({
+      candidate: {
+        sourceType: "human_correction",
+        status: "drafted",
+        draft: { versionLabel: "v1.0" },
+      },
+      deduplicated: false,
+      isDemo: true,
+    });
+    const candidates = await value.service.listCandidates();
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0]?.status).toBe("drafted");
+  });
+
+  it("rejects invalid manual material before writing a candidate", async () => {
+    const value = runtime();
+    const createManualDraft = vi.spyOn(value.service, "createManualDraft");
+    const handlers = createKnowledgeCandidatesHandlers(async () => value);
+    const response = await handlers.POST(
+      new Request("http://localhost/api/knowledge/candidates", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "create_draft",
+          material: {
+            question: "历史房源数据能否代表当前可租状态？",
+            draft: {
+              title: "历史房源数据使用边界",
+              answerMarkdown: "内容太短",
+              changeSummary: "首次录入",
+              sourceReference: "housing-data-readme.md",
+              owner: "作品集作者",
+              domain: "housing",
+              category: "Data Freshness",
+              versionLabel: "",
+              effectiveFrom: "2026-08-12",
+            },
+          },
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(createManualDraft).not.toHaveBeenCalled();
+  });
+
   it("rejects an oversized candidate action before changing state", async () => {
     const value = runtime();
     const draftCandidate = vi.spyOn(value.service, "draftCandidate");

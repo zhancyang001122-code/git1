@@ -7,7 +7,10 @@ import {
   OperationalAlerts,
   ToolRunLog,
 } from "@/components/account/ai-ops-monitoring";
-import { KnowledgeAdminList } from "@/components/account/knowledge-admin-experiences";
+import {
+  KnowledgeAdminList,
+  KnowledgeMaterialIntake,
+} from "@/components/account/knowledge-admin-experiences";
 import { IncidentManagement } from "@/components/account/incident-management";
 import { DetailShell } from "@/components/layout/detail-shell";
 import {
@@ -191,6 +194,11 @@ export default async function Page({
           </button>
         </form>
       </div>
+      <KnowledgeMaterialIntake isDemo={runtime.mode === "demo"} />
+      <KnowledgeAdminList
+        candidates={candidates}
+        isDemo={runtime.mode === "demo"}
+      />
       <AIOpsOverview
         dashboard={dashboard}
         status={dashboardStatus}
@@ -208,10 +216,6 @@ export default async function Page({
         entries={apiRouteLogs}
         filters={apiRouteFilters}
         status={apiRouteLogsStatus}
-      />
-      <KnowledgeAdminList
-        candidates={candidates}
-        isDemo={runtime.mode === "demo"}
       />
     </DetailShell>
   );

@@ -2,7 +2,63 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(44);
+select plan(51);
+
+select has_function(
+  'public',
+  'create_knowledge_candidate_draft',
+  array['text', 'jsonb'],
+  'atomic manual material draft function exists'
+);
+select ok(
+  not has_function_privilege(
+    'anon',
+    'public.create_knowledge_candidate_draft(text, jsonb)',
+    'execute'
+  ),
+  'anon cannot import a manual material draft'
+);
+select ok(
+  not has_function_privilege(
+    'authenticated',
+    'public.create_knowledge_candidate_draft(text, jsonb)',
+    'execute'
+  ),
+  'authenticated users cannot import a manual material draft'
+);
+select ok(
+  has_function_privilege(
+    'service_role',
+    'public.create_knowledge_candidate_draft(text, jsonb)',
+    'execute'
+  ),
+  'service role can import a manual material draft'
+);
+
+select public.create_knowledge_candidate_draft(
+  '历史房源数据能否代表当前可租状态',
+  '{"title":"历史房源数据使用边界","answerMarkdown":"房源数据来自 2024 年 11 月，只能用于历史筛选演示，不能据此判断当前是否可租。","changeSummary":"首次录入历史房源数据说明","sourceReference":"housing-data-readme.md","owner":"作品集作者","domain":"housing","category":"data_freshness","versionLabel":"v1.0","effectiveFrom":"2026-08-12"}'::jsonb
+) as candidate_id \gset manual_
+
+select is(
+  (select status::text from public.knowledge_candidates where id = :'manual_candidate_id'),
+  'drafted',
+  'manual material is created as a draft'
+);
+select is(
+  (select draft_json ->> 'versionLabel' from public.knowledge_candidates where id = :'manual_candidate_id'),
+  'v1.0',
+  'manual material preserves the supplied version label'
+);
+select throws_ok(
+  $$select public.create_knowledge_candidate_draft(
+    '缺少生效日期的资料',
+    '{"title":"缺少日期","answerMarkdown":"这份材料刻意缺少生效日期，数据库必须拒绝。","changeSummary":"测试非法输入","sourceReference":"invalid.md","owner":"测试负责人","domain":"platform","category":"invalid_date","versionLabel":"v1.0"}'::jsonb
+  )$$,
+  'P0001',
+  'Knowledge candidate draft is invalid',
+  'database rejects a manual material without an effective date'
+);
 
 select has_table(
   'public',

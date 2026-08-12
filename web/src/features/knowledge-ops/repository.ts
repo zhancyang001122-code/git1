@@ -2,6 +2,7 @@ import type {
   CandidateDraft,
   CandidateEvidence,
   CandidateInput,
+  ManualMaterialInput,
   CandidateSourceType,
   CandidateStatus,
   ReviewInput,
@@ -51,6 +52,9 @@ export interface StoredPublicationResult {
 export interface KnowledgeOpsRepository {
   enqueueCandidate(
     input: CandidateInput & { normalizedQuestion: string },
+  ): Promise<{ candidate: KnowledgeCandidateRecord; deduplicated: boolean }>;
+  createManualDraft(
+    input: ManualMaterialInput & { normalizedQuestion: string },
   ): Promise<{ candidate: KnowledgeCandidateRecord; deduplicated: boolean }>;
   listCandidates(): Promise<readonly KnowledgeCandidateRecord[]>;
   getCandidate(id: string): Promise<KnowledgeCandidateRecord | null>;
@@ -142,6 +146,44 @@ export function createInMemoryKnowledgeOpsRepository(
         status: "pending",
         occurrenceCount: 1,
         draft: null,
+        createdAt: now,
+        updatedAt: now,
+      };
+      candidates.set(candidate.id, candidate);
+      return { candidate, deduplicated: false };
+    },
+
+    async createManualDraft(input) {
+      const existing = [...candidates.values()].find(
+        (candidate) =>
+          candidate.normalizedQuestion.toLocaleLowerCase("zh-CN") ===
+            input.normalizedQuestion.toLocaleLowerCase("zh-CN") &&
+          candidate.domain === input.draft.domain &&
+          ["pending", "drafted", "reviewing"].includes(candidate.status),
+      );
+      if (existing) {
+        const candidate = update(existing.id, {
+          sourceType: "human_correction",
+          reason: "manual_material_intake",
+          draft: input.draft,
+          status: "drafted",
+          occurrenceCount: existing.occurrenceCount + 1,
+        });
+        return { candidate, deduplicated: true };
+      }
+      const now = new Date().toISOString();
+      const candidate: KnowledgeCandidateRecord = {
+        id: crypto.randomUUID(),
+        sourceType: "human_correction",
+        sourceSessionId: null,
+        sourceMessageId: null,
+        normalizedQuestion: input.normalizedQuestion,
+        domain: input.draft.domain,
+        reason: "manual_material_intake",
+        evidence: [],
+        status: "drafted",
+        occurrenceCount: 1,
+        draft: input.draft,
         createdAt: now,
         updatedAt: now,
       };

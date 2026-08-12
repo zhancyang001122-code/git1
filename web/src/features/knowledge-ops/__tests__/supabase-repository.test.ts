@@ -88,6 +88,37 @@ describe("Supabase knowledge ops repository", () => {
     });
   });
 
+  it("creates a manual draft through one atomic server-only RPC", async () => {
+    const manualRow = {
+      ...candidateRow,
+      source_type: "human_correction",
+      status: "drafted",
+      occurrence_count: 1,
+      draft_json: { ...draft, versionLabel: "v1.0" },
+    };
+    const rpc = vi.fn(() => result({ data: candidateId, error: null }));
+    const from = vi.fn(() => result({ data: manualRow, error: null }));
+    const repository = createSupabaseKnowledgeOpsRepository({
+      rpc,
+      from,
+    } as unknown as SupabaseClient);
+
+    const saved = await repository.createManualDraft({
+      question: "What evidence is needed for a deposit deduction?",
+      normalizedQuestion: "What evidence is needed for a deposit deduction?",
+      draft: { ...draft, versionLabel: "v1.0" },
+    });
+
+    expect(rpc).toHaveBeenCalledWith("create_knowledge_candidate_draft", {
+      p_normalized_question: "What evidence is needed for a deposit deduction?",
+      p_draft_json: { ...draft, versionLabel: "v1.0" },
+    });
+    expect(saved).toMatchObject({
+      deduplicated: false,
+      candidate: { id: candidateId, status: "drafted" },
+    });
+  });
+
   it("uses server-only lifecycle RPCs for draft, review, publish and rollback", async () => {
     const rpc = vi.fn((name: string) => {
       if (name === "review_knowledge_candidate") {

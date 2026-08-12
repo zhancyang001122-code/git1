@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   ChevronRight,
   DatabaseZap,
+  FilePlus2,
   FlaskConical,
   Save,
   ShieldCheck,
@@ -11,7 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -32,6 +33,306 @@ const statusLabels = {
 
 const fieldClass =
   "mt-2 min-h-11 w-full rounded-control border border-border bg-page px-3 text-sm text-text outline-none focus:ring-2 focus:ring-brand";
+
+interface ManualMaterialForm {
+  question: string;
+  title: string;
+  answerMarkdown: string;
+  sourceReference: string;
+  owner: string;
+  domain: CandidateDraft["domain"];
+  category: string;
+  versionLabel: string;
+  effectiveFrom: string;
+  effectiveUntil: string;
+  changeSummary: string;
+}
+
+const emptyMaterial: ManualMaterialForm = {
+  question: "",
+  title: "",
+  answerMarkdown: "",
+  sourceReference: "",
+  owner: "",
+  domain: "housing",
+  category: "",
+  versionLabel: "",
+  effectiveFrom: "",
+  effectiveUntil: "",
+  changeSummary: "",
+};
+
+export function KnowledgeMaterialIntake({ isDemo }: { isDemo: boolean }) {
+  const [expanded, setExpanded] = useState(false);
+  const [form, setForm] = useState<ManualMaterialForm>(emptyMaterial);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [candidateId, setCandidateId] = useState<string | null>(null);
+
+  function update<K extends keyof ManualMaterialForm>(
+    key: K,
+    value: ManualMaterialForm[K],
+  ) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setNotice(null);
+    setCandidateId(null);
+    try {
+      const response = await fetch("/api/knowledge/candidates", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          action: "create_draft",
+          material: {
+            question: form.question,
+            draft: {
+              title: form.title,
+              answerMarkdown: form.answerMarkdown,
+              sourceReference: form.sourceReference,
+              owner: form.owner,
+              domain: form.domain,
+              category: form.category,
+              versionLabel: form.versionLabel,
+              effectiveFrom: form.effectiveFrom,
+              ...(form.effectiveUntil && {
+                effectiveUntil: form.effectiveUntil,
+              }),
+              changeSummary: form.changeSummary,
+            },
+          },
+        }),
+      });
+      const payload = (await response.json()) as {
+        candidate?: { id?: string };
+        deduplicated?: boolean;
+        error?: { message?: string };
+      };
+      if (!response.ok || !payload.candidate?.id) {
+        throw new Error(payload.error?.message ?? "材料录入失败");
+      }
+      setCandidateId(payload.candidate.id);
+      setNotice(
+        payload.deduplicated
+          ? "已更新同一代表问题的现有草稿；尚未发布，也不能被检索。"
+          : isDemo
+            ? "已保存为服务器内存草稿；尚未发布，也不能被检索。"
+            : "已保存为草稿；尚未发布，也不能被检索。",
+      );
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "材料录入失败");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="mx-4 mt-4 rounded-feature border border-border bg-surface p-4 shadow-card">
+      <div className="flex items-start gap-3">
+        <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand">
+          <FilePlus2 className="size-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-base font-semibold text-text">录入正式资料</h2>
+          <p className="mt-1 text-xs leading-5 text-text-muted">
+            只创建待审核草稿，不会自动发布、索引或进入回答。
+          </p>
+        </div>
+        <Button
+          variant="secondary"
+          aria-expanded={expanded}
+          aria-controls="knowledge-material-intake-form"
+          onClick={() => setExpanded((current) => !current)}
+          className="shrink-0 px-3"
+        >
+          {expanded ? "收起" : "录入"}
+        </Button>
+      </div>
+      {expanded ? (
+        <form
+          id="knowledge-material-intake-form"
+          className="mt-4 space-y-3"
+          onSubmit={(event) => void submit(event)}
+        >
+          <label className="block text-sm font-medium text-text">
+            代表问题
+            <input
+              aria-label="代表问题"
+              required
+              minLength={2}
+              maxLength={500}
+              value={form.question}
+              onChange={(event) => update("question", event.target.value)}
+              className={fieldClass}
+              placeholder="例如：历史房源能代表当前可租状态吗？"
+            />
+          </label>
+          <label className="block text-sm font-medium text-text">
+            材料标题
+            <input
+              aria-label="材料标题"
+              required
+              minLength={2}
+              maxLength={160}
+              value={form.title}
+              onChange={(event) => update("title", event.target.value)}
+              className={fieldClass}
+            />
+          </label>
+          <label className="block text-sm font-medium text-text">
+            材料正文
+            <textarea
+              aria-label="材料正文"
+              required
+              minLength={10}
+              maxLength={20_000}
+              value={form.answerMarkdown}
+              onChange={(event) => update("answerMarkdown", event.target.value)}
+              className={`${fieldClass} min-h-36 py-3 leading-6`}
+            />
+          </label>
+          <label className="block text-sm font-medium text-text">
+            来源文件或编号
+            <input
+              aria-label="来源文件或编号"
+              required
+              minLength={3}
+              maxLength={500}
+              value={form.sourceReference}
+              onChange={(event) =>
+                update("sourceReference", event.target.value)
+              }
+              className={fieldClass}
+            />
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block text-sm font-medium text-text">
+              内容负责人
+              <input
+                aria-label="内容负责人"
+                required
+                minLength={2}
+                maxLength={120}
+                value={form.owner}
+                onChange={(event) => update("owner", event.target.value)}
+                className={fieldClass}
+              />
+            </label>
+            <label className="block text-sm font-medium text-text">
+              版本号
+              <input
+                aria-label="版本号"
+                required
+                maxLength={80}
+                value={form.versionLabel}
+                onChange={(event) => update("versionLabel", event.target.value)}
+                className={fieldClass}
+                placeholder="v1.0"
+              />
+            </label>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block text-sm font-medium text-text">
+              业务领域
+              <select
+                aria-label="业务领域"
+                value={form.domain}
+                onChange={(event) =>
+                  update(
+                    "domain",
+                    event.target.value as CandidateDraft["domain"],
+                  )
+                }
+                className={fieldClass}
+              >
+                <option value="housing">房源</option>
+                <option value="group_buy">团购</option>
+                <option value="market">超市</option>
+                <option value="platform">平台</option>
+              </select>
+            </label>
+            <label className="block text-sm font-medium text-text">
+              分类标识
+              <input
+                aria-label="分类标识"
+                required
+                pattern="[a-z][a-z0-9_-]{1,79}"
+                value={form.category}
+                onChange={(event) => update("category", event.target.value)}
+                className={fieldClass}
+                placeholder="data_freshness"
+              />
+            </label>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block text-sm font-medium text-text">
+              生效日期
+              <input
+                aria-label="生效日期"
+                type="date"
+                required
+                value={form.effectiveFrom}
+                onChange={(event) =>
+                  update("effectiveFrom", event.target.value)
+                }
+                className={fieldClass}
+              />
+            </label>
+            <label className="block text-sm font-medium text-text">
+              失效日期（可选）
+              <input
+                aria-label="失效日期（可选）"
+                type="date"
+                min={form.effectiveFrom || undefined}
+                value={form.effectiveUntil}
+                onChange={(event) =>
+                  update("effectiveUntil", event.target.value)
+                }
+                className={fieldClass}
+              />
+            </label>
+          </div>
+          <label className="block text-sm font-medium text-text">
+            变更说明
+            <input
+              aria-label="变更说明"
+              required
+              minLength={2}
+              maxLength={500}
+              value={form.changeSummary}
+              onChange={(event) => update("changeSummary", event.target.value)}
+              className={fieldClass}
+            />
+          </label>
+          <Button type="submit" className="w-full" disabled={busy}>
+            <Save className="size-4" />
+            {busy ? "正在保存…" : "保存为待审核草稿"}
+          </Button>
+        </form>
+      ) : null}
+      {notice ? (
+        <div
+          className="mt-3 rounded-control bg-brand-soft p-3 text-sm leading-6 text-text"
+          role="status"
+        >
+          <p>{notice}</p>
+          {candidateId ? (
+            <Link
+              href={`/knowledge-admin/${candidateId}`}
+              className="mt-2 inline-flex min-h-11 items-center font-semibold text-brand"
+            >
+              进入审核
+              <ChevronRight className="ml-1 size-4" />
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+    </section>
+  );
+}
 
 function defaultDraft(candidate: KnowledgeCandidateRecord): CandidateDraft {
   return (
@@ -403,6 +704,33 @@ export function KnowledgeAdminDetail({
               value={draft.effectiveFrom}
               onChange={(event) =>
                 updateDraft("effectiveFrom", event.target.value)
+              }
+              className={fieldClass}
+            />
+          </label>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block text-sm font-medium text-text">
+            版本号
+            <input
+              aria-label="版本号"
+              value={draft.versionLabel ?? ""}
+              onChange={(event) =>
+                updateDraft("versionLabel", event.target.value || undefined)
+              }
+              className={fieldClass}
+              placeholder="未填写时按系统版本递增"
+            />
+          </label>
+          <label className="block text-sm font-medium text-text">
+            失效日期（可选）
+            <input
+              aria-label="失效日期（可选）"
+              type="date"
+              min={draft.effectiveFrom}
+              value={draft.effectiveUntil ?? ""}
+              onChange={(event) =>
+                updateDraft("effectiveUntil", event.target.value || undefined)
               }
               className={fieldClass}
             />

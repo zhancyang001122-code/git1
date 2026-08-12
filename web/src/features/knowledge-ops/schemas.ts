@@ -3,7 +3,7 @@ import { z } from "zod";
 import { knowledgeDomains } from "@/features/knowledge/types";
 
 const uuid = z.string().uuid();
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const isoDate = z.iso.date();
 
 export const candidateSourceTypeSchema = z.enum([
   "low_confidence",
@@ -55,9 +55,32 @@ export const candidateDraftSchema = z
       .string()
       .trim()
       .regex(/^[a-z][a-z0-9_-]{1,79}$/),
+    versionLabel: z.string().trim().min(1).max(80).optional(),
     effectiveFrom: isoDate,
+    effectiveUntil: isoDate.optional(),
   })
   .strict();
+
+export const manualMaterialInputSchema = z
+  .object({
+    question: z.string().trim().min(2).max(500),
+    draft: candidateDraftSchema.extend({
+      versionLabel: z.string().trim().min(1).max(80),
+    }),
+  })
+  .strict()
+  .superRefine((value, context) => {
+    if (
+      value.draft.effectiveUntil &&
+      value.draft.effectiveUntil < value.draft.effectiveFrom
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["draft", "effectiveUntil"],
+        message: "失效日期不能早于生效日期",
+      });
+    }
+  });
 
 const approveReviewSchema = z
   .object({
@@ -92,6 +115,7 @@ export const rollbackInputSchema = publishInputSchema;
 
 export type CandidateInput = z.infer<typeof candidateInputSchema>;
 export type CandidateDraft = z.infer<typeof candidateDraftSchema>;
+export type ManualMaterialInput = z.infer<typeof manualMaterialInputSchema>;
 export type CandidateEvidence = z.infer<typeof candidateEvidenceSchema>;
 export type CandidateStatus = z.infer<typeof candidateStatusSchema>;
 export type CandidateSourceType = z.infer<typeof candidateSourceTypeSchema>;

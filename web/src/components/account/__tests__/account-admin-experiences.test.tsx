@@ -8,6 +8,7 @@ import {
 import {
   KnowledgeAdminDetail,
   KnowledgeAdminList,
+  KnowledgeMaterialIntake,
 } from "@/components/account/knowledge-admin-experiences";
 import type { KnowledgeCandidateRecord } from "@/features/knowledge-ops/repository";
 
@@ -98,6 +99,70 @@ describe("account and knowledge admin demo flows", () => {
     expect(screen.getByText(/候选已批准，但尚未发布/)).toBeInTheDocument();
     expect(JSON.stringify(fetchMock.mock.calls[0]?.[1])).not.toContain(
       "DEMO_ADMIN_TOKEN",
+    );
+  });
+
+  it("submits formal material as a reviewable draft and never claims it is searchable", async () => {
+    const fetchMock = vi.fn(async () =>
+      Response.json(
+        {
+          candidate: {
+            ...candidate,
+            id: "64000000-0000-4000-8000-000000000099",
+            status: "drafted",
+          },
+          deduplicated: false,
+          isDemo: false,
+        },
+        { status: 201 },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    render(<KnowledgeMaterialIntake isDemo={false} />);
+    expect(screen.queryByLabelText("代表问题")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "录入" }));
+
+    fireEvent.change(screen.getByLabelText("代表问题"), {
+      target: { value: "历史房源数据能否代表当前可租状态？" },
+    });
+    fireEvent.change(screen.getByLabelText("材料标题"), {
+      target: { value: "历史房源数据使用边界" },
+    });
+    fireEvent.change(screen.getByLabelText("材料正文"), {
+      target: {
+        value:
+          "房源数据来自 2024 年 11 月，只能用于历史筛选演示，不能据此判断当前是否可租。",
+      },
+    });
+    fireEvent.change(screen.getByLabelText("来源文件或编号"), {
+      target: { value: "housing-data-readme.md" },
+    });
+    fireEvent.change(screen.getByLabelText("内容负责人"), {
+      target: { value: "作品集作者" },
+    });
+    fireEvent.change(screen.getByLabelText("版本号"), {
+      target: { value: "v1.0" },
+    });
+    fireEvent.change(screen.getByLabelText("生效日期"), {
+      target: { value: "2026-08-12" },
+    });
+    fireEvent.change(screen.getByLabelText("分类标识"), {
+      target: { value: "data_freshness" },
+    });
+    fireEvent.change(screen.getByLabelText("变更说明"), {
+      target: { value: "首次录入历史房源数据说明" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "保存为待审核草稿" }));
+
+    expect(await screen.findByText(/已保存为草稿/)).toBeInTheDocument();
+    expect(screen.getByText(/尚未发布，也不能被检索/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "进入审核" })).toHaveAttribute(
+      "href",
+      "/knowledge-admin/64000000-0000-4000-8000-000000000099",
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/knowledge/candidates",
+      expect.objectContaining({ method: "POST" }),
     );
   });
 

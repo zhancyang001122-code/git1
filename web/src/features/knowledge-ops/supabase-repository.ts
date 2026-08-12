@@ -182,6 +182,24 @@ export function createSupabaseKnowledgeOpsRepository(
       };
     },
 
+    async createManualDraft(input) {
+      const result = await client.rpc("create_knowledge_candidate_draft", {
+        p_normalized_question: input.normalizedQuestion,
+        p_draft_json: input.draft,
+      });
+      if (result.error) queryFailed(result.error);
+      const candidateId = parseRow(
+        postgresUuidSchema,
+        result.data,
+        "知识候选编号",
+      );
+      const candidate = await requireCandidate(client, candidateId);
+      return {
+        candidate,
+        deduplicated: candidate.occurrenceCount > 1,
+      };
+    },
+
     async listCandidates() {
       const result = await client
         .from("knowledge_candidates")

@@ -107,7 +107,7 @@ data: {"finishReason":"stop"}
 
 - `POST /api/knowledge/admin-session`：表单口令换取四小时 HttpOnly 会话 Cookie；口令不进入 URL 或客户端脚本。
 - `GET /api/knowledge/candidates`：列出候选队列。
-- `POST /api/knowledge/candidates`：保存草稿或提交批准、驳回、退回修改决策。
+- `POST /api/knowledge/candidates`：保存草稿，提交批准、驳回、退回修改决策，或使用 `action=create_draft` 受控录入一份人工材料。人工材料必须包含代表问题、正文、来源、负责人、领域、分类、版本号和生效日期；服务端原子创建候选与草稿，响应 `201`，状态只能是 `drafted`，不会绕过审核直接发布或进入检索。
 - `POST /api/knowledge/evaluate`：执行关联评测并返回通过数与得分。
 - `POST /api/knowledge/rollback`：只有存在上一已发布版本时才能回滚；没有回滚目标时返回稳定的 `409` 错误。
 - `GET|POST /api/internal/knowledge-index-worker`：每次最多领取并处理一个持久化索引任务。Vercel Cron 使用 `Authorization: Bearer <CRON_SECRET>`，已登录管理页也可用签名 HttpOnly Cookie 手动触发；响应为 `idle`、`succeeded`、`retrying` 或 `failed`，不返回任何凭证。

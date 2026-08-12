@@ -4,6 +4,7 @@ import type { EvaluationMetrics } from "@/features/evaluation/metrics";
 import type {
   CandidateDraft,
   CandidateInput,
+  ManualMaterialInput,
   PublishInput,
   RollbackInput,
   ReviewInput,
@@ -11,6 +12,7 @@ import type {
 import {
   candidateDraftSchema,
   candidateInputSchema,
+  manualMaterialInputSchema,
   publishInputSchema,
   rollbackInputSchema,
   reviewInputSchema,
@@ -65,6 +67,10 @@ export interface KnowledgeOpsService {
   createCandidate(
     input: CandidateInput,
   ): Promise<{ candidateId: string; deduplicated: boolean }>;
+  createManualDraft(input: ManualMaterialInput): Promise<{
+    candidate: KnowledgeCandidateRecord;
+    deduplicated: boolean;
+  }>;
   listCandidates(): Promise<readonly KnowledgeCandidateRecord[]>;
   getCandidate(candidateId: string): Promise<KnowledgeCandidateRecord>;
   draftCandidate(
@@ -103,6 +109,14 @@ export function createKnowledgeOpsService({
         candidateId: result.candidate.id,
         deduplicated: result.deduplicated,
       };
+    },
+
+    async createManualDraft(input) {
+      const value = manualMaterialInputSchema.parse(input);
+      return repository.createManualDraft({
+        ...value,
+        normalizedQuestion: normalizeCandidateQuestion(value.question),
+      });
     },
 
     listCandidates() {
