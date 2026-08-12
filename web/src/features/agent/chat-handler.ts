@@ -41,14 +41,13 @@ import { metrics } from "@/features/observability/metrics";
 import { AppError, toPublicError } from "@/lib/errors";
 import { parsePublicEnv, parseServerEnv } from "@/lib/env";
 import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
-import {
-  createFixedWindowRateLimiter,
-  requestClientKey,
-} from "@/lib/rate-limit";
+import { requestClientKey, type RateLimiter } from "@/lib/rate-limit";
+import { createEnvironmentFixedWindowRateLimiter } from "@/lib/distributed-rate-limit";
 import { logger } from "@/lib/logger";
 import { requestIdFor } from "@/lib/request-id";
 
-const chatRateLimiter = createFixedWindowRateLimiter({
+const chatRateLimiter = createEnvironmentFixedWindowRateLimiter({
+  scope: "chat_ip",
   limit: 60,
   windowMs: 60_000,
 });
@@ -245,23 +244,24 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
 
 export function createChatHandler(
   runtimeFactory: ChatRuntimeFactory = defaultChatRuntime,
+  rateLimiter: RateLimiter = chatRateLimiter,
 ) {
   return async function POST(request: Request): Promise<Response> {
     const requestId = requestIdFor(request);
     const startedAt = Date.now();
-    const rateLimit = chatRateLimiter.check(requestClientKey(request));
-    if (!rateLimit.allowed) {
-      logger.warn("chat.rate_limited", {
-        requestId,
-        errorCode: "RATE_LIMITED",
-      });
-      return rateLimitResponse(rateLimit, requestId);
-    }
     let chatRequest: ChatRequest;
     let runtime: ChatRuntime;
     let prepared: Awaited<ReturnType<ChatPersistence["prepare"]>>;
 
     try {
+      const rateLimit = await rateLimiter.check(requestClientKey(request));
+      if (!rateLimit.allowed) {
+        logger.warn("chat.rate_limited", {
+          requestId,
+          errorCode: "RATE_LIMITED",
+        });
+        return rateLimitResponse(rateLimit, requestId);
+      }
       chatRequest = await parseRequest(request);
       runtime = await runtimeFactory(chatRequest);
       prepared = await runtime.persistence.prepare(chatRequest);

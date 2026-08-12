@@ -3,8 +3,17 @@ import { z } from "zod";
 import { knowledgeDomains } from "@/features/knowledge/types";
 import type { KnowledgeService } from "@/features/knowledge/types";
 import { createRequestKnowledgeService } from "@/features/knowledge/runtime";
+import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
+import { createEnvironmentFixedWindowRateLimiter } from "@/lib/distributed-rate-limit";
 import { AppError, toPublicError } from "@/lib/errors";
+import { requestClientKey, type RateLimiter } from "@/lib/rate-limit";
 import { requestIdFor } from "@/lib/request-id";
+
+const knowledgeSearchRateLimiter = createEnvironmentFixedWindowRateLimiter({
+  scope: "knowledge_search_ip",
+  limit: 30,
+  windowMs: 60_000,
+});
 
 const requestSchema = z
   .object({
@@ -31,11 +40,16 @@ function errorResponse(error: unknown, requestId: string): Response {
 
 export function createKnowledgeSearchHandler(
   runtimeFactory: RuntimeFactory = () => createRequestKnowledgeService(),
+  rateLimiter: RateLimiter = knowledgeSearchRateLimiter,
 ) {
   return async function POST(request: Request): Promise<Response> {
     const requestId = requestIdFor(request);
     try {
-      const body = requestSchema.safeParse(await request.json());
+      const rateLimit = await rateLimiter.check(requestClientKey(request));
+      if (!rateLimit.allowed) return rateLimitResponse(rateLimit, requestId);
+      const body = requestSchema.safeParse(
+        await readJsonWithLimit(request, 8_192),
+      );
       if (!body.success) {
         throw new AppError({
           code: "KNOWLEDGE_SEARCH_INPUT_INVALID",

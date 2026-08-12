@@ -11,7 +11,7 @@
 - 日志最小化并脱敏。
 - Demo Admin 用独立 token；生产改为 RBAC/SSO。
 - 日志按字段递归过滤 key/token/authorization/cookie/password/service role、手机号和精确地址；不依赖开发者手工记得打码。
-- Chat、Feedback、发布和索引接口使用单实例固定窗口限流，客户端标识先哈希再存储。Vercel 多实例生产环境必须替换为 Redis/Upstash 等共享限流存储。
+- Chat、Feedback 和公开 Knowledge Search 使用 Supabase 原子固定窗口共享限流，覆盖 Vercel 多实例；客户端标识先使用服务端密钥执行 HMAC-SHA256，只持久化 64 位摘要和短时窗口计数，不保存原始 IP。Demo 使用进程内限流。管理发布/索引已有独立口令，仍使用单实例固定窗口；低频单邮箱 OTP 按面试作品边界保持简化方案，不冒充公众注册系统。
 - JSON 请求在解析前检查声明长度和实际 UTF-8 字节数；聊天最大请求体 16 KiB，反馈 8 KiB，管理发布/索引 4 KiB。
 
 ## 可靠性

@@ -6,6 +6,10 @@ export interface RateLimitResult {
   retryAfterSeconds: number;
 }
 
+export interface RateLimiter {
+  check(key: string): RateLimitResult | Promise<RateLimitResult>;
+}
+
 export function createFixedWindowRateLimiter(options: {
   limit: number;
   windowMs: number;

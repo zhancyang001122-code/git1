@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { createChatHandler } from "@/features/agent/chat-handler";
 import { SseEventParser } from "@/features/agent/sse";
 
 import { POST } from "./route";
@@ -55,7 +56,10 @@ describe("POST /api/chat", () => {
   it("returns 503 instead of pretending live Qwen works without a key", async () => {
     vi.stubEnv("NEXT_PUBLIC_DEMO_MODE", "false");
     vi.stubEnv("DASHSCOPE_API_KEY", "");
-    const response = await POST(chatRequest());
+    const postWithRateLimitIsolated = createChatHandler(undefined, {
+      check: () => ({ allowed: true, remaining: 1, retryAfterSeconds: 60 }),
+    });
+    const response = await postWithRateLimitIsolated(chatRequest());
     const body = await response.json();
 
     expect(response.status).toBe(503);

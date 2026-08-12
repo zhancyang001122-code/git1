@@ -15,12 +15,11 @@ import { AppError, toPublicError } from "@/lib/errors";
 import { parsePublicEnv, parseServerEnv } from "@/lib/env";
 import { requestIdFor } from "@/lib/request-id";
 import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
-import {
-  createFixedWindowRateLimiter,
-  requestClientKey,
-} from "@/lib/rate-limit";
+import { requestClientKey, type RateLimiter } from "@/lib/rate-limit";
+import { createEnvironmentFixedWindowRateLimiter } from "@/lib/distributed-rate-limit";
 
-const feedbackRateLimiter = createFixedWindowRateLimiter({
+const feedbackRateLimiter = createEnvironmentFixedWindowRateLimiter({
+  scope: "feedback_ip",
   limit: 30,
   windowMs: 60_000,
 });
@@ -175,11 +174,12 @@ const candidateReasons = new Set(["incorrect", "missing_source", "outdated"]);
 
 export function createFeedbackHandler(
   runtimeFactory: () => Promise<FeedbackRuntime> = defaultRuntime,
+  rateLimiter: RateLimiter = feedbackRateLimiter,
 ) {
   return async function POST(request: Request): Promise<Response> {
     const requestId = requestIdFor(request);
     try {
-      const rateLimit = feedbackRateLimiter.check(requestClientKey(request));
+      const rateLimit = await rateLimiter.check(requestClientKey(request));
       if (!rateLimit.allowed) return rateLimitResponse(rateLimit, requestId);
       const parsed = feedbackRequestSchema.safeParse(
         await readJsonWithLimit(request, 8_192),

@@ -53,7 +53,9 @@
 ### 限流误伤
 
 - 现象：429 与 `retry-after`。
-- 处理：本地/单实例检查窗口计数；多实例部署改用共享 Redis/Upstash，不能依赖进程内 Map。
+- Production 的 Chat、Feedback 和公开 Knowledge Search：按 `scope` 检查 `api_rate_limit_windows` 的短时共享计数；只能使用 service role，禁止尝试恢复原始 IP。确认是误伤后等待 `retry-after`，不要直接删除所有作用域或提高全局阈值。
+- `RATE_LIMIT_BACKEND_UNAVAILABLE`：检查远端 migration、service key 和 Supabase 可用性；成本敏感接口会 503 失败关闭，不会退回无限放行。
+- Demo、管理发布/索引和低频单邮箱 OTP 仍有进程内计数；如果未来开放公众注册或高流量管理 API，再迁移到共享存储并增加 WAF/CAPTCHA，不把当前作品边界说成通用生产方案。
 
 ### AI Ops 站内告警
 

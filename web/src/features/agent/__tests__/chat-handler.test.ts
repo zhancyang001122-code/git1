@@ -10,6 +10,7 @@ import { createDemoRepository } from "@/features/business/demo-repository";
 import { createEphemeralChatPersistence } from "@/features/conversation/chat-persistence";
 import { FakeMapsService } from "@/features/maps/fake-adapter";
 import { FakeKnowledgeService } from "@/features/knowledge/fake-service";
+import type { RateLimiter } from "@/lib/rate-limit";
 
 function handler() {
   return createChatHandler(async () => ({
@@ -27,6 +28,32 @@ function handler() {
 }
 
 describe("POST /api/chat handler", () => {
+  it("returns a stable 429 before creating an expensive runtime", async () => {
+    let runtimeCreated = false;
+    const limiter: RateLimiter = {
+      check: async () => ({
+        allowed: false,
+        remaining: 0,
+        retryAfterSeconds: 23,
+      }),
+    };
+    const post = createChatHandler(async () => {
+      runtimeCreated = true;
+      throw new Error("not reached");
+    }, limiter);
+
+    const response = await post(
+      new Request("http://localhost/api/chat", {
+        method: "POST",
+        body: JSON.stringify({ message: "你好" }),
+      }),
+    );
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("retry-after")).toBe("23");
+    expect(runtimeCreated).toBe(false);
+  });
+
   it("returns a stable JSON error for malformed JSON", async () => {
     const response = await handler()(
       new Request("http://localhost/api/chat", {

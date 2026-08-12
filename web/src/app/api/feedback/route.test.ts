@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { createFeedbackHandler } from "@/app/api/feedback/route";
+import type { RateLimiter } from "@/lib/rate-limit";
 
 const sessionId = "71000000-0000-4000-8000-000000000001";
 const messageId = "72000000-0000-4000-8000-000000000001";
@@ -23,6 +24,29 @@ function runtime() {
 }
 
 describe("POST /api/feedback", () => {
+  it("returns shared rate-limit metadata before loading feedback state", async () => {
+    const runtimeFactory = vi.fn(async () => runtime());
+    const limiter: RateLimiter = {
+      check: async () => ({
+        allowed: false,
+        remaining: 0,
+        retryAfterSeconds: 19,
+      }),
+    };
+    const post = createFeedbackHandler(runtimeFactory, limiter);
+
+    const response = await post(
+      new Request("http://localhost/api/feedback", {
+        method: "POST",
+        body: JSON.stringify({ sessionId, messageId, rating: "up" }),
+      }),
+    );
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("retry-after")).toBe("19");
+    expect(runtimeFactory).not.toHaveBeenCalled();
+  });
+
   it("records an upvote without creating knowledge", async () => {
     const value = runtime();
     const post = createFeedbackHandler(async () => value);

@@ -62,6 +62,13 @@ const aiOpsAlertsMigration = migrations.find((migration) =>
   migration.name.endsWith("_ai_ops_alerts.sql"),
 );
 assert(aiOpsAlertsMigration, "AI Ops alerts migration is missing");
+const distributedRateLimitsMigration = migrations.find((migration) =>
+  migration.name.endsWith("_distributed_rate_limits.sql"),
+);
+assert(
+  distributedRateLimitsMigration,
+  "distributed rate limits migration is missing",
+);
 
 for (const migration of migrations) {
   const normalized = migration.sql.trim().toLowerCase();
@@ -87,6 +94,7 @@ const ragOpsTrendSql = ragOpsTrendMigration.sql;
 const knowledgeIndexQueueSql = knowledgeIndexQueueMigration.sql;
 const aiModelCostSql = aiModelCostMigration.sql;
 const aiOpsAlertsSql = aiOpsAlertsMigration.sql;
+const distributedRateLimitsSql = distributedRateLimitsMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -198,6 +206,37 @@ for (const requirement of [
   },
 ]) {
   assert(requirement.pattern.test(aiOpsAlertsSql), requirement.message);
+}
+
+for (const requirement of [
+  {
+    pattern: /create table public\.api_rate_limit_windows/i,
+    message: "shared rate-limit table is missing",
+  },
+  {
+    pattern: /create or replace function public\.check_api_rate_limit/i,
+    message: "atomic shared rate-limit RPC is missing",
+  },
+  {
+    pattern:
+      /on conflict \(scope, key_hash, window_start\)[\s\S]+request_count\s*=\s*[^;]+request_count\s*\+\s*1/i,
+    message: "shared rate-limit counter must increment atomically",
+  },
+  {
+    pattern:
+      /alter table public\.api_rate_limit_windows enable row level security/i,
+    message: "shared rate-limit table must enable RLS",
+  },
+  {
+    pattern:
+      /revoke all on function public\.check_api_rate_limit\(text, text, integer, integer\)[\s\S]+from public, anon, authenticated/i,
+    message: "shared rate-limit RPC must revoke client execution",
+  },
+]) {
+  assert(
+    requirement.pattern.test(distributedRateLimitsSql),
+    requirement.message,
+  );
 }
 
 for (const table of ["housing_dataset_releases", "historical_houses"]) {

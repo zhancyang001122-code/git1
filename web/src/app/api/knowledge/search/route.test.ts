@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createKnowledgeSearchHandler } from "@/app/api/knowledge/search/route";
 import type { KnowledgeService } from "@/features/knowledge/types";
+import type { RateLimiter } from "@/lib/rate-limit";
 
 function service(): KnowledgeService {
   return {
@@ -25,6 +26,45 @@ function service(): KnowledgeService {
 }
 
 describe("POST /api/knowledge/search", () => {
+  it("rejects oversized bodies before creating the knowledge runtime", async () => {
+    const runtimeFactory = vi.fn(async () => service());
+    const post = createKnowledgeSearchHandler(runtimeFactory);
+
+    const response = await post(
+      new Request("http://localhost/api/knowledge/search", {
+        method: "POST",
+        body: JSON.stringify({ query: "x".repeat(9_000) }),
+      }),
+    );
+
+    expect(response.status).toBe(413);
+    expect((await response.json()).error.code).toBe("REQUEST_BODY_TOO_LARGE");
+    expect(runtimeFactory).not.toHaveBeenCalled();
+  });
+
+  it("returns shared rate-limit metadata before executing retrieval", async () => {
+    const runtimeFactory = vi.fn(async () => service());
+    const limiter: RateLimiter = {
+      check: async () => ({
+        allowed: false,
+        remaining: 0,
+        retryAfterSeconds: 17,
+      }),
+    };
+    const post = createKnowledgeSearchHandler(runtimeFactory, limiter);
+
+    const response = await post(
+      new Request("http://localhost/api/knowledge/search", {
+        method: "POST",
+        body: JSON.stringify({ query: "团购券退款规则" }),
+      }),
+    );
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("retry-after")).toBe("17");
+    expect(runtimeFactory).not.toHaveBeenCalled();
+  });
+
   it("rejects invalid query input before calling the service", async () => {
     const knowledge = service();
     const post = createKnowledgeSearchHandler(async () => knowledge);
