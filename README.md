@@ -10,7 +10,7 @@
 - 2024-11 杭州历史房源共 60,202 条已导入 Supabase；页面和回答均标记为历史数据，不代表当前可租。
 - 千问已在线完成流式多轮 Function Calling；高德已在线完成地理编码、周边 POI 和步行路线验证。
 - 房源 + 高德、商品 + 偏好提案两条 Live 多工具链路已连续回归通过；点赞反馈会写入 Supabase。
-- 四份作品集首方公开资料已通过候选、审核、原子发布、持久化队列和独立 Worker 生成真实百炼 Embedding；Production 固定评测 20/20 通过，其中 3/3 千问自然问法用例同时通过强制取证、事实、版本、首方来源与引用范围检查。
+- 四份作品集首方公开资料已通过候选、审核、原子发布、持久化队列和独立 Worker 生成真实百炼 Embedding；Production 固定评测 20/20 通过，其中 4/4 千问自然问法用例同时通过强制取证、事实、版本、首方来源与引用范围检查。
 - 受保护的 AI Ops 视图会按每次 `qwen-plus` 请求的输入长度分档估算人民币成本，并显示覆盖率、价格核验日和排除项；它不是阿里云账单。
 - Supabase 提供跨 Vercel 实例的工具审计、全部 API Route 安全元数据检索和六类站内阈值状态，并已实现事故认领、解决、自动恢复与不可变事件审计；检索不返回工具载荷、查询参数、正文、Cookie、Authorization、IP 或响应正文。外部通知和真实值班升级尚未接入，不能称为完整企业告警平台。
 - Chat、Feedback、公开 Knowledge Search、地图直连和受保护的知识评测已使用 Supabase 原子共享限流；客户端标识先经服务端 HMAC-SHA256，不保存原始 IP。登录使用公开固定演示码映射到隔离的共享 Supabase 演示账号，并明确提示不要填写真实隐私。
@@ -101,6 +101,7 @@ pnpm deploy:verify-production
 - [验收标准](docs/11-acceptance-criteria.md)
 - [Production Live 部署证据](docs/task-reports/2026-08-12-vercel-production-baseline.md)
 - [作品集首方 RAG 证据](docs/task-reports/2026-08-13-portfolio-first-party-rag.md)
+- [RAG 恢复与防复发证据](docs/task-reports/2026-08-13-rag-embedding-recovery.md)
 - [知识索引 Worker 证据](web/docs/task-reports/2026-08-12-knowledge-index-worker.md)
 - [AI 成本估算证据](web/docs/task-reports/2026-08-12-ai-cost-estimate.md)
 - [受保护 Preview 部署证据](docs/task-reports/2026-08-12-vercel-preview-baseline.md)

@@ -4,13 +4,13 @@
 
 ## 结论
 
-四份作品集首方公开资料已在 Production 完成候选、审核、原子发布、持久化索引队列、真实百炼 Embedding、Supabase pgvector 混合检索、千问生成和版本化引用闭环。严格固定评测 20/20 通过，其中 3/3 生成用例使用普通用户自然问法，由千问自行路由，并同时通过事实要点、正确版本、首方来源和引用范围检查。
+四份作品集首方公开资料已在 Production 完成候选、审核、原子发布、持久化索引队列、真实百炼 Embedding、Supabase pgvector 混合检索、千问生成和版本化引用闭环。严格固定评测 20/20 通过，其中 4/4 生成用例使用普通用户自然问法，由千问自行路由，并同时通过事实要点、正确版本、首方来源和引用范围检查。
 
 这份证据证明的是“小智项目自身公开边界”的内容与工程链路。仓库仍没有企业客服话术、内部制度或客户业务政策，不能将本结果描述为真实企业知识库已经交付。
 
 ## 材料与来源标签
 
-材料集：`portfolio_first_party`，评测版本：`2026.08.2`。
+材料集：`portfolio_first_party`，当前评测版本：`2026.08.3`。
 
 1. 小智作品集：产品形态与能力边界
 2. 小智作品集：历史房源数据边界
@@ -35,6 +35,8 @@
 
 严格口径首次运行通过 16/20，修复跨文章噪声后通过 19/20；最后一个失败来自目标文章 Top1 向量分数约 0.690，而两个干扰文章约 0.589 和 0.591，刚好越过 85% 比例门槛。将文章门槛基于线上分布校准为 86% 后，严格评测达到 20/20。三轮结果均写入 `ai_eval_runs`，没有删除失败历史或降低断言。
 
+账号边界材料在 `2026.08.3` 增加固定演示码与共享演示账号说明后，又暴露出五个真实工程问题：索引上游曾出现一次瞬时失败；上海自然日已到 8 月 13 日而数据库仍按 UTC 的 8 月 12 日判断生效日期；登录边界问题没有被强制取证；导入脚本无法恢复失败任务；历史任务结果又被误当成当前发布状态。修复后，同一个失败任务可幂等恢复，业务有效日期统一为 `Asia/Shanghai`，账号问题会限定检索到账号材料，导入重复运行也不会重复发布或误报。完整时间线和防复发措施见 `2026-08-13-rag-embedding-recovery.md`。
+
 ## 自动验证
 
 本地质量门：
@@ -42,15 +44,14 @@
 - `pnpm format:check`：PASS
 - `pnpm lint`：PASS
 - `pnpm typecheck`：PASS
-- `pnpm test`：126 个测试文件、524 项测试全部通过
-- `pnpm build`：PASS，44 个路由完成生产构建
+- `pnpm test`：127 个测试文件、537 项测试全部通过
+- `pnpm build`：PASS，43 个路由完成生产构建
 
 Production：
 
-- 关键 Git commits：`7567d69`、`47bf5e3`、`bd461ea`、`5e66b65`、`ce67243`
-- Vercel deployment：`dpl_GTSqhFrgRRF67U6xEyUrNXoP7UVh`，状态 `READY`
-- Production alias：`https://xiaozhi-local-life.vercel.app`
-- `pnpm knowledge:verify-portfolio-production`：严格版 20/20 PASS；自然问法生成用例 3/3 PASS；20 条结果写入 `ai_eval_runs`
+- 后续恢复关键 Git commits：`df0fa9e`、`a8b9a6d`、`887ee2a`、`fe8c6f6`、`cded719`、`e03d036`
+- 当前 Production：`https://xiaozhi.zaneyang.xyz`
+- `pnpm knowledge:verify-portfolio-production`：严格版 20/20 PASS；自然问法生成用例 4/4 PASS；20 条结果写入 `ai_eval_runs`
 - `pnpm deploy:verify-production`：PASS，覆盖 Live 健康检查、移动布局、历史房源、高德地图、演示商业、偏好提案和反馈流程
 
 知识专项远端数据库测试在本轮修复前已通过 55/55。完整 linked 数据库套件仍存在与本材料无关的旧测试 `search_path` 和线上事故状态问题，因此本报告不把“知识专项通过”写成“全部远端数据库测试通过”。

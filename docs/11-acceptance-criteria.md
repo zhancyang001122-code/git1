@@ -74,7 +74,7 @@
 - [x] 混合检索 RPC 迁移和测试
 - [x] 21 个 Demo QA 评测样例
 - [x] 无依据拒答
-- [x] 使用作品集首方公开资料运行 Production 固定评测：20/20 通过；3/3 千问自然问法完成强制取证、事实、版本、首方来源与引用范围检查
+- [x] 使用作品集首方公开资料运行 Production 固定评测：20/20 通过；4/4 千问自然问法完成强制取证、事实、版本、首方来源与引用范围检查
 - [ ] 使用经授权的企业资料运行客户场景检索与生成评测
 
 ## P0 知识闭环
@@ -118,4 +118,4 @@
 2. 带来源的退款规则
 3. 房源 + 超市 + 押金规则组合任务
 
-Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。四份作品集首方公开资料已完成受控发布、真实百炼 Embedding、Production 检索和版本化引用；固定评测 20/20 通过，其中 3/3 千问生成用例通过。该证据证明作品集公开边界的 RAG 链路和内容质量，不等于真实企业客服资料已经交付。AI Ops 已能按线上逐请求 Token 和核验后的 `qwen-plus` 非思考模式公开原价估算人民币成本，但明确排除免费额度、优惠、Embedding 与 Rerank，因此不是阿里云账单。Production 管理页已使用 Sensitive 随机口令完成登录、Cookie 和主动退出验收；`xiaozhi.zaneyang.xyz` 已完成 DNS、TLS、Supabase Site URL 和完整 Live 回归。根据作者 2026-08-13 的新决策，邮箱 OTP 与 SMTP 已从当前范围移除，改为公开固定演示码映射到隔离 Supabase 演示账号；它用于作品集体验，不冒充生产级用户认证。Auth/偏好历史 OTP 证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；当前固定演示码证据见 `docs/task-reports/2026-08-13-fixed-demo-auth.md`；Production 基线见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`；自定义域名见 `docs/task-reports/2026-08-13-production-domain.md`；首方 RAG 证据见 `docs/task-reports/2026-08-13-portfolio-first-party-rag.md`；管理会话见 `web/docs/task-reports/2026-08-12-production-admin-session.md`；Worker 证据见 `docs/task-reports/2026-08-12-knowledge-index-worker.md`；成本估算证据见 `web/docs/task-reports/2026-08-12-ai-cost-estimate.md`。
+Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。四份作品集首方公开资料已完成受控发布、真实百炼 Embedding、Production 检索和版本化引用；固定评测 20/20 通过，其中 4/4 千问生成用例通过。该证据证明作品集公开边界的 RAG 链路和内容质量，不等于真实企业客服资料已经交付。AI Ops 已能按线上逐请求 Token 和核验后的 `qwen-plus` 非思考模式公开原价估算人民币成本，但明确排除免费额度、优惠、Embedding 与 Rerank，因此不是阿里云账单。Production 管理页已使用 Sensitive 随机口令完成登录、Cookie 和主动退出验收；`xiaozhi.zaneyang.xyz` 已完成 DNS、TLS、Supabase Site URL 和完整 Live 回归。根据作者 2026-08-13 的新决策，邮箱 OTP 与 SMTP 已从当前范围移除，改为公开固定演示码映射到隔离 Supabase 演示账号；它用于作品集体验，不冒充生产级用户认证。Auth/偏好历史 OTP 证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；当前固定演示码证据见 `docs/task-reports/2026-08-13-fixed-demo-auth.md`；Production 基线见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`；自定义域名见 `docs/task-reports/2026-08-13-production-domain.md`；首方 RAG 证据见 `docs/task-reports/2026-08-13-portfolio-first-party-rag.md`；RAG 恢复证据见 `docs/task-reports/2026-08-13-rag-embedding-recovery.md`；管理会话见 `web/docs/task-reports/2026-08-12-production-admin-session.md`；Worker 证据见 `docs/task-reports/2026-08-12-knowledge-index-worker.md`；成本估算证据见 `web/docs/task-reports/2026-08-12-ai-cost-estimate.md`。
