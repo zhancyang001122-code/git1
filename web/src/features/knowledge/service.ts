@@ -40,19 +40,24 @@ function isEligible(hit: HybridKnowledgeHit, today: string): boolean {
   );
 }
 
-function removeAdjacentDuplicates(
-  hits: readonly KnowledgeHit[],
-): KnowledgeHit[] {
+function removeDuplicateContent(hits: readonly KnowledgeHit[]): KnowledgeHit[] {
   const accepted: KnowledgeHit[] = [];
+  const contentKeys = new Set<string>();
   for (const hit of hits) {
-    const adjacent = accepted.some(
-      (candidate) =>
-        candidate.versionId === hit.versionId &&
-        Math.abs(candidate.chunkIndex - hit.chunkIndex) <= 1,
-    );
-    if (!adjacent) accepted.push(hit);
+    const contentHash = hit.metadata.contentHash;
+    const key =
+      typeof contentHash === "string" && contentHash.length > 0
+        ? `${hit.versionId}:${contentHash}`
+        : `${hit.versionId}:${hit.content.normalize("NFKC").trim()}`;
+    if (contentKeys.has(key)) continue;
+    contentKeys.add(key);
+    accepted.push(hit);
   }
   return accepted;
+}
+
+function confidenceScore(hit: KnowledgeHit): number {
+  return Math.max(hit.score, hit.vectorScore);
 }
 
 function hasConflict(hits: readonly KnowledgeHit[]): boolean {
@@ -147,12 +152,13 @@ export class DefaultKnowledgeService implements KnowledgeService {
       }
     }
     const finalCount = Math.min(input.topK, this.finalCount);
-    const chunks = removeAdjacentDuplicates(ranked).slice(0, finalCount);
+    const chunks = removeDuplicateContent(ranked).slice(0, finalCount);
     return {
       chunks,
       citations: chunks.map(citationFromHit),
       lowConfidence:
-        chunks.length === 0 || chunks[0]!.score < this.lowConfidenceThreshold,
+        chunks.length === 0 ||
+        confidenceScore(chunks[0]!) < this.lowConfidenceThreshold,
       conflict: hasConflict(chunks),
       queryPlan,
       warnings,

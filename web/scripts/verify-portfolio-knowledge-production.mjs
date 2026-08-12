@@ -194,7 +194,10 @@ try {
     if (evaluationCase.generation) {
       const generationResponse = await productionPost(
         "/api/chat",
-        { message: evaluationCase.input.query, debug: true },
+        {
+          message: `请先检索已发布的小智作品集说明，再回答：${evaluationCase.input.query}`,
+          debug: true,
+        },
         120_000,
       );
       const generated = summarizeGeneration(

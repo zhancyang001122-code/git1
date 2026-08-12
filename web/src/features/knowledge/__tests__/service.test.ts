@@ -123,10 +123,12 @@ describe("DefaultKnowledgeService search", () => {
     const service = new DefaultKnowledgeService({
       repository: repository([
         hit("63000000-0000-0000-0000-000000000001", {
+          vectorScore: 0.4,
           combinedScore: 0.4,
           metadata: { policyKey: "refund_allowed", policyValue: "yes" },
         }),
         hit("63000000-0000-0000-0000-000000000002", {
+          vectorScore: 0.39,
           combinedScore: 0.39,
           metadata: { policyKey: "refund_allowed", policyValue: "no" },
         }),
@@ -150,6 +152,107 @@ describe("DefaultKnowledgeService search", () => {
 
     expect(result.lowConfidence).toBe(true);
     expect(result.conflict).toBe(true);
+  });
+
+  it("uses semantic vector confidence when Chinese trigram text score is weak", async () => {
+    const service = new DefaultKnowledgeService({
+      repository: repository([
+        hit("63000000-0000-0000-0000-000000000001", {
+          vectorScore: 0.66,
+          textScore: 0.01,
+          combinedScore: 0.4325,
+        }),
+      ]),
+      embedding,
+      now: () => new Date("2026-08-11T00:00:00Z"),
+      lowConfidenceThreshold: 0.45,
+      vectorWeight: 0.65,
+      textWeight: 0.35,
+      recallCount: 12,
+      finalCount: 5,
+    });
+
+    const result = await service.search({
+      query: "小智是原生微信小程序吗",
+      domain: "platform",
+      category: "portfolio_capabilities",
+      city: null,
+      topK: 5,
+    });
+
+    expect(result.lowConfidence).toBe(false);
+  });
+
+  it("keeps adjacent chunks when their content is different", async () => {
+    const versionId = "62000000-0000-0000-0000-000000000001";
+    const service = new DefaultKnowledgeService({
+      repository: repository([
+        hit("63000000-0000-0000-0000-000000000001", {
+          chunkIndex: 0,
+          versionId,
+          content: "产品形态与真实能力边界。",
+          metadata: { contentHash: "content-a" },
+        }),
+        hit("63000000-0000-0000-0000-000000000002", {
+          chunkIndex: 1,
+          versionId,
+          content: "常见问题与明确回答。",
+          metadata: { contentHash: "content-b" },
+        }),
+      ]),
+      embedding,
+      now: () => new Date("2026-08-11T00:00:00Z"),
+      lowConfidenceThreshold: 0.45,
+      vectorWeight: 0.65,
+      textWeight: 0.35,
+      recallCount: 12,
+      finalCount: 5,
+    });
+
+    const result = await service.search({
+      query: "产品能力",
+      domain: "platform",
+      category: "portfolio_capabilities",
+      city: null,
+      topK: 5,
+    });
+
+    expect(result.chunks).toHaveLength(2);
+  });
+
+  it("deduplicates identical chunk content by its stored hash", async () => {
+    const versionId = "62000000-0000-0000-0000-000000000001";
+    const service = new DefaultKnowledgeService({
+      repository: repository([
+        hit("63000000-0000-0000-0000-000000000001", {
+          chunkIndex: 0,
+          versionId,
+          metadata: { contentHash: "same-content" },
+        }),
+        hit("63000000-0000-0000-0000-000000000002", {
+          chunkIndex: 4,
+          versionId,
+          metadata: { contentHash: "same-content" },
+        }),
+      ]),
+      embedding,
+      now: () => new Date("2026-08-11T00:00:00Z"),
+      lowConfidenceThreshold: 0.45,
+      vectorWeight: 0.65,
+      textWeight: 0.35,
+      recallCount: 12,
+      finalCount: 5,
+    });
+
+    const result = await service.search({
+      query: "退款规则",
+      domain: "group_buy",
+      category: "refund",
+      city: null,
+      topK: 5,
+    });
+
+    expect(result.chunks).toHaveLength(1);
   });
 });
 
