@@ -203,6 +203,14 @@ test("feedback and knowledge review never claim remote writes", async ({
   await expect(page.getByText(/候选已批准，但尚未发布/)).toBeVisible();
 });
 
+test("demo admin labels incident persistence as unavailable", async ({
+  page,
+}) => {
+  await loginKnowledgeAdmin(page);
+  await expect(page.getByRole("heading", { name: "事故认领" })).toBeVisible();
+  await expect(page.getByText(/Demo 不创建持久化事故/)).toBeVisible();
+});
+
 test("a knowledge gap becomes searchable only after review and publication", async ({
   page,
 }) => {

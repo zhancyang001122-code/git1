@@ -8,6 +8,7 @@ import {
   ToolRunLog,
 } from "@/components/account/ai-ops-monitoring";
 import { KnowledgeAdminList } from "@/components/account/knowledge-admin-experiences";
+import { IncidentManagement } from "@/components/account/incident-management";
 import { DetailShell } from "@/components/layout/detail-shell";
 import {
   apiRouteLogFiltersFromSearchParams,
@@ -30,6 +31,10 @@ import {
   type AIModelCostEstimate,
 } from "@/features/ai-ops/pricing";
 import { requireKnowledgeAdminPage } from "@/features/knowledge-ops/page-auth";
+import {
+  createSupabaseIncidentRepository,
+  type IncidentRecord,
+} from "@/features/ai-ops/incidents";
 import { createKnowledgeOpsRuntime } from "@/features/knowledge-ops/runtime";
 import { AppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
@@ -59,14 +64,17 @@ export default async function Page({
   let alerts: readonly OperationalAlert[] | null = null;
   let toolRunLogs: readonly ToolRunLogEntry[] | null = null;
   let apiRouteLogs: readonly ApiRouteLogEntry[] | null = null;
+  let incidents: readonly IncidentRecord[] | null = null;
   let dashboardStatus: "ready" | "demo" | "unavailable" =
     runtime.mode === "demo" ? "demo" : "unavailable";
   let trendStatus: "ready" | "demo" | "unavailable" = dashboardStatus;
   let alertsStatus: "ready" | "demo" | "unavailable" = dashboardStatus;
   let toolRunLogsStatus: "ready" | "demo" | "unavailable" = dashboardStatus;
   let apiRouteLogsStatus: "ready" | "demo" | "unavailable" = dashboardStatus;
+  let incidentsStatus: "ready" | "demo" | "unavailable" = dashboardStatus;
   if (runtime.mode === "live") {
     const client = createAdminSupabaseClient();
+    const incidentRepository = createSupabaseIncidentRepository(client);
     const [
       dashboardResult,
       trendResult,
@@ -74,6 +82,7 @@ export default async function Page({
       alertsResult,
       logsResult,
       routeLogsResult,
+      incidentsResult,
     ] = await Promise.allSettled([
       loadAIOpsDashboard(client),
       loadRAGOpsTrend(client),
@@ -81,6 +90,7 @@ export default async function Page({
       loadOperationalAlerts(client),
       loadToolRunLogs(client, toolRunFilters),
       loadApiRouteLogs(client, apiRouteFilters),
+      incidentRepository.sync(24).then(() => incidentRepository.list(20)),
     ]);
     if (dashboardResult.status === "fulfilled") {
       dashboard = dashboardResult.value;
@@ -156,6 +166,18 @@ export default async function Page({
             : "UNKNOWN_API_ROUTE_LOG_ERROR",
       });
     }
+    if (incidentsResult.status === "fulfilled") {
+      incidents = incidentsResult.value;
+      incidentsStatus = "ready";
+    } else {
+      logger.warn("ai_ops.incidents_unavailable", {
+        requestId: crypto.randomUUID(),
+        errorCode:
+          incidentsResult.reason instanceof AppError
+            ? incidentsResult.reason.code
+            : "UNKNOWN_INCIDENT_ERROR",
+      });
+    }
   }
   return (
     <DetailShell title="知识运营演示" backHref="/me">
@@ -175,6 +197,7 @@ export default async function Page({
         costEstimate={costEstimate}
       />
       <OperationalAlerts alerts={alerts} status={alertsStatus} />
+      <IncidentManagement incidents={incidents} status={incidentsStatus} />
       <RAGOpsTrend trend={trend} status={trendStatus} />
       <ToolRunLog
         entries={toolRunLogs}

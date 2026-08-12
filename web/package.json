@@ -18,6 +18,7 @@
     "deploy:verify": "node scripts/verify-production.mjs",
     "deploy:verify-production": "node scripts/verify-production.mjs --mode=live",
     "deploy:verify-route-logs": "node scripts/verify-route-logs-production.mjs",
+    "deploy:verify-incidents": "node scripts/verify-ai-ops-incidents-production.mjs",
     "external:verify-qwen": "node scripts/verify-qwen.mjs",
     "external:verify-amap": "node scripts/verify-amap.mjs",
     "start": "next start",

@@ -4,6 +4,10 @@
     {
       "path": "/api/internal/knowledge-index-worker",
       "schedule": "0 18 * * *"
+    },
+    {
+      "path": "/api/internal/ai-ops-monitor",
+      "schedule": "0 0 * * *"
     }
   ]
 }

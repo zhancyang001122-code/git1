@@ -73,6 +73,10 @@ const apiRouteLogsMigration = migrations.find((migration) =>
   migration.name.endsWith("_api_route_logs.sql"),
 );
 assert(apiRouteLogsMigration, "API route logs migration is missing");
+const aiOpsIncidentsMigration = migrations.find((migration) =>
+  migration.name.endsWith("_ai_ops_incidents.sql"),
+);
+assert(aiOpsIncidentsMigration, "AI Ops incidents migration is missing");
 
 for (const migration of migrations) {
   const normalized = migration.sql.trim().toLowerCase();
@@ -100,6 +104,7 @@ const aiModelCostSql = aiModelCostMigration.sql;
 const aiOpsAlertsSql = aiOpsAlertsMigration.sql;
 const distributedRateLimitsSql = distributedRateLimitsMigration.sql;
 const apiRouteLogsSql = apiRouteLogsMigration.sql;
+const aiOpsIncidentsSql = aiOpsIncidentsMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -185,6 +190,42 @@ for (const requirement of [
   },
 ]) {
   assert(requirement.pattern.test(apiRouteLogsSql), requirement.message);
+}
+
+for (const requirement of [
+  {
+    pattern: /create table public\.ai_ops_incidents/i,
+    message: "AI Ops incident table is missing",
+  },
+  {
+    pattern: /create table public\.ai_ops_incident_events/i,
+    message: "AI Ops incident event table is missing",
+  },
+  {
+    pattern: /create or replace function public\.sync_ai_ops_incidents/i,
+    message: "AI Ops incident sync RPC is missing",
+  },
+  {
+    pattern: /pg_advisory_xact_lock/i,
+    message: "AI Ops incident sync must serialize concurrent monitors",
+  },
+  {
+    pattern:
+      /unique index ai_ops_incidents_one_active_signal_idx[\s\S]+where status in \('open', 'acknowledged'\)/i,
+    message: "AI Ops incidents must allow only one active incident per signal",
+  },
+  {
+    pattern:
+      /revoke all on function public\.transition_ai_ops_incident\(uuid, text, text, text\)[\s\S]+from public, anon, authenticated/i,
+    message: "AI Ops incident transitions must revoke client execution",
+  },
+  {
+    pattern:
+      /grant execute on function public\.search_ai_ops_incidents\(integer\)[\s\S]+to service_role/i,
+    message: "AI Ops incident search must be service-role only",
+  },
+]) {
+  assert(requirement.pattern.test(aiOpsIncidentsSql), requirement.message);
 }
 
 for (const requirement of [
@@ -518,6 +559,8 @@ const serverOnlyTables = [
   "ai_eval_cases",
   "ai_eval_runs",
   "api_route_logs",
+  "ai_ops_incidents",
+  "ai_ops_incident_events",
 ];
 for (const table of serverOnlyTables) {
   assert(

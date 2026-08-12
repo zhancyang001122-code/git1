@@ -111,8 +111,11 @@ data: {"finishReason":"stop"}
 - `POST /api/knowledge/evaluate`：执行关联评测并返回通过数与得分。
 - `POST /api/knowledge/rollback`：只有存在上一已发布版本时才能回滚；没有回滚目标时返回稳定的 `409` 错误。
 - `GET|POST /api/internal/knowledge-index-worker`：每次最多领取并处理一个持久化索引任务。Vercel Cron 使用 `Authorization: Bearer <CRON_SECRET>`，已登录管理页也可用签名 HttpOnly Cookie 手动触发；响应为 `idle`、`succeeded`、`retrying` 或 `failed`，不返回任何凭证。
+- `GET /api/internal/ai-ops-monitor`：Vercel Cron 或已登录管理页触发四类阈值信号同步；同一信号最多一个活跃事故，信号恢复会自动解决并追加审计事件。
+- `GET /api/knowledge/incidents`：列出最近 20 个事故及状态、指标、认领人、处理说明和事件数量，不返回工具输入、对话或 Prompt。
+- `POST /api/knowledge/incidents`：执行 `acknowledge` 或 `resolve`；只有已认领事故可以解决，解决必须包含 1–500 字处理说明。浏览器 Cookie 写操作必须 Same-Origin，Bearer 自动化保持独立。
 
-上述 API 均要求管理会话或 Bearer Token，响应带 `cache-control: no-store` 与 `x-request-id`。
+上述 API 均要求管理会话或 Bearer Token，响应带 `cache-control: no-store` 与 `x-request-id`。事故主表可更新生命周期，事故事件仅允许服务端追加和读取，不能改写或删除。
 
 ## `GET /api/health`
 

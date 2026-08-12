@@ -36,6 +36,11 @@ try {
   ).toBeVisible();
   await expect(page.getByLabel("管理口令")).toBeEnabled();
 
+  const unauthorizedMonitor = await context.request.get(
+    new URL("/api/internal/ai-ops-monitor", baseUrl).href,
+  );
+  expect(unauthorizedMonitor.status()).toBe(401);
+
   await page.getByLabel("管理口令").fill(token);
   await Promise.all([
     page.waitForURL(/\/knowledge-admin(?:\?|$)/),
@@ -50,6 +55,23 @@ try {
   await expect(
     page.getByRole("heading", { name: "跨实例工具审计" }),
   ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "事故认领" })).toBeVisible();
+
+  const monitorResponse = await context.request.get(
+    new URL("/api/internal/ai-ops-monitor", baseUrl).href,
+  );
+  expect(monitorResponse.status()).toBe(200);
+  const monitor = await monitorResponse.json();
+  for (const field of [
+    "openedCount",
+    "refreshedCount",
+    "recoveredCount",
+    "activeCount",
+  ]) {
+    if (!Number.isInteger(monitor[field]) || monitor[field] < 0) {
+      throw new Error(`incident monitor returned invalid ${field}`);
+    }
+  }
 
   const cookies = await context.cookies(baseUrl.href);
   const session = cookies.find(
@@ -74,7 +96,7 @@ try {
   await expect(page).toHaveURL(/\/knowledge-admin\/login(?:\?|$)/);
 
   console.log(
-    "PASS Production admin redirect, login, AI Ops, secure cookie, logout and re-protection flow.",
+    "PASS Production admin redirect, login, AI Ops incident monitor, secure cookie, logout and re-protection flow.",
   );
 } finally {
   await browser.close();
