@@ -37,6 +37,16 @@ describe("current Auth documentation", () => {
     }
   });
 
+  it("keeps the interview demo on the custom domain and fixed demo code", () => {
+    const demoScript = repositoryFile("qa/demo-script.md");
+
+    expect(demoScript).toContain("https://xiaozhi.zaneyang.xyz");
+    expect(demoScript).toContain("666666");
+    expect(demoScript).toContain("共享演示账号");
+    expect(demoScript).not.toContain("xiaozhi-local-life.vercel.app");
+    expect(demoScript).not.toContain("白名单邮箱");
+  });
+
   it("makes the current first-party RAG material answer with the fixed demo account boundary", () => {
     const content = repositoryFile(
       "knowledge-base/portfolio-first-party/account-and-memory-boundary.md",

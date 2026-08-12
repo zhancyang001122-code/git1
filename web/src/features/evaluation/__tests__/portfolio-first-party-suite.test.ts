@@ -105,6 +105,7 @@ describe("portfolio first-party knowledge suite", () => {
       "docs/11-acceptance-criteria.md",
       "docs/15-knowledge-material-intake.md",
       "docs/task-reports/2026-08-13-portfolio-first-party-rag.md",
+      "qa/demo-script.md",
     ]) {
       const content = readFileSync(resolve(repositoryRoot, path), "utf8");
       expect(content, path).toContain("4/4");

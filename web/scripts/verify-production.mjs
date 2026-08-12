@@ -3,7 +3,7 @@ import { chromium, expect } from "@playwright/test";
 const baseUrl =
   process.env.DEPLOYMENT_URL?.trim() ||
   process.env.PRODUCTION_URL?.trim() ||
-  "https://xiaozhi-local-life.vercel.app";
+  "https://xiaozhi.zaneyang.xyz";
 const url = new URL(baseUrl);
 if (url.protocol !== "https:") {
   throw new Error("DEPLOYMENT_URL must use HTTPS");
