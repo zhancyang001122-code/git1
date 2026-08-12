@@ -5,7 +5,31 @@ set local search_path = public, extensions;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(51);
+select plan(55);
+
+select has_column(
+  'public',
+  'kb_articles',
+  'material_kind',
+  'knowledge articles classify material provenance'
+);
+select has_column(
+  'public',
+  'kb_article_versions',
+  'material_kind',
+  'knowledge versions classify material provenance'
+);
+select is(
+  (
+    select material_kind
+    from public.kb_article_versions
+    where is_demo = true
+    order by created_at
+    limit 1
+  ),
+  'demo',
+  'seeded demo knowledge remains explicitly classified as demo'
+);
 
 select has_function(
   'public',
@@ -52,6 +76,14 @@ select is(
   (select draft_json ->> 'versionLabel' from public.knowledge_candidates where id = :'manual_candidate_id'),
   'v1.0',
   'manual material preserves the supplied version label'
+);
+select is(
+  coalesce(
+    (select draft_json ->> 'materialKind' from public.knowledge_candidates where id = :'manual_candidate_id'),
+    'external_authorized'
+  ),
+  'external_authorized',
+  'legacy manual material remains safely classified as external authorized'
 );
 select throws_ok(
   $$select public.create_knowledge_candidate_draft(

@@ -1,0 +1,68 @@
+{
+  "materialSet": "portfolio_first_party",
+  "version": "2026.08.1",
+  "public": true,
+  "owner": "小智作品集作者",
+  "materials": [
+    {
+      "id": "portfolio_capabilities",
+      "file": "product-capability-boundary.md",
+      "question": "小智展示的是原生微信小程序吗，它目前有哪些真实接入和演示边界？",
+      "draft": {
+        "title": "小智作品集：产品形态与能力边界",
+        "changeSummary": "建立可公开核验的作品集产品能力与演示边界说明",
+        "sourceReference": "knowledge-base/portfolio-first-party/product-capability-boundary.md",
+        "owner": "小智作品集作者",
+        "domain": "platform",
+        "category": "portfolio_capabilities",
+        "versionLabel": "2026.08.1",
+        "effectiveFrom": "2026-08-12"
+      }
+    },
+    {
+      "id": "portfolio_housing_boundary",
+      "file": "historical-housing-boundary.md",
+      "question": "小智的房源数据是哪一期，能否据此判断现在仍然可租？",
+      "draft": {
+        "title": "小智作品集：历史房源数据边界",
+        "changeSummary": "建立历史房源来源、规模、筛选能力与时效边界说明",
+        "sourceReference": "knowledge-base/portfolio-first-party/historical-housing-boundary.md",
+        "owner": "小智作品集作者",
+        "domain": "housing",
+        "category": "portfolio_housing_boundary",
+        "versionLabel": "2026.08.1",
+        "effectiveFrom": "2026-08-12"
+      }
+    },
+    {
+      "id": "portfolio_data_memory",
+      "file": "account-and-memory-boundary.md",
+      "question": "游客、登录和长期偏好在小智中分别是什么关系？",
+      "draft": {
+        "title": "小智作品集：账号与长期偏好边界",
+        "changeSummary": "建立游客访问、登录会话和云端长期偏好的授权边界说明",
+        "sourceReference": "knowledge-base/portfolio-first-party/account-and-memory-boundary.md",
+        "owner": "小智作品集作者",
+        "domain": "platform",
+        "category": "portfolio_data_memory",
+        "versionLabel": "2026.08.1",
+        "effectiveFrom": "2026-08-12"
+      }
+    },
+    {
+      "id": "portfolio_evidence_governance",
+      "file": "ai-evidence-and-governance.md",
+      "question": "千问、业务工具、地图和知识库分别负责什么，系统如何避免编造？",
+      "draft": {
+        "title": "小智作品集：AI 事实来源与知识治理",
+        "changeSummary": "建立模型、结构化工具、地图、RAG 与知识发布的责任边界说明",
+        "sourceReference": "knowledge-base/portfolio-first-party/ai-evidence-and-governance.md",
+        "owner": "小智作品集作者",
+        "domain": "platform",
+        "category": "portfolio_evidence_governance",
+        "versionLabel": "2026.08.1",
+        "effectiveFrom": "2026-08-12"
+      }
+    }
+  ]
+}

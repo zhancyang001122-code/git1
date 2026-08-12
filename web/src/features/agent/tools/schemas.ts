@@ -381,7 +381,7 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
   {
     name: "search_knowledge",
     description:
-      "Retrieve published and currently effective customer-service knowledge. Use for policies, contracts, refunds, deposits and delivery rules. Cite returned chunks.",
+      "Retrieve published and currently effective knowledge. Use for policies, contracts, product capabilities, data freshness, system boundaries, refunds, deposits and delivery rules. Cite returned chunks.",
     strict: true,
     parameters: {
       type: "object",

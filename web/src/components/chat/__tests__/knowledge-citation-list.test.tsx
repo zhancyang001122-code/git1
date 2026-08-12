@@ -27,4 +27,28 @@ describe("KnowledgeCitationList", () => {
     expect(screen.getByText(/v1.0/)).toBeInTheDocument();
     expect(screen.getByText(/退租验收完成后/)).toBeInTheDocument();
   });
+
+  it("shows portfolio first-party provenance separately from enterprise material", () => {
+    render(
+      <KnowledgeCitationList
+        citations={[
+          {
+            articleId: "61000000-0000-0000-0000-000000000002",
+            versionId: "62000000-0000-0000-0000-000000000002",
+            chunkId: "63000000-0000-0000-0000-000000000002",
+            title: "小智作品集：历史房源数据边界",
+            versionLabel: "2026.08.1",
+            effectiveFrom: "2026-08-12",
+            excerpt: "这是 2024-11 历史快照，不代表当前可租。",
+            score: 0.91,
+            isDemo: false,
+            materialKind: "portfolio_first_party",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("作品集首方说明")).toBeInTheDocument();
+    expect(screen.queryByText("外部授权资料")).not.toBeInTheDocument();
+  });
 });

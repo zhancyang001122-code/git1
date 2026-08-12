@@ -99,6 +99,9 @@ const citationSchema = z.object({
   excerpt: z.string(),
   score: z.number().finite(),
   isDemo: z.boolean().optional(),
+  materialKind: z
+    .enum(["demo", "portfolio_first_party", "external_authorized"])
+    .optional(),
 });
 const debugRunSchema = progressSchema.extend({
   toolName: z.string().min(1),

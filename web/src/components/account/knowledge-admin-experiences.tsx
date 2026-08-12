@@ -21,6 +21,7 @@ import { Tag } from "@/components/ui/tag";
 import { Toast } from "@/components/ui/toast";
 import type { KnowledgeCandidateRecord } from "@/features/knowledge-ops/repository";
 import type { CandidateDraft } from "@/features/knowledge-ops/schemas";
+import type { KnowledgeMaterialKind } from "@/features/knowledge/types";
 
 const statusLabels = {
   pending: "待处理",
@@ -38,6 +39,7 @@ interface ManualMaterialForm {
   question: string;
   title: string;
   answerMarkdown: string;
+  materialKind: KnowledgeMaterialKind;
   sourceReference: string;
   owner: string;
   domain: CandidateDraft["domain"];
@@ -52,6 +54,7 @@ const emptyMaterial: ManualMaterialForm = {
   question: "",
   title: "",
   answerMarkdown: "",
+  materialKind: "external_authorized",
   sourceReference: "",
   owner: "",
   domain: "housing",
@@ -92,6 +95,7 @@ export function KnowledgeMaterialIntake({ isDemo }: { isDemo: boolean }) {
             draft: {
               title: form.title,
               answerMarkdown: form.answerMarkdown,
+              materialKind: form.materialKind,
               sourceReference: form.sourceReference,
               owner: form.owner,
               domain: form.domain,
@@ -193,6 +197,24 @@ export function KnowledgeMaterialIntake({ isDemo }: { isDemo: boolean }) {
               onChange={(event) => update("answerMarkdown", event.target.value)}
               className={`${fieldClass} min-h-36 py-3 leading-6`}
             />
+          </label>
+          <label className="block text-sm font-medium text-text">
+            资料性质
+            <select
+              aria-label="资料性质"
+              value={form.materialKind}
+              onChange={(event) =>
+                update(
+                  "materialKind",
+                  event.target.value as KnowledgeMaterialKind,
+                )
+              }
+              className={fieldClass}
+            >
+              <option value="external_authorized">外部授权正式资料</option>
+              <option value="portfolio_first_party">作品集首方公开说明</option>
+              <option value="demo">虚构演示资料</option>
+            </select>
           </label>
           <label className="block text-sm font-medium text-text">
             来源文件或编号
@@ -339,6 +361,7 @@ function defaultDraft(candidate: KnowledgeCandidateRecord): CandidateDraft {
     candidate.draft ?? {
       title: `${candidate.normalizedQuestion}（模拟草稿）`,
       answerMarkdown: `模拟规则草稿：${candidate.normalizedQuestion}。当前没有真实企业资料，发布前必须补充可核验来源。`,
+      materialKind: "demo",
       changeSummary: "补充当前知识缺口",
       sourceReference: "DEMO-EVIDENCE-REQUIRED",
       owner: "知识运营演示负责人",

@@ -81,6 +81,13 @@ const aiModelSlosMigration = migrations.find((migration) =>
   migration.name.endsWith("_ai_model_slos.sql"),
 );
 assert(aiModelSlosMigration, "AI model SLO migration is missing");
+const knowledgeMaterialProvenanceMigration = migrations.find((migration) =>
+  migration.name.endsWith("_knowledge_material_provenance.sql"),
+);
+assert(
+  knowledgeMaterialProvenanceMigration,
+  "Knowledge material provenance migration is missing",
+);
 
 for (const migration of migrations) {
   const normalized = migration.sql.trim().toLowerCase();
@@ -110,6 +117,7 @@ const distributedRateLimitsSql = distributedRateLimitsMigration.sql;
 const apiRouteLogsSql = apiRouteLogsMigration.sql;
 const aiOpsIncidentsSql = aiOpsIncidentsMigration.sql;
 const aiModelSlosSql = aiModelSlosMigration.sql;
+const knowledgeMaterialProvenanceSql = knowledgeMaterialProvenanceMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -125,6 +133,31 @@ const rlsTables = new Set(
 );
 const missingRls = createdTables.filter((table) => !rlsTables.has(table));
 assert(missingRls.length === 0, `RLS is missing for: ${missingRls.join(", ")}`);
+
+for (const requirement of [
+  {
+    pattern:
+      /add column if not exists material_kind text not null default 'external_authorized'/i,
+    message: "Knowledge material provenance column is missing",
+  },
+  {
+    pattern: /'demo', 'portfolio_first_party', 'external_authorized'/i,
+    message: "Knowledge material provenance values are incomplete",
+  },
+  {
+    pattern: /drop function public\.hybrid_search_kb_v2\(/i,
+    message: "Hybrid knowledge search must be rebuilt for its new return type",
+  },
+  {
+    pattern: /material_kind text[\s\S]+e\.material_kind/i,
+    message: "Hybrid search must return knowledge material provenance",
+  },
+]) {
+  assert(
+    requirement.pattern.test(knowledgeMaterialProvenanceSql),
+    requirement.message,
+  );
+}
 
 for (const requirement of [
   {

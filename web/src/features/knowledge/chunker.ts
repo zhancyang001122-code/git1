@@ -1,6 +1,10 @@
 import { createHash } from "node:crypto";
 
-import type { ChunkDraft, KnowledgeDomain } from "@/features/knowledge/types";
+import type {
+  ChunkDraft,
+  KnowledgeDomain,
+  KnowledgeMaterialKind,
+} from "@/features/knowledge/types";
 
 interface ChunkVersionInput {
   articleId: string;
@@ -10,6 +14,7 @@ interface ChunkVersionInput {
   category: string;
   city: string | null;
   isDemo: boolean;
+  materialKind?: KnowledgeMaterialKind;
   contentMarkdown: string;
 }
 
@@ -101,6 +106,9 @@ export function chunkKnowledgeVersion(input: ChunkVersionInput): ChunkDraft[] {
           category: input.category,
           city: input.city,
           isDemo: input.isDemo,
+          materialKind:
+            input.materialKind ??
+            (input.isDemo ? "demo" : "external_authorized"),
           headingPath: section.headingPath,
           contentHash: hash(content),
         },

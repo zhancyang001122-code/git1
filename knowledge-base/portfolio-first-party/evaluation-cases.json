@@ -1,0 +1,443 @@
+{
+  "materialSet": "portfolio_first_party",
+  "version": "2026.08.1",
+  "cases": [
+    {
+      "id": "portfolio-first-party-product-form",
+      "category": "rag",
+      "input": {
+        "query": "小智是原生微信小程序吗？",
+        "domain": "platform",
+        "category": "portfolio_capabilities",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：产品形态与能力边界"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [
+          "430px",
+          "Next.js",
+          "不是可提交微信审核的原生小程序"
+        ],
+        "generationRequiredConcepts": ["430px", "Web", "不是"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      },
+      "generation": true
+    },
+    {
+      "id": "portfolio-first-party-live-services",
+      "category": "rag",
+      "input": {
+        "query": "Production Live 已经接通了哪些外部服务？",
+        "domain": "platform",
+        "category": "portfolio_capabilities",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：产品形态与能力边界"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [
+          "Supabase",
+          "百炼千问",
+          "高德 Web 服务",
+          "2024-11 历史房源"
+        ],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      }
+    },
+    {
+      "id": "portfolio-first-party-commerce-demo",
+      "category": "rag",
+      "input": {
+        "query": "团购和线上超市会产生真实交易吗？",
+        "domain": "platform",
+        "category": "portfolio_capabilities",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：产品形态与能力边界"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": ["演示业务数据", "不产生真实交易"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      }
+    },
+    {
+      "id": "portfolio-first-party-service-fallback",
+      "category": "rag",
+      "input": {
+        "query": "外部服务超时后能否偷偷返回模拟结果？",
+        "domain": "platform",
+        "category": "portfolio_capabilities",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：产品形态与能力边界"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [
+          "显示降级状态",
+          "不能把模拟结果偷偷伪装成真实接入"
+        ],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      }
+    },
+    {
+      "id": "portfolio-first-party-housing-period",
+      "category": "rag",
+      "input": {
+        "query": "房源数据是哪一期，共有多少条？",
+        "domain": "housing",
+        "category": "portfolio_housing_boundary",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：历史房源数据边界"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": ["2024-11", "60,202 条"],
+        "generationRequiredConcepts": ["2024", "历史", "当前"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      },
+      "generation": true
+    },
+    {
+      "id": "portfolio-first-party-housing-current",
+      "category": "rag",
+      "input": {
+        "query": "可以根据房源库确认现在仍然可租和当前租金吗？",
+        "domain": "housing",
+        "category": "portfolio_housing_boundary",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：历史房源数据边界"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": ["不代表当前可租", "不能证明当前价格"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      }
+    },
+    {
+      "id": "portfolio-first-party-housing-filters",
+      "category": "rag",
+      "input": {
+        "query": "历史房源工具支持哪些筛选条件？",
+        "domain": "housing",
+        "category": "portfolio_housing_boundary",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：历史房源数据边界"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": ["最低或最高月租", "户型", "指定地点"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      }
+    },
+    {
+      "id": "portfolio-first-party-housing-distance",
+      "category": "rag",
+      "input": {
+        "query": "房源坐标算出的直线距离可以当作步行距离吗？",
+        "domain": "housing",
+        "category": "portfolio_housing_boundary",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：历史房源数据边界"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": ["两个独立来源", "不能冒充步行距离", "高德"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      }
+    },
+    {
+      "id": "portfolio-first-party-guest-access",
+      "category": "rag",
+      "input": {
+        "query": "游客不注册可以使用什么功能？",
+        "domain": "platform",
+        "category": "portfolio_data_memory",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：账号与长期偏好边界"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [
+          "浏览公开页面",
+          "匿名对话",
+          "不能把长期偏好写入某个云端账号"
+        ],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      }
+    },
+    {
+      "id": "portfolio-first-party-login-memory",
+      "category": "rag",
+      "input": {
+        "query": "登录后会自动开启长期记忆并保存聊天吗？",
+        "domain": "platform",
+        "category": "portfolio_data_memory",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：账号与长期偏好边界"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [
+          "不会自动开启长期记忆",
+          "不会自动把一次性聊天需求保存为长期偏好"
+        ],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      }
+    },
+    {
+      "id": "portfolio-first-party-otp-status",
+      "category": "rag",
+      "input": {
+        "query": "Production 的公共邮箱 OTP 是否已经完成验收？",
+        "domain": "platform",
+        "category": "portfolio_data_memory",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：账号与长期偏好边界"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [
+          "仍是明确待办",
+          "不能宣称公共邮箱登录已经完成生产验收"
+        ],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      }
+    },
+    {
+      "id": "portfolio-first-party-memory-consent",
+      "category": "rag",
+      "input": {
+        "query": "长期偏好什么时候才会写入云端，退出会删除吗？",
+        "domain": "platform",
+        "category": "portfolio_data_memory",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：账号与长期偏好边界"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": ["点击确认后", "RLS", "单纯退出登录不会删除"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      }
+    },
+    {
+      "id": "portfolio-first-party-model-role",
+      "category": "rag",
+      "input": {
+        "query": "千问在小智里负责什么，它本身是事实来源吗？",
+        "domain": "platform",
+        "category": "portfolio_evidence_governance",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：AI 事实来源与知识治理"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [
+          "理解问题",
+          "规划工具调用",
+          "不是价格、库存、状态、政策或距离的事实来源"
+        ],
+        "generationRequiredConcepts": ["工具", "事实来源"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      },
+      "generation": true
+    },
+    {
+      "id": "portfolio-first-party-source-roles",
+      "category": "rag",
+      "input": {
+        "query": "房租、POI 和产品能力分别从哪里取事实？",
+        "domain": "platform",
+        "category": "portfolio_evidence_governance",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：AI 事实来源与知识治理"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": ["Supabase 业务工具", "高德", "知识版本"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      }
+    },
+    {
+      "id": "portfolio-first-party-rag-boundary",
+      "category": "rag",
+      "input": {
+        "query": "知识检索低置信或冲突时应该怎么处理？",
+        "domain": "platform",
+        "category": "portfolio_evidence_governance",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：AI 事实来源与知识治理"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": ["拒绝确定性结论", "记录知识缺口"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      }
+    },
+    {
+      "id": "portfolio-first-party-governance-loop",
+      "category": "rag",
+      "input": {
+        "query": "一份新知识会自动上线或让模型自动训练吗？",
+        "domain": "platform",
+        "category": "portfolio_evidence_governance",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["小智作品集：AI 事实来源与知识治理"],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [
+          "候选草稿",
+          "人工审核",
+          "异步索引",
+          "不会让模型自动训练"
+        ],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false
+      }
+    },
+    {
+      "id": "portfolio-first-party-no-answer-compensation",
+      "category": "no_answer",
+      "input": {
+        "query": "平台是否承诺所有商家停业都三倍赔偿？",
+        "domain": "platform",
+        "category": "portfolio_unknown_compensation",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": [],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [],
+        "requireCitation": false,
+        "requireNonDemo": true,
+        "requireHighConfidence": false,
+        "expectNoCitations": true
+      }
+    },
+    {
+      "id": "portfolio-first-party-no-answer-housing-live",
+      "category": "no_answer",
+      "input": {
+        "query": "武林广场某套房今天是否还能签约？",
+        "domain": "housing",
+        "category": "portfolio_unknown_live_availability",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": [],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [],
+        "requireCitation": false,
+        "requireNonDemo": true,
+        "requireHighConfidence": false,
+        "expectNoCitations": true
+      }
+    },
+    {
+      "id": "portfolio-first-party-no-answer-refund",
+      "category": "no_answer",
+      "input": {
+        "query": "真实商家的团购券退款到账时间是多少？",
+        "domain": "group_buy",
+        "category": "portfolio_unknown_refund",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": [],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [],
+        "requireCitation": false,
+        "requireNonDemo": true,
+        "requireHighConfidence": false,
+        "expectNoCitations": true
+      }
+    },
+    {
+      "id": "portfolio-first-party-no-answer-delivery",
+      "category": "no_answer",
+      "input": {
+        "query": "真实超市配送超时是否固定赔付十元？",
+        "domain": "market",
+        "category": "portfolio_unknown_delivery",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": [],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [],
+        "requireCitation": false,
+        "requireNonDemo": true,
+        "requireHighConfidence": false,
+        "expectNoCitations": true
+      }
+    }
+  ]
+}

@@ -39,6 +39,9 @@ const hitRowSchema = z.object({
   text_score: z.number().finite(),
   combined_score: z.number().finite(),
   is_demo: z.boolean().default(false),
+  material_kind: z
+    .enum(["demo", "portfolio_first_party", "external_authorized"])
+    .default("external_authorized"),
 });
 const versionRowSchema = z.object({
   id: postgresUuidSchema,
@@ -47,10 +50,16 @@ const versionRowSchema = z.object({
   content_markdown: z.string(),
   status,
   is_demo: z.boolean().default(false),
+  material_kind: z
+    .enum(["demo", "portfolio_first_party", "external_authorized"])
+    .default("external_authorized"),
   kb_articles: z.object({
     title: z.string(),
     city: z.string().nullable(),
     is_demo: z.boolean().default(false),
+    material_kind: z
+      .enum(["demo", "portfolio_first_party", "external_authorized"])
+      .default("external_authorized"),
     kb_categories: z.object({
       domain: z.enum(knowledgeDomains),
       slug: z.string(),
@@ -86,6 +95,7 @@ function mapHit(value: unknown): HybridKnowledgeHit {
     textScore: row.text_score,
     combinedScore: row.combined_score,
     isDemo: row.is_demo,
+    materialKind: row.material_kind,
   };
 }
 
@@ -133,7 +143,7 @@ export function createSupabaseKnowledgeRepository(
       const query = client
         .from("kb_article_versions")
         .select(
-          "id,article_id,version_label,content_markdown,status,is_demo,kb_articles!kb_article_versions_article_id_fkey(title,city,is_demo,kb_categories!inner(domain,slug))",
+          "id,article_id,version_label,content_markdown,status,is_demo,material_kind,kb_articles!kb_article_versions_article_id_fkey(title,city,is_demo,material_kind,kb_categories!inner(domain,slug))",
         )
         .eq("id", versionId);
       if (signal) query.abortSignal(signal);
@@ -165,6 +175,13 @@ export function createSupabaseKnowledgeRepository(
         category: row.kb_articles.kb_categories.slug,
         city: row.kb_articles.city,
         isDemo: row.is_demo || row.kb_articles.is_demo,
+        materialKind:
+          row.is_demo || row.kb_articles.is_demo
+            ? "demo"
+            : row.material_kind === "portfolio_first_party" ||
+                row.kb_articles.material_kind === "portfolio_first_party"
+              ? "portfolio_first_party"
+              : "external_authorized",
         status: row.status,
       };
     },

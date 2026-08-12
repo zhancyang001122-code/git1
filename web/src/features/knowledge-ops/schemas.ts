@@ -20,6 +20,11 @@ export const candidateStatusSchema = z.enum([
   "rejected",
   "published",
 ]);
+export const knowledgeMaterialKindSchema = z.enum([
+  "demo",
+  "portfolio_first_party",
+  "external_authorized",
+]);
 export const candidateEvidenceSchema = z
   .object({
     articleId: uuid,
@@ -56,6 +61,7 @@ export const candidateDraftSchema = z
       .trim()
       .regex(/^[a-z][a-z0-9_-]{1,79}$/),
     versionLabel: z.string().trim().min(1).max(80).optional(),
+    materialKind: knowledgeMaterialKindSchema.optional(),
     effectiveFrom: isoDate,
     effectiveUntil: isoDate.optional(),
   })

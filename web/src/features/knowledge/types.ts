@@ -9,6 +9,8 @@ export const knowledgeDomains = [
 export type KnowledgeDomain = (typeof knowledgeDomains)[number];
 export type KnowledgeStatus =
   "draft" | "reviewing" | "published" | "archived" | "rejected";
+export type KnowledgeMaterialKind =
+  "demo" | "portfolio_first_party" | "external_authorized";
 
 export interface KnowledgeSearchInput {
   query: string;
@@ -42,6 +44,7 @@ export interface HybridKnowledgeHit {
   textScore: number;
   combinedScore: number;
   isDemo: boolean;
+  materialKind?: KnowledgeMaterialKind;
 }
 
 export interface KnowledgeHit extends HybridKnowledgeHit {
@@ -68,6 +71,7 @@ export interface KnowledgeVersionForIndex {
   category: string;
   city: string | null;
   isDemo: boolean;
+  materialKind?: KnowledgeMaterialKind;
   status: KnowledgeStatus;
 }
 
