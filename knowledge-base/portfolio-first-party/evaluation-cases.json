@@ -243,7 +243,12 @@
           "真实 Session、RLS 偏好、退出、重登和清理已完成 Production 验收",
           "不等于生产级用户认证"
         ],
-        "generationRequiredConcepts": ["666666", "Supabase", "不是", "生产级"],
+        "generationRequiredConcepts": [
+          "666666",
+          "Supabase",
+          ["不是", "不等于"],
+          "生产级"
+        ],
         "requireCitation": true,
         "requireNonDemo": true,
         "requireHighConfidence": true,

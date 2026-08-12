@@ -24,6 +24,12 @@ const routes: readonly {
     domain: "market",
     category: "delivery",
   },
+  {
+    pattern:
+      /(?:小智|本项目|平台|系统|Production|Live).*(?:登录|认证|演示码|验证码|长期偏好|长期记忆|验收)/iu,
+    domain: "platform",
+    category: "portfolio_data_memory",
+  },
 ];
 
 function clean(value: string): string {

@@ -8,6 +8,11 @@ describe("knowledge query planner", () => {
     ["退租验房后押金怎么处理", "housing", "deposit"],
     ["租房押金多久退", "housing", "deposit"],
     ["超市配送超时怎么办", "market", "delivery"],
+    [
+      "Production 现在用什么方式登录，是否已经完成验收？",
+      "platform",
+      "portfolio_data_memory",
+    ],
   ] as const)(
     "maps %s to an allowlisted domain and category",
     (query, domain, category) => {
