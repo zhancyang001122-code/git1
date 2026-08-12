@@ -60,7 +60,7 @@ function confidenceScore(hit: KnowledgeHit): number {
   return Math.max(hit.score, hit.vectorScore);
 }
 
-const SECONDARY_ARTICLE_CONFIDENCE_RATIO = 0.85;
+const SECONDARY_ARTICLE_CONFIDENCE_RATIO = 0.86;
 
 function relevantChunks(
   candidates: readonly KnowledgeHit[],

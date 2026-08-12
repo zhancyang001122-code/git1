@@ -194,8 +194,8 @@ describe("DefaultKnowledgeService search", () => {
         }),
         hit("63000000-0000-0000-0000-000000000002", {
           title: "房源宠物入住规则",
-          vectorScore: 0.34,
-          combinedScore: 0.3,
+          vectorScore: 0.6,
+          combinedScore: 0.5,
           isDemo: true,
         }),
       ]),
