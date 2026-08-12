@@ -65,7 +65,7 @@ React 页面不直接执行 SQL，不使用 service role 客户端。价格、�
 
 `NEXT_PUBLIC_DEMO_MODE=false`：Supabase、匿名 Cookie 密钥和管理口令可先启用持久化会话、反馈、候选、草稿与审核。没有百炼 Key 时，发布会在任何数据库变更前明确返回 `KNOWLEDGE_INDEXING_NOT_CONFIGURED`；配置百炼后才允许发布、索引和评测。高德能力缺 Key 时同样明确显示未配置，不会伪装为在线结果。
 
-当前 Production 已接通 Supabase、千问、高德和 2024 历史房源，并通过“历史房源 + 高德”“演示商品 + 偏好提案”两条 Live 回归。公开固定演示码 Auth 已通过真实 Supabase Session、RLS 偏好、退出、重登和清理验收。四份作品集首方公开资料已通过受控发布、独立 Worker、真实 Embedding、在线检索和版本化引用，固定评测 20/20 通过，其中 3/3 千问自然问法用例通过强制取证与严格引用范围检查。企业客服知识材料与 qwen3-rerank 仍未验收，不能从“作品集首方 RAG 已完成”推导为“真实企业知识库已交付”。
+当前 Production 已接通 Supabase、千问、高德和 2024 历史房源，并通过“历史房源 + 高德”“演示商品 + 偏好提案”两条 Live 回归。公开固定演示码 Auth 已通过真实 Supabase Session、RLS 偏好、退出、重登和清理验收。四份作品集首方公开资料已通过受控发布、独立 Worker、真实 Embedding、在线检索和版本化引用，固定评测 20/20 通过，其中 4/4 千问自然问法用例通过强制取证与严格引用范围检查。企业客服知识材料与 qwen3-rerank 仍未验收，不能从“作品集首方 RAG 已完成”推导为“真实企业知识库已交付”。
 
 部署后回归：
 

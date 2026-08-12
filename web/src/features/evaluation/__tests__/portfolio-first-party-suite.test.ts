@@ -100,6 +100,8 @@ describe("portfolio first-party knowledge suite", () => {
   it("keeps the public Production evidence aligned with four generation cases", () => {
     for (const path of [
       "README.md",
+      "web/README.md",
+      "docs/10-interview-guide.md",
       "docs/11-acceptance-criteria.md",
       "docs/15-knowledge-material-intake.md",
       "docs/task-reports/2026-08-13-portfolio-first-party-rag.md",
