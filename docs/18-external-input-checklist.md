@@ -40,9 +40,9 @@
 
 ### 4. Vercel 连接 GitHub
 
-当前 GitHub CLI 登录正常，公开仓库 `zhancyang001122-code/git1` 的默认分支是 `codex/housing-http-adapter`，代码已经推送。Production 目前使用已验证的 Vercel CLI 手动部署，但 Git push 不会自动部署。
+GitHub App 已按最小范围安装，只授权公开仓库 `zhancyang001122-code/git1`，没有授权其他仓库。Vercel 项目已经连接该仓库，Production Branch 为 `codex/housing-http-adapter`，Root Directory 已修正并核验为 `web`。
 
-作者需要在 Vercel 项目的 Git 设置中连接该 GitHub 仓库，并在 GitHub OAuth 页面只授权所需仓库。连接完成后再做一次小型文档提交，确认 push 能触发 Preview/Production 构建；这一步需要作者完成 OAuth 授权，不能用已有代码密钥代替。
+`docs/task-reports/2026-08-13-vercel-github-connection.md` 所在提交是首次自动部署 canary。只有观察到与该提交 SHA 对应的 Vercel Production deployment 并通过线上回归，才把这一项从“已连接”升级为“自动部署已验收”。
 
 ## 可以延后的增强项
 
