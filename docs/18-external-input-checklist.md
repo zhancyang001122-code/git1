@@ -18,11 +18,11 @@
 
 不要把密钥、身份证号、手机号、客户名单或未获授权的内部文件放进仓库。材料可先单独发给 Codex 审计和脱敏，再决定是否导入 Supabase。
 
-### 2. Production 管理口令
+### 2. Production 管理口令（已完成）
 
-作者需要选定一个至少 32 位的随机口令，写入 Vercel Production 环境变量 `DEMO_ADMIN_TOKEN`，然后重新部署。不要把口令提交到 Git、写进 URL 或发在截图中。
+已使用机器生成的 256-bit 随机口令完成配置：Vercel Production 保存为不可回读的 Sensitive 变量，本机副本保存到 Windows 凭据管理器。口令未提交 Git、未写入 `.env.local`、URL 或截图。
 
-配置后需要完成一次在线验收：登录 `/knowledge-admin/login`，查看 RAG 趋势和告警状态，再退出并确认管理页重新受保护。当前代码和 HttpOnly 管理会话已完成，缺的是作者可保存的正式口令。
+在线验收已覆盖登录 `/knowledge-admin/login`、RAG/AI Ops 页面、Cookie 安全属性、主动退出和重新保护。作者需要登录时，在 `web/` 运行 `.\scripts\copy-admin-token.ps1`，粘贴后立即用 `Set-Clipboard -Value $null` 清空剪贴板。
 
 ### 3. 作者邮箱、域名和 SMTP
 
@@ -59,7 +59,7 @@
 ## 完成顺序
 
 1. 正式知识材料与验收问题；
-2. Production 管理口令；
+2. Production 管理口令（已完成）；
 3. 作者邮箱、域名和 SMTP；
 4. Vercel GitHub OAuth；
 5. 有正式评测集后再决定是否启用 rerank；

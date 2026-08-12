@@ -135,6 +135,16 @@ export default async function Page({
   }
   return (
     <DetailShell title="知识运营演示" backHref="/me">
+      <div className="flex justify-end px-4 pt-4">
+        <form action="/api/knowledge/admin-session/logout" method="post">
+          <button
+            type="submit"
+            className="min-h-11 rounded-control border border-border bg-surface px-4 text-sm font-medium text-text-muted"
+          >
+            退出管理登录
+          </button>
+        </form>
+      </div>
       <AIOpsOverview
         dashboard={dashboard}
         status={dashboardStatus}

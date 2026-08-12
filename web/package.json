@@ -14,6 +14,7 @@
     "auth:verify-local": "node scripts/verify-auth-preferences.mjs",
     "feedback:verify-local": "node scripts/verify-live-feedback.mjs",
     "knowledge:verify-worker": "node scripts/verify-knowledge-index-worker.mjs",
+    "knowledge:verify-admin-production": "node scripts/verify-admin-production.mjs",
     "deploy:verify": "node scripts/verify-production.mjs",
     "deploy:verify-production": "node scripts/verify-production.mjs",
     "external:verify-qwen": "node scripts/verify-qwen.mjs",

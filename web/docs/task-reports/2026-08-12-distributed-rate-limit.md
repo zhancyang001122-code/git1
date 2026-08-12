@@ -21,7 +21,7 @@ Production 的 Chat、Feedback、公开 Knowledge Search、地图直连和受保
 ## Production 证据
 
 - 远端 migration：`202608120022_distributed_rate_limits.sql` 已应用。
-- Vercel deployment：`dpl_CUmNkiFsugHEPuQsauoQtxmkrCEG`，状态 `READY`，已绑定 `https://xiaozhi-local-life.vercel.app`。
+- 当前 Vercel deployment：`dpl_75dQvTqybXELCyeNWDw7TkrKZriU`，状态 `READY`，已绑定 `https://xiaozhi-local-life.vercel.app`。
 - 使用 publishable/anon Key 调用 RPC 被拒绝。
 - service-role 在测试作用域按限制 2 连续调用三次，结果为 `允许/剩余1 → 允许/剩余0 → 拒绝/剩余0`，`retry-after` 在窗口内。
 - 验证结束后只删除了 `verification_rate_limit` 的 1 条测试窗口，未触碰业务数据。
@@ -35,7 +35,7 @@ Production 的 Chat、Feedback、公开 Knowledge Search、地图直连和受保
 - migration 静态检查：22 个 migration、30 张表，全部表具备 RLS 覆盖。
 - pgTAP：6 个文件、121 项测试通过。
 - 真实权限边界：17 项 SQL Role RLS、14 项 PostgREST/JWT 检查通过。
-- Vitest：116 个测试文件、459 项测试通过。
+- Vitest：117 个测试文件、461 项测试通过。
 - TypeScript strict、ESLint、Prettier 和 Next.js Production build 通过。
 - Playwright：47 项通过；本机 OTP 与本机 HTTP 房源两个专项用例因默认环境未配置而按设计跳过。
 

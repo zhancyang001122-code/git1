@@ -96,7 +96,7 @@
 - [x] 独立 Worker 的持久化队列式 embedding：原子入队、租约、`SKIP LOCKED`、退避重试、Vercel Cron 与管理页即时触发均已实现；四个 Demo 版本已完成 Production 真实 Embedding
 - [x] 知识运营页的 Demo 评测指标
 - [x] service-role RAG 日趋势 RPC、受保护质量视图与 Production 部署
-- [ ] 配置 Production 管理口令并完成受保护 RAG 趋势页在线登录验收
+- [x] Production 使用 256-bit 随机 Sensitive 管理口令；受保护 RAG/AI Ops 页面、Cookie 属性、主动退出和重新保护已在线验收
 - [x] 受保护的 Vercel Demo Preview 部署与冒烟；未复用 Production 数据库或密钥
 - [ ] Vercel GitHub Login Connection 与自动部署；当前使用已验证的 CLI 手动部署
 - [x] 单实例错误与耗时统计
@@ -114,4 +114,4 @@
 2. 带来源的退款规则
 3. 房源 + 超市 + 押金规则组合任务
 
-Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。四个明确标注 Demo 的知识版本已通过独立 Worker 生成真实百炼 Embedding，并在线返回版本化引用；这不等于正式知识材料验收，正式检索仍需用户提供真实材料。AI Ops 已能按线上逐请求 Token 和核验后的 `qwen-plus` 非思考模式公开原价估算人民币成本，但明确排除免费额度、优惠、Embedding 与 Rerank，因此不是阿里云账单。生产 Auth 仍需作者邮箱、域名和 SMTP 配置。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；Production 基线见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`；Worker 证据见 `docs/task-reports/2026-08-12-knowledge-index-worker.md`；成本估算证据见 `web/docs/task-reports/2026-08-12-ai-cost-estimate.md`。
+Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。四个明确标注 Demo 的知识版本已通过独立 Worker 生成真实百炼 Embedding，并在线返回版本化引用；这不等于正式知识材料验收，正式检索仍需用户提供真实材料。AI Ops 已能按线上逐请求 Token 和核验后的 `qwen-plus` 非思考模式公开原价估算人民币成本，但明确排除免费额度、优惠、Embedding 与 Rerank，因此不是阿里云账单。Production 管理页已使用 Sensitive 随机口令完成登录、Cookie 和主动退出验收；生产 Auth 仍需作者邮箱、域名和 SMTP 配置。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；Production 基线见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`；管理会话见 `web/docs/task-reports/2026-08-12-production-admin-session.md`；Worker 证据见 `docs/task-reports/2026-08-12-knowledge-index-worker.md`；成本估算证据见 `web/docs/task-reports/2026-08-12-ai-cost-estimate.md`。

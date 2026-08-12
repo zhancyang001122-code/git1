@@ -57,6 +57,7 @@
 - `RATE_LIMIT_BACKEND_UNAVAILABLE`：检查远端 migration、service key 和 Supabase 可用性；成本敏感接口会 503 失败关闭，不会退回无限放行。
 - Demo、管理发布/索引和低频单邮箱 OTP 仍有进程内计数；如果未来开放公众注册或高流量管理 API，再迁移到共享存储并增加 WAF/CAPTCHA，不把当前作品边界说成通用生产方案。
 - 管理 Cookie 写操作出现 `AUTH_ORIGIN_INVALID` 时，检查浏览器访问域名、Vercel `Host`/`x-forwarded-proto` 和请求 `Origin` 是否一致；不要通过允许任意 Origin 修复。Bearer 自动化不依赖 Origin，但凭据只能留在服务端请求头。
+- Production 管理口令保存在 Vercel Sensitive 环境变量和 Windows 凭据管理器。在 `web/` 运行 `.\scripts\copy-admin-token.ps1` 只复制到剪贴板；使用后立即执行 `Set-Clipboard -Value $null`。轮换时同时覆盖两处、重新部署并运行 `pnpm knowledge:verify-admin-production`，禁止把口令打印或写入仓库。
 
 ### AI Ops 站内告警
 
