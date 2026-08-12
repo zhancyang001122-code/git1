@@ -188,6 +188,13 @@ export function evaluatePortfolioRetrieval(
       !expected.requireCitation ||
       (actual.citations.length > 0 &&
         expected.requiredTitles.every((title) => citationTitles.has(title))),
+    sourceScope:
+      actual.chunks.every((chunk) =>
+        expected.requiredTitles.includes(chunk.title),
+      ) &&
+      actual.citations.every((citation) =>
+        expected.requiredTitles.includes(citation.title),
+      ),
     nonDemo:
       !expected.requireNonDemo ||
       (!actual.isDemo &&
@@ -245,6 +252,9 @@ export function evaluatePortfolioGeneration(
     ),
     citation: expected.requiredTitles.every((title) =>
       citationTitles.has(title),
+    ),
+    sourceScope: actual.citations.every((citation) =>
+      expected.requiredTitles.includes(citation.title),
     ),
     version: actual.citations
       .filter((item) => expected.requiredTitles.includes(item.title))

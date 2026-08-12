@@ -183,6 +183,48 @@ describe("DefaultKnowledgeService search", () => {
     expect(result.lowConfidence).toBe(false);
   });
 
+  it("excludes individually low-confidence chunks from passages and citations", async () => {
+    const service = new DefaultKnowledgeService({
+      repository: repository([
+        hit("63000000-0000-0000-0000-000000000001", {
+          title: "小智作品集：历史房源数据边界",
+          vectorScore: 0.7,
+          combinedScore: 0.5,
+          isDemo: false,
+        }),
+        hit("63000000-0000-0000-0000-000000000002", {
+          title: "房源宠物入住规则",
+          vectorScore: 0.34,
+          combinedScore: 0.3,
+          isDemo: true,
+        }),
+      ]),
+      embedding,
+      now: () => new Date("2026-08-11T00:00:00Z"),
+      lowConfidenceThreshold: 0.45,
+      vectorWeight: 0.65,
+      textWeight: 0.35,
+      recallCount: 12,
+      finalCount: 5,
+    });
+
+    const result = await service.search({
+      query: "房源数据是哪一期",
+      domain: "housing",
+      category: null,
+      city: null,
+      topK: 5,
+    });
+
+    expect(result.chunks.map((item) => item.title)).toEqual([
+      "小智作品集：历史房源数据边界",
+    ]);
+    expect(result.citations.map((item) => item.title)).toEqual([
+      "小智作品集：历史房源数据边界",
+    ]);
+    expect(result.isDemo).toBe(false);
+  });
+
   it("keeps adjacent chunks when their content is different", async () => {
     const versionId = "62000000-0000-0000-0000-000000000001";
     const service = new DefaultKnowledgeService({

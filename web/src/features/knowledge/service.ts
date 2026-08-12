@@ -152,14 +152,17 @@ export class DefaultKnowledgeService implements KnowledgeService {
       }
     }
     const finalCount = Math.min(input.topK, this.finalCount);
-    const chunks = removeDuplicateContent(ranked).slice(0, finalCount);
+    const candidates = removeDuplicateContent(ranked).slice(0, finalCount);
+    const chunks = candidates.filter(
+      (hit) => confidenceScore(hit) >= this.lowConfidenceThreshold,
+    );
     return {
       chunks,
       citations: chunks.map(citationFromHit),
       lowConfidence:
         chunks.length === 0 ||
         confidenceScore(chunks[0]!) < this.lowConfidenceThreshold,
-      conflict: hasConflict(chunks),
+      conflict: hasConflict(candidates),
       queryPlan,
       warnings,
       isDemo: chunks.length > 0 && chunks.every((chunk) => chunk.isDemo),

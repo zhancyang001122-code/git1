@@ -125,7 +125,7 @@ async function persistRuns(results) {
     configuration_json: {
       materialSet: knowledge.suite.materialSet,
       materialVersion: knowledge.suite.version,
-      evaluator: "portfolio-production-v1",
+      evaluator: "portfolio-production-v2",
       productionOrigin: production.origin,
       includesGeneration: result.generation !== null,
     },
@@ -195,13 +195,7 @@ try {
       const generationResponse = await productionPost(
         "/api/chat",
         {
-          message: [
-            "请先调用 search_knowledge 检索已发布资料，再依据检索证据回答。",
-            `query 必须完整使用：${evaluationCase.input.query}`,
-            `domain 使用：${evaluationCase.input.domain ?? "null"}`,
-            `category 使用：${evaluationCase.input.category ?? "null"}`,
-            `问题：${evaluationCase.input.query}`,
-          ].join("\n"),
+          message: evaluationCase.input.query,
           debug: true,
         },
         120_000,
