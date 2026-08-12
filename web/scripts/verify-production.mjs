@@ -8,7 +8,9 @@ const url = new URL(baseUrl);
 if (url.protocol !== "https:") {
   throw new Error("DEPLOYMENT_URL must use HTTPS");
 }
+const modeArgument = process.argv.find((value) => value.startsWith("--mode="));
 const expectedMode =
+  modeArgument?.slice("--mode=".length).trim() ||
   process.env.EXPECTED_DEPLOYMENT_MODE?.trim() ||
   process.env.EXPECTED_PRODUCTION_MODE?.trim() ||
   "demo";

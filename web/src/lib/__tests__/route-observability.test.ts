@@ -7,6 +7,7 @@ describe("observeRoute", () => {
     const callbacks: Array<() => Promise<void>> = [];
     const record = vi.fn(async () => undefined);
     const requestId = "81000000-0000-4000-8000-000000000001";
+    const timestamps = [1_000, 1_250];
     const post = observeRoute(
       "/api/example",
       async () =>
@@ -15,7 +16,7 @@ describe("observeRoute", () => {
           { status: 202, headers: { "x-request-id": requestId } },
         ),
       {
-        now: () => 1_250,
+        now: () => timestamps.shift() ?? 1_250,
         schedule: (callback) => callbacks.push(callback),
         record,
       },
@@ -43,7 +44,7 @@ describe("observeRoute", () => {
       routeKey: "/api/example",
       method: "POST",
       statusCode: 202,
-      durationMs: 0,
+      durationMs: 250,
       requestId,
       errorCode: null,
     });

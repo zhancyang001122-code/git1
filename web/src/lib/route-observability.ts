@@ -77,11 +77,11 @@ export function observeRoute<Args extends unknown[]>(
       requestId = responseRequestId(response) ?? requestId;
       return response;
     } finally {
-      const durationMs = Math.max(
-        0,
-        Math.min(300_000, Math.round(now() - startedAt)),
-      );
       schedule(async () => {
+        const durationMs = Math.max(
+          0,
+          Math.min(300_000, Math.round(now() - startedAt)),
+        );
         try {
           await record({
             routeKey,
