@@ -5,6 +5,7 @@ function required(name) {
 }
 
 const supabaseUrl = required("NEXT_PUBLIC_SUPABASE_URL");
+const publishableKey = required("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
 const supabaseKey =
   process.env.SUPABASE_SECRET_KEY?.trim() ||
   process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
@@ -46,6 +47,41 @@ if (!response.ok) {
   throw new Error(`Route log query returned HTTP ${response.status}`);
 }
 
+const publicTableResponse = await fetch(
+  new URL("/rest/v1/api_route_logs?select=id&limit=1", supabaseUrl),
+  {
+    headers: {
+      apikey: publishableKey,
+      authorization: `Bearer ${publishableKey}`,
+    },
+    signal: AbortSignal.timeout(15_000),
+  },
+);
+if (publicTableResponse.ok) {
+  throw new Error("Anonymous API route log table access must be denied");
+}
+
+const publicRpcResponse = await fetch(
+  new URL("/rest/v1/rpc/search_api_route_logs", supabaseUrl),
+  {
+    method: "POST",
+    headers: {
+      apikey: publishableKey,
+      authorization: `Bearer ${publishableKey}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      p_limit: 1,
+      p_method: null,
+      p_status_class: null,
+    }),
+    signal: AbortSignal.timeout(15_000),
+  },
+);
+if (publicRpcResponse.ok) {
+  throw new Error("Anonymous API route log search must be denied");
+}
+
 const wanted = new Set(requestIds);
 const rows = (await response.json())
   .filter((row) => wanted.has(row.request_id))
@@ -59,7 +95,14 @@ const rows = (await response.json())
     errorCode: row.error_code,
   }));
 
-console.log(JSON.stringify({ matched: rows.length, rows }));
+console.log(
+  JSON.stringify({
+    matched: rows.length,
+    anonymousTableDenied: true,
+    anonymousRpcDenied: true,
+    rows,
+  }),
+);
 if (rows.length !== wanted.size) {
   throw new Error(`Expected ${wanted.size} route logs, found ${rows.length}`);
 }

@@ -22,9 +22,10 @@
 - pgTAP 覆盖表、RLS、角色权限、查询 RPC、筛选和数据库约束。
 - 本地门禁：Vitest 120 个文件、472 条测试；pgTAP 7 个文件、140 条测试；Playwright 47 条通过、2 条按外部环境跳过；ESLint、TypeScript 和 Production Build 通过。
 - 远端迁移：`202608120023_api_route_logs.sql` 已应用。
-- Production 部署 `dpl_EuUtBfqdY2fYQ3zjD6pVRU9nAsSp` 为 READY，并绑定 `https://xiaozhi-local-life.vercel.app`。
+- Production 最终部署 `dpl_3xdDgGYhM6nFZErBgQ7Rdmsw9aqM` 为 READY，并绑定 `https://xiaozhi-local-life.vercel.app`。
 - Production 成功请求 `82000000-0000-4000-8000-000000000001` 在 Supabase 中记录为 `GET /api/health`、200、22ms。
 - Production 错误请求 `82000000-0000-4000-8000-000000000002` 在 Supabase 中记录为 `POST /api/maps/nearby`、400、668ms、`INVALID_MAP_REQUEST`。
+- 最终部署请求 `83000000-0000-4000-8000-000000000001` 在 Supabase 中记录为 `GET /api/health`、200、44ms，证明响应完成后计算耗时的修正已上线。
 - `pnpm deploy:verify-route-logs -- <requestId...>` 可使用本机服务端环境变量复验指定请求，只输出白名单日志字段。
 
 ## 仍未完成
