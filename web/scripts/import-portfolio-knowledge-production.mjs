@@ -65,6 +65,20 @@ async function findIndexJob(versionId) {
   return rows[0] ?? null;
 }
 
+async function findCandidate(candidateId) {
+  if (!candidateId) return null;
+  const parameters = new URLSearchParams({
+    select: "id,status,publication_result_json",
+    id: `eq.${candidateId}`,
+    limit: "1",
+  });
+  const rows = await requireOkJson(
+    await supabaseRest(supabase, `knowledge_candidates?${parameters}`),
+    "publication candidate lookup",
+  );
+  return rows[0] ?? null;
+}
+
 async function enqueueIndexJob(versionId, job) {
   const response = await supabaseRest(
     supabase,
@@ -125,7 +139,8 @@ try {
     const existing = await findPublishedVersion(material);
     if (existing) {
       const job = await findIndexJob(existing.id);
-      const action = publicationImportAction(existing, job);
+      const candidate = await findCandidate(job?.candidate_id);
+      const action = publicationImportAction(existing, job, candidate);
       if (action.action === "inconsistent") {
         throw new Error(
           `published material ${material.id} is not the current searchable version`,

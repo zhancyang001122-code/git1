@@ -24,6 +24,13 @@ describe("portfolio knowledge import recovery", () => {
             },
           },
         },
+        {
+          publication_result_json: {
+            indexStatus: "ready",
+            searchable: true,
+            evaluationStatus: "passed",
+          },
+        },
       ),
     ).toEqual({ action: "done", evaluationStatus: "passed" });
   });
@@ -42,6 +49,13 @@ describe("portfolio knowledge import recovery", () => {
               searchable: true,
               evaluationStatus: "failed",
             },
+          },
+        },
+        {
+          publication_result_json: {
+            indexStatus: "ready",
+            searchable: true,
+            evaluationStatus: "failed",
           },
         },
       ),
@@ -72,6 +86,7 @@ describe("portfolio knowledge import recovery", () => {
             kb_articles: { current_version_id: versionId },
           },
           { status, result_json: null },
+          null,
         ),
       ).toEqual({ action: "resume" });
     },

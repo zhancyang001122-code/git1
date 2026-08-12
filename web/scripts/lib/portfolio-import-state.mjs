@@ -3,17 +3,20 @@ function finalizationFor(job) {
   return value && typeof value === "object" ? value : null;
 }
 
-export function publicationImportAction(version, job) {
+export function publicationImportAction(version, job, candidate) {
   if (!version) return { action: "create" };
   const finalization = finalizationFor(job);
+  const currentPublication = candidate?.publication_result_json;
   if (
     version.kb_articles?.current_version_id === version.id &&
     job?.status === "succeeded" &&
-    finalization?.searchable === true
+    finalization?.searchable === true &&
+    currentPublication?.indexStatus === "ready" &&
+    currentPublication?.searchable === true
   ) {
     return {
       action: "done",
-      evaluationStatus: finalization.evaluationStatus ?? "not_run",
+      evaluationStatus: currentPublication.evaluationStatus ?? "not_run",
     };
   }
   if (version.kb_articles?.current_version_id !== version.id) {
