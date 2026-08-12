@@ -226,19 +226,24 @@ describe("DefaultKnowledgeService search", () => {
   });
 
   it("keeps adjacent chunks when their content is different", async () => {
+    const articleId = "61000000-0000-0000-0000-000000000001";
     const versionId = "62000000-0000-0000-0000-000000000001";
     const service = new DefaultKnowledgeService({
       repository: repository([
         hit("63000000-0000-0000-0000-000000000001", {
           chunkIndex: 0,
+          articleId,
           versionId,
           content: "产品形态与真实能力边界。",
           metadata: { contentHash: "content-a" },
         }),
         hit("63000000-0000-0000-0000-000000000002", {
           chunkIndex: 1,
+          articleId,
           versionId,
           content: "常见问题与明确回答。",
+          vectorScore: 0.3,
+          combinedScore: 0.3,
           metadata: { contentHash: "content-b" },
         }),
       ]),

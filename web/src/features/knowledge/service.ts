@@ -60,6 +60,28 @@ function confidenceScore(hit: KnowledgeHit): number {
   return Math.max(hit.score, hit.vectorScore);
 }
 
+const SECONDARY_ARTICLE_CONFIDENCE_RATIO = 0.85;
+
+function relevantChunks(
+  candidates: readonly KnowledgeHit[],
+  absoluteThreshold: number,
+): KnowledgeHit[] {
+  const topConfidence = candidates.reduce(
+    (highest, hit) => Math.max(highest, confidenceScore(hit)),
+    0,
+  );
+  const articleThreshold = Math.max(
+    absoluteThreshold,
+    topConfidence * SECONDARY_ARTICLE_CONFIDENCE_RATIO,
+  );
+  const acceptedArticles = new Set(
+    candidates
+      .filter((hit) => confidenceScore(hit) >= articleThreshold)
+      .map((hit) => hit.articleId),
+  );
+  return candidates.filter((hit) => acceptedArticles.has(hit.articleId));
+}
+
 function hasConflict(hits: readonly KnowledgeHit[]): boolean {
   const values = new Map<string, Set<string>>();
   for (const hit of hits) {
@@ -153,9 +175,7 @@ export class DefaultKnowledgeService implements KnowledgeService {
     }
     const finalCount = Math.min(input.topK, this.finalCount);
     const candidates = removeDuplicateContent(ranked).slice(0, finalCount);
-    const chunks = candidates.filter(
-      (hit) => confidenceScore(hit) >= this.lowConfidenceThreshold,
-    );
+    const chunks = relevantChunks(candidates, this.lowConfidenceThreshold);
     return {
       chunks,
       citations: chunks.map(citationFromHit),
