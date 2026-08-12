@@ -54,7 +54,7 @@ Production：
 - `pnpm knowledge:verify-portfolio-production`：严格版 20/20 PASS；自然问法生成用例 4/4 PASS；20 条结果写入 `ai_eval_runs`
 - `pnpm deploy:verify-production`：PASS，覆盖 Live 健康检查、移动布局、历史房源、高德地图、演示商业、偏好提案和反馈流程
 
-知识专项远端数据库测试在本轮修复前已通过 55/55。完整 linked 数据库套件仍存在与本材料无关的旧测试 `search_path` 和线上事故状态问题，因此本报告不把“知识专项通过”写成“全部远端数据库测试通过”。
+完整本地 Supabase 数据库套件已在应用全部 28 个迁移后连续运行两遍，均为 9 个文件、204 项测试全部通过。`api_route_logs` 测试现在会在事务内清理自己的测试上下文，不再依赖空表，因此重复运行不会受历史测试日志污染。
 
 ## 面试时的准确说法
 

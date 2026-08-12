@@ -78,6 +78,8 @@ select ok(
   'service role can search API route logs'
 );
 
+truncate table public.api_route_logs;
+
 insert into public.api_route_logs (
   route_key,
   method,
