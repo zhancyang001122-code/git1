@@ -9,6 +9,7 @@ describe("agent grounding policy", () => {
     "Production Live 已接通哪些外部服务？",
     "未使用的团购券能退款吗？",
     "账号和长期记忆是什么关系？",
+    "Production 现在用什么方式登录，是否已经完成验收？",
     "千问大模型负责什么，能不能作为事实来源？",
   ])("requires knowledge evidence for %s", (message) => {
     expect(requiredEvidenceTool(message)).toBe("search_knowledge");

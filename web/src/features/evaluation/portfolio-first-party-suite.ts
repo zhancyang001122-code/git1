@@ -64,7 +64,12 @@ const retrievalExpectationSchema = z
     requiredVersionLabel: z.string().trim().min(1).max(80),
     requiredConcepts: z.array(z.string().trim().min(1).max(160)).max(20),
     generationRequiredConcepts: z
-      .array(z.string().trim().min(1).max(160))
+      .array(
+        z.union([
+          z.string().trim().min(1).max(160),
+          z.array(z.string().trim().min(1).max(160)).min(2).max(6),
+        ]),
+      )
       .max(12)
       .optional(),
     requireCitation: z.boolean(),
@@ -149,6 +154,15 @@ function containsConcept(content: string, concept: string): boolean {
     .normalize("NFKC")
     .toLocaleLowerCase("zh-CN")
     .includes(concept.normalize("NFKC").toLocaleLowerCase("zh-CN"));
+}
+
+function containsRequiredConcept(
+  content: string,
+  requirement: string | readonly string[],
+): boolean {
+  return typeof requirement === "string"
+    ? containsConcept(content, requirement)
+    : requirement.some((concept) => containsConcept(content, concept));
 }
 
 export function evaluatePortfolioRetrieval(
@@ -248,7 +262,7 @@ export function evaluatePortfolioGeneration(
       actual.errorCode === null && actual.assistantText.trim().length > 0,
     knowledgeTool: actual.toolSucceeded,
     answerFacts: (expected.generationRequiredConcepts ?? []).every((concept) =>
-      containsConcept(actual.assistantText, concept),
+      containsRequiredConcept(actual.assistantText, concept),
     ),
     citation: expected.requiredTitles.every((title) =>
       citationTitles.has(title),

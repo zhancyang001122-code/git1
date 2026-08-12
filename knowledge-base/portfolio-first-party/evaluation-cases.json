@@ -289,7 +289,7 @@
           "规划工具调用",
           "不是价格、库存、状态、政策或距离的事实来源"
         ],
-        "generationRequiredConcepts": ["工具", "事实来源"],
+        "generationRequiredConcepts": ["工具", ["事实来源", "事实的来源"]],
         "requireCitation": true,
         "requireNonDemo": true,
         "requireHighConfidence": true,

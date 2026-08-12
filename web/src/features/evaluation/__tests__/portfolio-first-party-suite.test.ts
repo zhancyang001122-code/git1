@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  evaluatePortfolioGeneration,
   evaluatePortfolioRetrieval,
   portfolioEvaluationSuiteSchema,
   portfolioMaterialManifestSchema,
@@ -172,5 +173,46 @@ describe("portfolio first-party knowledge suite", () => {
       },
     );
     expect(noAnswer).toMatchObject({ passed: true, score: 1, failures: [] });
+  });
+
+  it("accepts explicit wording alternatives without weakening generation facts", () => {
+    const result = evaluatePortfolioGeneration(
+      {
+        id: "portfolio-first-party-generation-alternative-test",
+        category: "rag",
+        input: {
+          query: "千问负责什么？",
+          domain: "platform",
+          category: "portfolio_evidence_governance",
+          city: null,
+          topK: 5,
+        },
+        expected: {
+          requiredTitles: ["小智作品集：AI 事实来源与知识治理"],
+          requiredVersionLabel: "2026.08.1",
+          requiredConcepts: ["规划工具调用"],
+          generationRequiredConcepts: ["工具", ["事实来源", "事实的来源"]],
+          requireCitation: true,
+          requireNonDemo: true,
+          requireHighConfidence: true,
+          expectNoCitations: false,
+        },
+      },
+      {
+        assistantText: "千问会调用工具，但不是事实的来源。",
+        toolSucceeded: true,
+        citations: [
+          {
+            title: "小智作品集：AI 事实来源与知识治理",
+            versionLabel: "2026.08.1",
+            isDemo: false,
+            materialKind: "portfolio_first_party",
+          },
+        ],
+        errorCode: null,
+      },
+    );
+
+    expect(result).toMatchObject({ passed: true, failures: [] });
   });
 });
