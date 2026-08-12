@@ -120,6 +120,42 @@ describe("KnowledgeOpsService", () => {
     ).toBe(2);
   });
 
+  it("converges stored publication state after a successful reevaluation", async () => {
+    const { first, repository, service } = await approvedService();
+    const savePublicationResult = vi.spyOn(repository, "savePublicationResult");
+    await service.publish({ candidateId: first.candidateId });
+    savePublicationResult.mockClear();
+
+    await expect(service.evaluate(first.candidateId)).resolves.toMatchObject({
+      passed: true,
+      score: 1,
+    });
+
+    expect(savePublicationResult).toHaveBeenCalledWith(first.candidateId, {
+      publicationStatus: "published",
+      indexStatus: "ready",
+      evaluationStatus: "passed",
+      searchable: true,
+      rollbackAvailable: false,
+      warnings: [],
+    });
+  });
+
+  it("does not erase rollback context after a failed reevaluation", async () => {
+    const { first, repository, service } = await approvedService({
+      evalPasses: false,
+    });
+    const savePublicationResult = vi.spyOn(repository, "savePublicationResult");
+    await service.publish({ candidateId: first.candidateId });
+    savePublicationResult.mockClear();
+
+    await expect(service.evaluate(first.candidateId)).resolves.toMatchObject({
+      passed: false,
+    });
+
+    expect(savePublicationResult).not.toHaveBeenCalled();
+  });
+
   it("publishes, indexes and evaluates in order", async () => {
     const { first, order, service } = await approvedService();
 

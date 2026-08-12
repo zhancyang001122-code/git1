@@ -156,8 +156,19 @@ export function createKnowledgeOpsService({
     },
 
     async evaluate(candidateId) {
-      await this.getCandidate(candidateId);
-      return evaluator.run(candidateId);
+      const candidate = await this.getCandidate(candidateId);
+      const evaluation = await evaluator.run(candidateId);
+      if (candidate.status === "published" && evaluation.passed) {
+        await repository.savePublicationResult(candidateId, {
+          publicationStatus: "published",
+          indexStatus: "ready",
+          evaluationStatus: "passed",
+          searchable: true,
+          rollbackAvailable: false,
+          warnings: [],
+        });
+      }
+      return evaluation;
     },
 
     async publish(input) {

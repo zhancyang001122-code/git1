@@ -10,6 +10,10 @@ import {
   supabaseConfiguration,
   supabaseRest,
 } from "./lib/portfolio-knowledge.mjs";
+import {
+  publicationImportAction,
+  runIndexWorkerUntil,
+} from "./lib/portfolio-import-state.mjs";
 
 const production = productionUrl();
 const supabase = supabaseConfiguration();
@@ -25,7 +29,7 @@ const headers = adminHeaders(token);
 async function findPublishedVersion(material) {
   const parameters = new URLSearchParams({
     select:
-      "id,version_label,status,source_reference,kb_articles!kb_article_versions_article_id_fkey!inner(title,status)",
+      "id,version_label,status,source_reference,kb_articles!kb_article_versions_article_id_fkey!inner(title,status,current_version_id)",
     source_reference: `eq.${material.draft.sourceReference}`,
     version_label: `eq.${material.draft.versionLabel}`,
     status: "eq.published",
@@ -45,6 +49,39 @@ async function findPublishedVersion(material) {
     throw new Error(`published material mismatch for ${material.id}`);
   }
   return row;
+}
+
+async function findIndexJob(versionId) {
+  const parameters = new URLSearchParams({
+    select:
+      "id,candidate_id,version_id,previous_version_id,status,attempt_count,max_attempts,available_at,last_error_code,result_json",
+    version_id: `eq.${versionId}`,
+    limit: "1",
+  });
+  const rows = await requireOkJson(
+    await supabaseRest(supabase, `knowledge_index_jobs?${parameters}`),
+    "index job lookup",
+  );
+  return rows[0] ?? null;
+}
+
+async function enqueueIndexJob(versionId, job) {
+  const response = await supabaseRest(
+    supabase,
+    "rpc/enqueue_knowledge_index_job",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        p_candidate_id: job?.candidate_id ?? null,
+        p_version_id: versionId,
+        p_previous_version_id: job?.previous_version_id ?? null,
+      }),
+    },
+  );
+  const rows = await requireOkJson(response, "index job enqueue");
+  if (!rows[0]?.id)
+    throw new Error(`index enqueue returned no job for ${versionId}`);
+  return rows[0];
 }
 
 async function post(path, body) {
@@ -73,20 +110,13 @@ async function post(path, body) {
 }
 
 async function runWorkerUntil(versionId) {
-  for (let attempt = 1; attempt <= 12; attempt += 1) {
-    const result = await post("/api/internal/knowledge-index-worker", {});
-    if (result.status === "succeeded" && result.versionId === versionId) {
-      if (
-        result.finalization?.searchable !== true ||
-        result.finalization?.evaluationStatus !== "passed"
-      ) {
-        throw new Error(`index finalization failed for ${versionId}`);
-      }
-      return result;
-    }
-    if (result.status === "idle") break;
-  }
-  throw new Error(`index worker did not complete version ${versionId}`);
+  return runIndexWorkerUntil({
+    versionId,
+    readJob: findIndexJob,
+    invokeWorker: () => post("/api/internal/knowledge-index-worker", {}),
+    wait: (milliseconds) =>
+      new Promise((resolve) => setTimeout(resolve, milliseconds)),
+  });
 }
 
 const summary = [];
@@ -94,10 +124,29 @@ try {
   for (const material of knowledge.materials) {
     const existing = await findPublishedVersion(material);
     if (existing) {
+      const job = await findIndexJob(existing.id);
+      const action = publicationImportAction(existing, job);
+      if (action.action === "inconsistent") {
+        throw new Error(
+          `published material ${material.id} is not the current searchable version`,
+        );
+      }
+      if (action.action === "resume") {
+        await enqueueIndexJob(existing.id, job);
+        const worker = await runWorkerUntil(existing.id);
+        summary.push({
+          id: material.id,
+          status: "resumed_and_indexed",
+          versionId: existing.id,
+          evaluationStatus: worker.finalization.evaluationStatus,
+        });
+        continue;
+      }
       summary.push({
         id: material.id,
         status: "already_published",
         versionId: existing.id,
+        evaluationStatus: action.evaluationStatus,
       });
       continue;
     }
