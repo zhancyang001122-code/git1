@@ -88,6 +88,13 @@ assert(
   knowledgeMaterialProvenanceMigration,
   "Knowledge material provenance migration is missing",
 );
+const knowledgeBusinessTimezoneMigration = migrations.find((migration) =>
+  migration.name.endsWith("_knowledge_business_timezone.sql"),
+);
+assert(
+  knowledgeBusinessTimezoneMigration,
+  "Knowledge business timezone migration is missing",
+);
 
 for (const migration of migrations) {
   const normalized = migration.sql.trim().toLowerCase();
@@ -118,6 +125,7 @@ const apiRouteLogsSql = apiRouteLogsMigration.sql;
 const aiOpsIncidentsSql = aiOpsIncidentsMigration.sql;
 const aiModelSlosSql = aiModelSlosMigration.sql;
 const knowledgeMaterialProvenanceSql = knowledgeMaterialProvenanceMigration.sql;
+const knowledgeBusinessTimezoneSql = knowledgeBusinessTimezoneMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -155,6 +163,23 @@ for (const requirement of [
 ]) {
   assert(
     requirement.pattern.test(knowledgeMaterialProvenanceSql),
+    requirement.message,
+  );
+}
+
+for (const requirement of [
+  {
+    pattern: /create or replace function public\.hybrid_search_kb_v2/i,
+    message: "Business-timezone migration must replace hybrid knowledge search",
+  },
+  {
+    pattern: /statement_timestamp\(\)\s+at time zone\s+'Asia\/Shanghai'/i,
+    message:
+      "Knowledge effective dates must use the Asia/Shanghai business date",
+  },
+]) {
+  assert(
+    requirement.pattern.test(knowledgeBusinessTimezoneSql),
     requirement.message,
   );
 }

@@ -27,8 +27,17 @@ interface DefaultKnowledgeServiceOptions {
   finalCount: number;
 }
 
+const businessDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Shanghai",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
 function dateOnly(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  const parts = businessDateFormatter.formatToParts(date);
+  const values = new Map(parts.map((part) => [part.type, part.value]));
+  return `${values.get("year")}-${values.get("month")}-${values.get("day")}`;
 }
 
 function isEligible(hit: HybridKnowledgeHit, today: string): boolean {

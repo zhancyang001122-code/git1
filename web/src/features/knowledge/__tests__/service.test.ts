@@ -50,6 +50,34 @@ function repository(hits: HybridKnowledgeHit[]): KnowledgeRepository {
 }
 
 describe("DefaultKnowledgeService search", () => {
+  it("uses the Asia/Shanghai business date at the UTC day boundary", async () => {
+    const service = new DefaultKnowledgeService({
+      repository: repository([
+        hit("63000000-0000-0000-0000-000000000001", {
+          effectiveFrom: "2026-08-13",
+        }),
+      ]),
+      embedding,
+      now: () => new Date("2026-08-12T16:30:00Z"),
+      lowConfidenceThreshold: 0.45,
+      vectorWeight: 0.65,
+      textWeight: 0.35,
+      recallCount: 12,
+      finalCount: 5,
+    });
+
+    const result = await service.search({
+      query: "登录方式",
+      domain: "platform",
+      category: "portfolio_data_memory",
+      city: null,
+      topK: 5,
+    });
+
+    expect(result.chunks).toHaveLength(1);
+    expect(result.citations).toHaveLength(1);
+  });
+
   it("rechecks publication and effective dates at the application boundary", async () => {
     const service = new DefaultKnowledgeService({
       repository: repository([
