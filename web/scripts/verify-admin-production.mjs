@@ -63,6 +63,8 @@ try {
   await expect(
     page.getByRole("heading", { name: "AI Ops 站内告警" }),
   ).toBeVisible();
+  await expect(page.getByText("首 Token P95", { exact: true })).toBeVisible();
+  await expect(page.getByText("单会话成本估算", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "跨实例工具审计" }),
   ).toBeVisible();
