@@ -26,7 +26,7 @@ function required(name) {
 }
 
 const productionUrl = new URL(
-  process.env.PRODUCTION_URL?.trim() || "https://xiaozhi-local-life.vercel.app",
+  process.env.PRODUCTION_URL?.trim() || "https://xiaozhi.zaneyang.xyz",
 );
 if (productionUrl.protocol !== "https:") {
   throw new Error("PRODUCTION_URL must use HTTPS");

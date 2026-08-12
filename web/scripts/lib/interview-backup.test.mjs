@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import {
   assertLiveHealth,
@@ -8,6 +10,21 @@ import {
 } from "./interview-backup.mjs";
 
 describe("interview backup evidence", () => {
+  it("keeps active Production scripts off the retired Vercel alias", () => {
+    for (const script of [
+      "scripts/verify-admin-production.mjs",
+      "scripts/verify-knowledge-index-worker.mjs",
+      "scripts/verify-ai-model-slos-production.mjs",
+      "scripts/verify-manual-knowledge-intake-production.mjs",
+      "scripts/lib/portfolio-knowledge.mjs",
+      "scripts/verify-production.mjs",
+    ]) {
+      const source = readFileSync(resolve(process.cwd(), script), "utf8");
+      expect(source, script).not.toContain("xiaozhi-local-life.vercel.app");
+      expect(source, script).toContain(PRODUCTION_INTERVIEW_URL);
+    }
+  });
+
   it("uses the verified custom Production domain", () => {
     expect(PRODUCTION_INTERVIEW_URL).toBe("https://xiaozhi.zaneyang.xyz");
   });

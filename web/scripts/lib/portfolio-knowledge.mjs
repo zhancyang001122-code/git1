@@ -9,7 +9,7 @@ import {
   portfolioMaterialManifestSchema,
 } from "../../src/features/evaluation/portfolio-first-party-suite.ts";
 
-export const DEFAULT_PRODUCTION_URL = "https://xiaozhi-local-life.vercel.app";
+export const DEFAULT_PRODUCTION_URL = "https://xiaozhi.zaneyang.xyz";
 
 function readEnvFile(name) {
   try {

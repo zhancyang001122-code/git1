@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { chromium, expect } from "@playwright/test";
 
 const baseUrl = new URL(
-  process.env.PRODUCTION_URL?.trim() || "https://xiaozhi-local-life.vercel.app",
+  process.env.PRODUCTION_URL?.trim() || "https://xiaozhi.zaneyang.xyz",
 );
 if (baseUrl.protocol !== "https:") {
   throw new Error("PRODUCTION_URL must use HTTPS");

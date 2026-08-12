@@ -13,7 +13,7 @@ const supabaseSecret =
   required("SUPABASE_SERVICE_ROLE_KEY");
 const cronSecret = required("CRON_SECRET");
 const deploymentUrl = (
-  process.env.DEPLOYMENT_URL?.trim() || "https://xiaozhi-local-life.vercel.app"
+  process.env.DEPLOYMENT_URL?.trim() || "https://xiaozhi.zaneyang.xyz"
 ).replace(/\/$/, "");
 const proxyServer = process.env.DEPLOYMENT_PROXY_SERVER?.trim();
 const demoVersionIds = [
