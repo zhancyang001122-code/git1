@@ -2,6 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createTaskSixToolRegistry } from "@/features/agent/tools/registry";
 import { FakeKnowledgeService } from "@/features/knowledge/fake-service";
+import type {
+  KnowledgeSearchInput,
+  KnowledgeSearchResult,
+  KnowledgeService,
+} from "@/features/knowledge/types";
 
 import { createToolTestContext } from "./helpers";
 
@@ -85,5 +90,96 @@ describe("knowledge tools", () => {
       }),
       expect.any(AbortSignal),
     );
+  });
+
+  it("retries once without an incorrect category when the filtered search is empty", async () => {
+    const search = vi.fn(
+      async (input: KnowledgeSearchInput): Promise<KnowledgeSearchResult> => {
+        if (input.category !== null) {
+          return {
+            chunks: [],
+            citations: [],
+            lowConfidence: true,
+            conflict: false,
+            queryPlan: {
+              rewrittenQuery: input.query,
+              ...(input.domain ? { domain: input.domain } : {}),
+              category: input.category,
+            },
+            warnings: [],
+            isDemo: false,
+          };
+        }
+        return new FakeKnowledgeService().search({
+          ...input,
+          query: "未使用的团购券可以退款吗",
+        });
+      },
+    );
+    const knowledge: KnowledgeService = {
+      search,
+      indexVersion: vi.fn(),
+    };
+
+    const result = await createTaskSixToolRegistry()
+      .get("search_knowledge")
+      .execute(
+        {
+          query: "未使用的团购券可以退款吗",
+          domain: "group_buy",
+          category: "invented_refund_category",
+          city: "杭州",
+          top_k: 5,
+        },
+        createToolTestContext({ knowledge }),
+      );
+
+    expect(search).toHaveBeenCalledTimes(2);
+    expect(search.mock.calls[1]?.[0]).toMatchObject({
+      query: "未使用的团购券可以退款吗",
+      domain: "group_buy",
+      category: null,
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      resultCount: 1,
+      data: {
+        warnings: expect.arrayContaining(["CATEGORY_FILTER_RELAXED"]),
+      },
+    });
+  });
+
+  it("does not expose low-confidence passages as formal citations", async () => {
+    const base = await new FakeKnowledgeService().search({
+      query: "未使用的团购券可以退款吗",
+      domain: "group_buy",
+      category: null,
+      city: "杭州",
+      topK: 5,
+    });
+    const knowledge: KnowledgeService = {
+      search: vi.fn(async () => ({ ...base, lowConfidence: true })),
+      indexVersion: vi.fn(),
+    };
+
+    const result = await createTaskSixToolRegistry()
+      .get("search_knowledge")
+      .execute(
+        {
+          query: "未使用的团购券可以退款吗",
+          domain: "group_buy",
+          category: null,
+          city: "杭州",
+          top_k: 5,
+        },
+        createToolTestContext({ knowledge }),
+      );
+
+    expect(result).toMatchObject({
+      ok: true,
+      resultCount: 1,
+      data: { lowConfidence: true },
+      citations: [],
+    });
   });
 });

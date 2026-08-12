@@ -20,7 +20,7 @@ const searchKnowledge: ToolDefinition<ToolInputs["search_knowledge"]> = {
   source: () => "knowledge_base",
   inputSchema: toolInputSchemas.search_knowledge,
   async execute(input, context) {
-    const result = await context.knowledge.search(
+    let result = await context.knowledge.search(
       {
         query: input.query,
         domain: input.domain,
@@ -30,7 +30,21 @@ const searchKnowledge: ToolDefinition<ToolInputs["search_knowledge"]> = {
       },
       context.signal,
     );
-    const warnings = [...result.warnings];
+    const warnings = new Set(result.warnings);
+    if (input.category !== null && result.chunks.length === 0) {
+      result = await context.knowledge.search(
+        {
+          query: input.query,
+          domain: input.domain,
+          category: null,
+          city: input.city,
+          topK: input.top_k,
+        },
+        context.signal,
+      );
+      warnings.add("CATEGORY_FILTER_RELAXED");
+      result.warnings.forEach((warning) => warnings.add(warning));
+    }
     if (
       context.knowledgeCandidates &&
       (result.lowConfidence || result.conflict || result.chunks.length === 0)
@@ -53,10 +67,10 @@ const searchKnowledge: ToolDefinition<ToolInputs["search_knowledge"]> = {
           },
           context.signal,
         );
-        warnings.push("KNOWLEDGE_CANDIDATE_CREATED");
+        warnings.add("KNOWLEDGE_CANDIDATE_CREATED");
       } catch (error) {
         void error;
-        warnings.push("KNOWLEDGE_CANDIDATE_ENQUEUE_FAILED");
+        warnings.add("KNOWLEDGE_CANDIDATE_ENQUEUE_FAILED");
       }
     }
     return {
@@ -73,11 +87,12 @@ const searchKnowledge: ToolDefinition<ToolInputs["search_knowledge"]> = {
         lowConfidence: result.lowConfidence,
         conflict: result.conflict,
         queryPlan: result.queryPlan,
-        warnings,
+        warnings: [...warnings],
         isDemo: result.isDemo,
       },
       source: "knowledge_base",
-      citations: result.citations,
+      citations:
+        result.lowConfidence || result.conflict ? [] : result.citations,
       resultCount: result.chunks.length,
     };
   },

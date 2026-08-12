@@ -195,7 +195,13 @@ try {
       const generationResponse = await productionPost(
         "/api/chat",
         {
-          message: `请先检索已发布的小智作品集说明，再回答：${evaluationCase.input.query}`,
+          message: [
+            "请先调用 search_knowledge 检索已发布资料，再依据检索证据回答。",
+            `query 必须完整使用：${evaluationCase.input.query}`,
+            `domain 使用：${evaluationCase.input.domain ?? "null"}`,
+            `category 使用：${evaluationCase.input.category ?? "null"}`,
+            `问题：${evaluationCase.input.query}`,
+          ].join("\n"),
           debug: true,
         },
         120_000,
