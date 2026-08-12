@@ -1,10 +1,10 @@
 import type { RateLimitResult } from "@/lib/rate-limit";
 import { AppError } from "@/lib/errors";
 
-export async function readJsonWithLimit(
+export async function readTextWithLimit(
   request: Request,
   maxBytes: number,
-): Promise<unknown> {
+): Promise<string> {
   const declared = Number(request.headers.get("content-length"));
   if (Number.isFinite(declared) && declared > maxBytes) {
     throw new AppError({
@@ -21,6 +21,14 @@ export async function readJsonWithLimit(
       status: 413,
     });
   }
+  return text;
+}
+
+export async function readJsonWithLimit(
+  request: Request,
+  maxBytes: number,
+): Promise<unknown> {
+  const text = await readTextWithLimit(request, maxBytes);
   try {
     return JSON.parse(text) as unknown;
   } catch (error) {

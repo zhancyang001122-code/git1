@@ -61,6 +61,7 @@ describe("knowledge index worker route", () => {
       new Request("http://localhost/api/internal/knowledge-index-worker", {
         headers: {
           cookie: `${KNOWLEDGE_ADMIN_SESSION_COOKIE}=${createKnowledgeAdminSession(adminToken)}`,
+          origin: "http://localhost",
         },
       }),
     );

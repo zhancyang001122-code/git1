@@ -101,6 +101,7 @@
 - [ ] Vercel GitHub Login Connection 与自动部署；当前使用已验证的 CLI 手动部署
 - [x] 单实例错误与耗时统计
 - [x] Chat、Feedback、公开 Knowledge Search 和地图直连使用 Supabase 原子共享限流；知识评测共用同一服务端边界且先鉴权后计数；HMAC 客户端摘要、RLS、service-role 专用 RPC 和 Production 写入已验证
+- [x] Auth、偏好、Feedback 和管理 Cookie 写操作执行 Same-Origin 校验；Bearer 管理自动化保持独立，管理登录表单在解析前限制为 4 KiB
 - [x] service-role 专用的近 7 天 AI Ops 聚合：Token、工具失败、反馈、评测和知识库存
 - [x] 按百炼模型价格配置计算人民币成本：逐请求按输入长度分档，显示覆盖率、价格核验日、官方来源和排除项，不冒充实际账单
 - [ ] 完整跨实例日志检索、指标趋势和主动告警平台；已完成 Supabase 跨实例工具审计检索、RAG 日趋势和四类站内阈值状态，仍缺全部 Route 日志、外部通知、事故认领和值班升级

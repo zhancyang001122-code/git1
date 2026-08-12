@@ -1,5 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
+import { assertSameOrigin } from "@/features/auth/same-origin";
+
 export const KNOWLEDGE_ADMIN_SESSION_COOKIE = "xiaozhi_knowledge_admin";
 export function knowledgeAdminCookieOptions(secure: boolean) {
   return {
@@ -55,15 +57,18 @@ function cookieValue(header: string | null, name: string): string | undefined {
 export function isKnowledgeAdminRequestAuthorized(
   request: Request,
   expectedToken: string,
+  options: { allowMissingOrigin?: boolean } = {},
 ): boolean {
-  return (
-    bearerTokenMatches(request.headers.get("authorization"), expectedToken) ||
-    verifyKnowledgeAdminSession(
-      cookieValue(
-        request.headers.get("cookie"),
-        KNOWLEDGE_ADMIN_SESSION_COOKIE,
-      ),
-      expectedToken,
-    )
+  if (bearerTokenMatches(request.headers.get("authorization"), expectedToken)) {
+    return true;
+  }
+  const cookieAuthorized = verifyKnowledgeAdminSession(
+    cookieValue(request.headers.get("cookie"), KNOWLEDGE_ADMIN_SESSION_COOKIE),
+    expectedToken,
   );
+  if (!cookieAuthorized) return false;
+  if (!new Set(["GET", "HEAD", "OPTIONS"]).has(request.method.toUpperCase())) {
+    assertSameOrigin(request, options);
+  }
+  return true;
 }

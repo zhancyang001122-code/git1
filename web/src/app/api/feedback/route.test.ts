@@ -24,6 +24,31 @@ function runtime() {
 }
 
 describe("POST /api/feedback", () => {
+  it("rejects cross-origin feedback before consuming rate-limit capacity", async () => {
+    const runtimeFactory = vi.fn(async () => runtime());
+    const limiter: RateLimiter = { check: vi.fn() };
+    const post = createFeedbackHandler(runtimeFactory, limiter, {
+      allowMissingOrigin: false,
+    });
+    const response = await post(
+      new Request("https://xiaozhi.example/api/feedback", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          origin: "https://evil.example",
+        },
+        body: JSON.stringify({ sessionId, messageId, rating: "up" }),
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "AUTH_ORIGIN_INVALID" },
+    });
+    expect(limiter.check).not.toHaveBeenCalled();
+    expect(runtimeFactory).not.toHaveBeenCalled();
+  });
+
   it("returns shared rate-limit metadata before loading feedback state", async () => {
     const runtimeFactory = vi.fn(async () => runtime());
     const limiter: RateLimiter = {

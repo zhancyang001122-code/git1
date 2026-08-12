@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { assertSameOrigin } from "@/features/auth/same-origin";
 import { createSupabaseAIOpsRepository } from "@/features/ai-ops/repository";
 import {
   ANONYMOUS_SESSION_COOKIE,
@@ -175,10 +176,15 @@ const candidateReasons = new Set(["incorrect", "missing_source", "outdated"]);
 export function createFeedbackHandler(
   runtimeFactory: () => Promise<FeedbackRuntime> = defaultRuntime,
   rateLimiter: RateLimiter = feedbackRateLimiter,
+  options: { allowMissingOrigin?: boolean } = {},
 ) {
   return async function POST(request: Request): Promise<Response> {
     const requestId = requestIdFor(request);
     try {
+      assertSameOrigin(request, {
+        allowMissingOrigin:
+          options.allowMissingOrigin ?? process.env.NODE_ENV !== "production",
+      });
       const rateLimit = await rateLimiter.check(requestClientKey(request));
       if (!rateLimit.allowed) return rateLimitResponse(rateLimit, requestId);
       const parsed = feedbackRequestSchema.safeParse(

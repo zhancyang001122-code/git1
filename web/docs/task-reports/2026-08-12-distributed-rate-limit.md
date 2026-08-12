@@ -21,12 +21,13 @@ Production 的 Chat、Feedback、公开 Knowledge Search、地图直连和受保
 ## Production 证据
 
 - 远端 migration：`202608120022_distributed_rate_limits.sql` 已应用。
-- Vercel deployment：`dpl_GKvbsvcTv9UqDd6Q4NE8Tfh1L9dH`，状态 `READY`，已绑定 `https://xiaozhi-local-life.vercel.app`。
+- Vercel deployment：`dpl_CUmNkiFsugHEPuQsauoQtxmkrCEG`，状态 `READY`，已绑定 `https://xiaozhi-local-life.vercel.app`。
 - 使用 publishable/anon Key 调用 RPC 被拒绝。
 - service-role 在测试作用域按限制 2 连续调用三次，结果为 `允许/剩余1 → 允许/剩余0 → 拒绝/剩余0`，`retry-after` 在窗口内。
 - 验证结束后只删除了 `verification_rate_limit` 的 1 条测试窗口，未触碰业务数据。
 - Production 公开 Knowledge Search 返回 HTTP 200，并在 `knowledge_search_ip` 作用域生成 64 位摘要共享计数。
 - Production 地图直连接口返回 HTTP 200 和 `mode=live`；随后在 `maps_nearby_ip` 作用域读取到 64 位摘要、计数 1。该次关键词结果为 0，因此只作为直连与共享计数证据，不冒充 POI 命中证据。
+- Production 使用恶意 Origin 和无效随机 ID/占位 token 调用 Feedback 与管理登录，均在业务状态加载前返回 HTTP 403 `AUTH_ORIGIN_INVALID`；未使用真实管理口令，也未创建反馈或候选。
 - 部署后完整 Live 回归通过：健康状态、移动布局、房源、高德、商品、偏好提案与反馈闭环均正常。
 
 ## 全量质量门禁
@@ -34,7 +35,7 @@ Production 的 Chat、Feedback、公开 Knowledge Search、地图直连和受保
 - migration 静态检查：22 个 migration、30 张表，全部表具备 RLS 覆盖。
 - pgTAP：6 个文件、121 项测试通过。
 - 真实权限边界：17 项 SQL Role RLS、14 项 PostgREST/JWT 检查通过。
-- Vitest：116 个测试文件、454 项测试通过。
+- Vitest：116 个测试文件、459 项测试通过。
 - TypeScript strict、ESLint、Prettier 和 Next.js Production build 通过。
 - Playwright：47 项通过；本机 OTP 与本机 HTTP 房源两个专项用例因默认环境未配置而按设计跳过。
 
