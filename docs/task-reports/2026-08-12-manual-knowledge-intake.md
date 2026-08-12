@@ -33,4 +33,10 @@
 - 从零重建本地数据库后，`pnpm db:test`：9 个 pgTAP 文件、200 个断言通过。
 - `pnpm test:e2e`：48 项通过，2 项按专项环境跳过；360/390/430px 移动端画布均无水平溢出。
 
-远端迁移、Production 部署与在线冒烟在本报告后续补充。
+## 远端与 Production 证据
+
+- Supabase dry-run 只包含 `202608120026_manual_knowledge_intake.sql`，随后正式应用成功；迁移历史显示本地与远端 `202608050001` 至 `202608120026` 全部一致。
+- linked `knowledge_ops_live.test.sql`：51/51 通过，覆盖新 RPC 的 service-role 专用权限、草稿状态、版本号保留，以及既有发布、索引队列和回滚流程。
+- Vercel Production deployment：`dpl_9ktWPtBEep1qT7ZoVTsM7gXKuW6R`，状态 `READY`，别名为 `https://xiaozhi-local-life.vercel.app`。
+- `pnpm deploy:verify-production`：Live 健康检查、移动端布局、房源、高德、演示商业数据、偏好提案和反馈链路通过。
+- `pnpm deploy:verify-knowledge-intake`：使用真实 Production 管理会话录入唯一临时材料，持久化结果为 `drafted`，保留 `smoke-v1`，匿名不可读且不可检索；脚本随后按唯一 ID 删除并复查无残留。

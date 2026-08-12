@@ -71,6 +71,53 @@ async function rest(path, key, init = {}) {
   });
 }
 
+async function candidateIdForQuestion(expectedQuestion) {
+  const params = new URLSearchParams({
+    select: "id",
+    normalized_question: `eq.${expectedQuestion}`,
+    reason: "eq.manual_material_intake",
+    status: "eq.drafted",
+    limit: "1",
+  });
+  const response = await rest(`knowledge_candidates?${params}`, secretKey);
+  if (!response.ok) return undefined;
+  const rows = await response.json();
+  return rows[0]?.id;
+}
+
+async function cleanupStaleSmokeDrafts() {
+  const params = new URLSearchParams({
+    select: "id,normalized_question,draft_json",
+    reason: "eq.manual_material_intake",
+    status: "eq.drafted",
+    limit: "20",
+  });
+  const response = await rest(`knowledge_candidates?${params}`, secretKey);
+  if (!response.ok) {
+    throw new Error(`stale smoke lookup returned HTTP ${response.status}`);
+  }
+  const rows = await response.json();
+  const stale = rows.filter(
+    (candidate) =>
+      candidate.normalized_question?.startsWith("[生产验收临时材料]") &&
+      candidate.draft_json?.title?.startsWith("生产验收临时材料：") &&
+      candidate.draft_json?.sourceReference?.startsWith("PROD-SMOKE-") &&
+      candidate.draft_json?.owner === "生产验收脚本",
+  );
+  for (const candidate of stale) {
+    const cleanup = await rest(
+      `knowledge_candidates?id=eq.${candidate.id}`,
+      secretKey,
+      { method: "DELETE", headers: { prefer: "return=minimal" } },
+    );
+    if (!cleanup.ok) {
+      throw new Error(`stale smoke cleanup returned HTTP ${cleanup.status}`);
+    }
+  }
+}
+
+await cleanupStaleSmokeDrafts();
+
 try {
   await page.goto(new URL("/knowledge-admin/login", productionUrl).href, {
     waitUntil: "domcontentloaded",
@@ -100,10 +147,11 @@ try {
   await page.getByLabel("变更说明").fill("验证生产受控材料录入链路");
   await page.getByRole("button", { name: "保存为待审核草稿" }).click();
 
-  await expect(page.getByRole("status")).toContainText("已保存为草稿");
-  await expect(page.getByRole("status")).toContainText(
-    "尚未发布，也不能被检索",
-  );
+  const intakeStatus = page.getByRole("status").filter({
+    hasText: "尚未发布，也不能被检索",
+  });
+  await expect(intakeStatus).toContainText("已保存为草稿");
+  await expect(intakeStatus).toContainText("尚未发布，也不能被检索");
   const href = await page
     .getByRole("link", { name: "进入审核" })
     .getAttribute("href");
@@ -161,6 +209,7 @@ try {
     }),
   );
 } finally {
+  candidateId ??= await candidateIdForQuestion(question);
   if (candidateId) {
     const cleanup = await rest(
       `knowledge_candidates?id=eq.${candidateId}`,
@@ -170,6 +219,20 @@ try {
     if (!cleanup.ok) {
       console.error(`cleanup failed with HTTP ${cleanup.status}`);
       process.exitCode = 1;
+    } else {
+      const verifyCleanup = await rest(
+        `knowledge_candidates?select=id&id=eq.${candidateId}`,
+        secretKey,
+      );
+      const remaining = verifyCleanup.ok ? await verifyCleanup.json() : null;
+      if (
+        !verifyCleanup.ok ||
+        !Array.isArray(remaining) ||
+        remaining.length > 0
+      ) {
+        console.error("cleanup verification failed");
+        process.exitCode = 1;
+      }
     }
   }
   await browser.close();
