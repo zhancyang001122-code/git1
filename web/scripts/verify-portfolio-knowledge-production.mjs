@@ -57,7 +57,7 @@ async function publishedSources() {
   );
   const parameters = new URLSearchParams({
     select:
-      "id,article_id,version_label,status,source_reference,kb_articles!inner(title,status,current_version_id,is_demo)",
+      "id,article_id,version_label,status,source_reference,kb_articles!kb_article_versions_article_id_fkey!inner(title,status,current_version_id,is_demo,material_kind)",
     source_reference: `in.(${references.map((item) => `\"${item}\"`).join(",")})`,
     status: "eq.published",
   });
@@ -65,22 +65,30 @@ async function publishedSources() {
     await supabaseRest(supabase, `kb_article_versions?${parameters}`),
     "portfolio publication lookup",
   );
-  if (rows.length !== knowledge.materials.length) {
+  const currentRows = rows.filter(
+    (row) => row.kb_articles?.current_version_id === row.id,
+  );
+  if (currentRows.length !== knowledge.materials.length) {
     throw new Error(
-      `expected ${knowledge.materials.length} published materials, found ${rows.length}`,
+      `expected ${knowledge.materials.length} current published materials, found ${currentRows.length}`,
     );
   }
-  for (const row of rows) {
+  for (const row of currentRows) {
+    const material = knowledge.materials.find(
+      (item) => item.draft.sourceReference === row.source_reference,
+    );
     if (
+      !material ||
       row.kb_articles?.status !== "published" ||
       row.kb_articles?.current_version_id !== row.id ||
       row.kb_articles?.is_demo !== false ||
-      row.version_label !== knowledge.manifest.version
+      row.kb_articles?.material_kind !== "portfolio_first_party" ||
+      row.version_label !== material.draft.versionLabel
     ) {
       throw new Error(`invalid publication state for ${row.source_reference}`);
     }
   }
-  return rows;
+  return currentRows;
 }
 
 async function persistRuns(results) {

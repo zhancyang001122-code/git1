@@ -47,4 +47,19 @@ describe("knowledge query planner", () => {
       }),
     ).toMatchObject({ domain: "group_buy", category: "refund" });
   });
+
+  it("preserves the reviewed portfolio first-party categories", () => {
+    expect(
+      planKnowledgeQuery({
+        query: "小智是原生微信小程序吗？",
+        domain: "platform",
+        category: "portfolio_capabilities",
+        city: null,
+        topK: 5,
+      }),
+    ).toMatchObject({
+      domain: "platform",
+      category: "portfolio_capabilities",
+    });
+  });
 });

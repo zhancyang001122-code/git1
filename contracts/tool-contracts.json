@@ -57,7 +57,10 @@
         "type": "object",
         "properties": {
           "query": { "type": ["string", "null"] },
-          "category": { "type": ["string", "null"] },
+          "category": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9_-]{1,79}$"
+          },
           "max_price": { "type": ["number", "null"], "minimum": 0 },
           "refundable_only": { "type": ["boolean", "null"] },
           "limit": {

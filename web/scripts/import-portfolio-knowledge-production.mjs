@@ -25,7 +25,7 @@ const headers = adminHeaders(token);
 async function findPublishedVersion(material) {
   const parameters = new URLSearchParams({
     select:
-      "id,version_label,status,source_reference,kb_articles!inner(title,status)",
+      "id,version_label,status,source_reference,kb_articles!kb_article_versions_article_id_fkey!inner(title,status)",
     source_reference: `eq.${material.draft.sourceReference}`,
     version_label: `eq.${material.draft.versionLabel}`,
     status: "eq.published",

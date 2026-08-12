@@ -110,7 +110,11 @@ const searchKnowledgeSchema = z
   .object({
     query: z.string().trim().min(2).max(500),
     domain: z.enum(["housing", "group_buy", "market", "platform"]).nullable(),
-    category: z.string().trim().min(1).max(80).nullable(),
+    category: z
+      .string()
+      .trim()
+      .regex(/^[a-z][a-z0-9_-]{1,79}$/)
+      .nullable(),
     city: z.string().trim().min(1).max(40).nullable(),
     top_k: z.number().int().min(1).max(8),
   })
@@ -191,7 +195,10 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
       type: "object",
       properties: {
         query: { type: ["string", "null"] },
-        category: { type: ["string", "null"] },
+        category: {
+          type: ["string", "null"],
+          pattern: "^[a-z][a-z0-9_-]{1,79}$",
+        },
         max_price: { type: ["number", "null"], minimum: 0 },
         refundable_only: { type: ["boolean", "null"] },
         limit: { type: "integer", minimum: 1, maximum: 10, default: 5 },

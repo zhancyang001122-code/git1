@@ -20,7 +20,12 @@ const requestSchema = z
   .object({
     query: z.string().trim().min(2).max(500),
     domain: z.enum(knowledgeDomains).nullable().default(null),
-    category: z.string().trim().min(1).max(80).nullable().default(null),
+    category: z
+      .string()
+      .trim()
+      .regex(/^[a-z][a-z0-9_-]{1,79}$/)
+      .nullable()
+      .default(null),
     city: z.string().trim().min(1).max(40).nullable().default(null),
     topK: z.number().int().min(1).max(8).default(5),
   })

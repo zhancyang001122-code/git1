@@ -80,6 +80,25 @@ describe("POST /api/knowledge/search", () => {
     expect(knowledge.search).not.toHaveBeenCalled();
   });
 
+  it("rejects a non-slug category before it reaches the repository", async () => {
+    const knowledge = service();
+    const post = createKnowledgeSearchHandler(async () => knowledge);
+
+    const response = await post(
+      new Request("http://localhost/api/knowledge/search", {
+        method: "POST",
+        body: JSON.stringify({
+          query: "退款规则",
+          domain: "group_buy",
+          category: "refund' OR 1=1 --",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(knowledge.search).not.toHaveBeenCalled();
+  });
+
   it("returns the stable search result and disables caching", async () => {
     const knowledge = service();
     const post = createKnowledgeSearchHandler(async () => knowledge);

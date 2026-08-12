@@ -14,7 +14,7 @@
       },
       "expected": {
         "requiredTitles": ["小智作品集：产品形态与能力边界"],
-        "requiredVersionLabel": "2026.08.1",
+        "requiredVersionLabel": "2026.08.2",
         "requiredConcepts": [
           "430px",
           "Next.js",
@@ -40,7 +40,7 @@
       },
       "expected": {
         "requiredTitles": ["小智作品集：产品形态与能力边界"],
-        "requiredVersionLabel": "2026.08.1",
+        "requiredVersionLabel": "2026.08.2",
         "requiredConcepts": [
           "Supabase",
           "百炼千问",
@@ -65,7 +65,7 @@
       },
       "expected": {
         "requiredTitles": ["小智作品集：产品形态与能力边界"],
-        "requiredVersionLabel": "2026.08.1",
+        "requiredVersionLabel": "2026.08.2",
         "requiredConcepts": ["演示业务数据", "不产生真实交易"],
         "requireCitation": true,
         "requireNonDemo": true,
@@ -85,7 +85,7 @@
       },
       "expected": {
         "requiredTitles": ["小智作品集：产品形态与能力边界"],
-        "requiredVersionLabel": "2026.08.1",
+        "requiredVersionLabel": "2026.08.2",
         "requiredConcepts": [
           "显示降级状态",
           "不能把模拟结果偷偷伪装成真实接入"

@@ -4,14 +4,6 @@ import type {
   KnowledgeSearchInput,
 } from "@/features/knowledge/types";
 
-const categoriesByDomain: Readonly<Record<KnowledgeDomain, readonly string[]>> =
-  {
-    housing: ["deposit"],
-    group_buy: ["refund"],
-    market: ["delivery"],
-    platform: ["faq", "privacy", "account"],
-  };
-
 const routes: readonly {
   pattern: RegExp;
   domain: KnowledgeDomain;
@@ -43,7 +35,7 @@ function allowedCategory(
   category: string | null,
 ): string | undefined {
   if (!domain || !category) return undefined;
-  return categoriesByDomain[domain].includes(category) ? category : undefined;
+  return /^[a-z][a-z0-9_-]{1,79}$/.test(category) ? category : undefined;
 }
 
 export function planKnowledgeQuery(

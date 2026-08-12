@@ -10,12 +10,12 @@
       "question": "小智展示的是原生微信小程序吗，它目前有哪些真实接入和演示边界？",
       "draft": {
         "title": "小智作品集：产品形态与能力边界",
-        "changeSummary": "建立可公开核验的作品集产品能力与演示边界说明",
+        "changeSummary": "补充可检索常见问题并保留作品集能力与演示边界",
         "sourceReference": "knowledge-base/portfolio-first-party/product-capability-boundary.md",
         "owner": "小智作品集作者",
         "domain": "platform",
         "category": "portfolio_capabilities",
-        "versionLabel": "2026.08.1",
+        "versionLabel": "2026.08.2",
         "effectiveFrom": "2026-08-12"
       }
     },
