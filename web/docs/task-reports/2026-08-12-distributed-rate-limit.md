@@ -4,7 +4,7 @@
 
 ## 结论
 
-Production 的 Chat、Feedback 和公开 Knowledge Search 已从单实例内存计数升级为 Supabase 原子固定窗口计数。所有 Vercel 实例共享同一计数边界；Demo 仍使用内存实现，保持无外部依赖。
+Production 的 Chat、Feedback、公开 Knowledge Search、地图直连和受保护的知识评测已从单实例内存计数升级为 Supabase 原子固定窗口计数。所有 Vercel 实例共享同一计数边界；Demo 仍使用内存实现，保持无外部依赖。
 
 这项改造不改变用户确认过的 Auth 取舍：低频单邮箱 OTP 不增加 CAPTCHA，仍明确不适用于公众注册。
 
@@ -16,15 +16,17 @@ Production 的 Chat、Feedback 和公开 Knowledge Search 已从单实例内存�
 - Live 的共享后端或返回契约异常时返回稳定 503，成本敏感接口失败关闭；不会静默退回无限放行。
 - 过期窗口由 RPC 机会式清理，不保留长期客户端轨迹。
 - Knowledge Search 新增 8 KiB 实际 UTF-8 请求体上限，避免在 Zod 校验前无界解析 JSON。
+- 地图直连新增 8 KiB 上限和每分钟 30 次共享窗口；知识评测先完成管理员鉴权，再进入每分钟 10 次共享窗口。候选草稿、评测与回滚也在 JSON 解析前执行与合法 Schema 容量匹配的字节上限。
 
 ## Production 证据
 
 - 远端 migration：`202608120022_distributed_rate_limits.sql` 已应用。
-- Vercel deployment：`dpl_7RS2sxp9HL8NvBrkhWhk6hrHnAeA`，状态 `READY`，已绑定 `https://xiaozhi-local-life.vercel.app`。
+- Vercel deployment：`dpl_GKvbsvcTv9UqDd6Q4NE8Tfh1L9dH`，状态 `READY`，已绑定 `https://xiaozhi-local-life.vercel.app`。
 - 使用 publishable/anon Key 调用 RPC 被拒绝。
 - service-role 在测试作用域按限制 2 连续调用三次，结果为 `允许/剩余1 → 允许/剩余0 → 拒绝/剩余0`，`retry-after` 在窗口内。
 - 验证结束后只删除了 `verification_rate_limit` 的 1 条测试窗口，未触碰业务数据。
 - Production 公开 Knowledge Search 返回 HTTP 200，并在 `knowledge_search_ip` 作用域生成 64 位摘要共享计数。
+- Production 地图直连接口返回 HTTP 200 和 `mode=live`；随后在 `maps_nearby_ip` 作用域读取到 64 位摘要、计数 1。该次关键词结果为 0，因此只作为直连与共享计数证据，不冒充 POI 命中证据。
 - 部署后完整 Live 回归通过：健康状态、移动布局、房源、高德、商品、偏好提案与反馈闭环均正常。
 
 ## 全量质量门禁
@@ -32,7 +34,7 @@ Production 的 Chat、Feedback 和公开 Knowledge Search 已从单实例内存�
 - migration 静态检查：22 个 migration、30 张表，全部表具备 RLS 覆盖。
 - pgTAP：6 个文件、121 项测试通过。
 - 真实权限边界：17 项 SQL Role RLS、14 项 PostgREST/JWT 检查通过。
-- Vitest：115 个测试文件、446 项测试通过。
+- Vitest：116 个测试文件、454 项测试通过。
 - TypeScript strict、ESLint、Prettier 和 Next.js Production build 通过。
 - Playwright：47 项通过；本机 OTP 与本机 HTTP 房源两个专项用例因默认环境未配置而按设计跳过。
 

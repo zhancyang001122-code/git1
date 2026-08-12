@@ -14,7 +14,7 @@ Production Live：[https://xiaozhi-local-life.vercel.app](https://xiaozhi-local-
 - requestId、日志脱敏、请求体上限、限流、超时、幂等重试和进程级共享熔断（非跨实例）。
 - 持久化索引队列、独立 Worker、租约与退避重试，以及受保护的 RAG/AI Ops 质量视图。
 - Supabase 跨实例工具审计检索与站内阈值告警；不返回工具载荷，尚不包含外部通知和值班升级。
-- Chat、Feedback 和公开知识检索使用 Supabase 原子共享限流；只持久化 HMAC 客户端摘要，不保存原始 IP。
+- Chat、Feedback、公开知识检索、地图直连和受保护的知识评测使用 Supabase 原子共享限流；只持久化 HMAC 客户端摘要，不保存原始 IP。
 
 ## 本地运行
 

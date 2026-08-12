@@ -47,9 +47,18 @@ export function createFixedWindowRateLimiter(options: {
 }
 
 export function requestClientKey(request: Request): string {
+  const vercelForwarded = request.headers
+    .get("x-vercel-forwarded-for")
+    ?.split(",")[0]
+    ?.trim();
   const forwarded = request.headers
     .get("x-forwarded-for")
     ?.split(",")[0]
     ?.trim();
-  return forwarded || request.headers.get("x-real-ip") || "local-client";
+  return (
+    vercelForwarded ||
+    forwarded ||
+    request.headers.get("x-real-ip") ||
+    "local-client"
+  );
 }

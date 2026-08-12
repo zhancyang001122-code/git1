@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createNearbyMapsHandler } from "@/app/api/maps/nearby/route";
 import { FakeMapsService } from "@/features/maps/fake-adapter";
@@ -12,6 +12,46 @@ function request(body: unknown) {
 }
 
 describe("nearby maps route", () => {
+  it("rejects a shared rate-limit overflow before creating the runtime", async () => {
+    const runtimeFactory = vi.fn(async () => ({
+      service: new FakeMapsService(),
+      mode: "demo" as const,
+    }));
+    const response = await createNearbyMapsHandler(runtimeFactory, {
+      check: () => ({ allowed: false, remaining: 0, retryAfterSeconds: 23 }),
+    })(
+      request({
+        action: "search",
+        keyword: "超市",
+        city: "杭州",
+        center: { longitude: 120.163102, latitude: 30.274085 },
+        coordinateSystem: "amap",
+        radiusM: 1500,
+        limit: 5,
+      }),
+    );
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("retry-after")).toBe("23");
+    expect(runtimeFactory).not.toHaveBeenCalled();
+  });
+
+  it("rejects an oversized body before creating the runtime", async () => {
+    const runtimeFactory = vi.fn(async () => ({
+      service: new FakeMapsService(),
+      mode: "demo" as const,
+    }));
+    const response = await createNearbyMapsHandler(runtimeFactory)(
+      request({ padding: "测".repeat(3_000) }),
+    );
+
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "REQUEST_BODY_TOO_LARGE" },
+    });
+    expect(runtimeFactory).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed coordinates before calling a service", async () => {
     const response = await createNearbyMapsHandler(async () => ({
       service: new FakeMapsService(),

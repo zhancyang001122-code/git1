@@ -5,6 +5,7 @@ import {
 import { createKnowledgeOpsRuntime } from "@/features/knowledge-ops/runtime";
 import type { KnowledgeOpsRuntime } from "@/features/knowledge-ops/runtime";
 import { rollbackInputSchema } from "@/features/knowledge-ops/schemas";
+import { readJsonWithLimit } from "@/lib/api-security";
 import { AppError } from "@/lib/errors";
 import { requestIdFor } from "@/lib/request-id";
 
@@ -16,7 +17,9 @@ export function createKnowledgeRollbackHandler(
     try {
       const runtime = await runtimeFactory();
       requireKnowledgeAdmin(request, runtime);
-      const parsed = rollbackInputSchema.safeParse(await request.json());
+      const parsed = rollbackInputSchema.safeParse(
+        await readJsonWithLimit(request, 4_096),
+      );
       if (!parsed.success) {
         throw new AppError({
           code: "KNOWLEDGE_ROLLBACK_INPUT_INVALID",

@@ -10,6 +10,7 @@ import {
   candidateDraftSchema,
   reviewInputSchema,
 } from "@/features/knowledge-ops/schemas";
+import { readJsonWithLimit } from "@/lib/api-security";
 import { AppError } from "@/lib/errors";
 import { requestIdFor } from "@/lib/request-id";
 
@@ -57,7 +58,9 @@ export function createKnowledgeCandidatesHandlers(
       try {
         const runtime = await runtimeFactory();
         requireKnowledgeAdmin(request, runtime);
-        const parsed = actionSchema.safeParse(await request.json());
+        const parsed = actionSchema.safeParse(
+          await readJsonWithLimit(request, 65_536),
+        );
         if (!parsed.success) {
           throw new AppError({
             code: "KNOWLEDGE_CANDIDATE_ACTION_INVALID",

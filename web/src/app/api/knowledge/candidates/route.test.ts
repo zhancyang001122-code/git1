@@ -78,4 +78,26 @@ describe("/api/knowledge/candidates", () => {
       isDemo: true,
     });
   });
+
+  it("rejects an oversized candidate action before changing state", async () => {
+    const value = runtime();
+    const draftCandidate = vi.spyOn(value.service, "draftCandidate");
+    const handlers = createKnowledgeCandidatesHandlers(async () => value);
+    const response = await handlers.POST(
+      new Request("http://localhost/api/knowledge/candidates", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ padding: "测".repeat(25_000) }),
+      }),
+    );
+
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "REQUEST_BODY_TOO_LARGE" },
+    });
+    expect(draftCandidate).not.toHaveBeenCalled();
+  });
 });

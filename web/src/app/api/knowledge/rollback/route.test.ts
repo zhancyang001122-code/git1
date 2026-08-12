@@ -47,4 +47,29 @@ describe("POST /api/knowledge/rollback", () => {
       isDemo: true,
     });
   });
+
+  it("rejects an oversized rollback request before changing state", async () => {
+    const rollback = vi.fn();
+    const post = createKnowledgeRollbackHandler(async () => ({
+      mode: "demo",
+      adminToken: token,
+      service: { rollback } as never,
+    }));
+    const response = await post(
+      new Request("http://localhost/api/knowledge/rollback", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ padding: "测".repeat(3_000) }),
+      }),
+    );
+
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "REQUEST_BODY_TOO_LARGE" },
+    });
+    expect(rollback).not.toHaveBeenCalled();
+  });
 });

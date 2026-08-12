@@ -85,7 +85,7 @@ RAG_FINAL_K=5
 
 索引入口为 `POST /api/knowledge/index`，请求体只接受 `versionId`，并要求 `Authorization: Bearer <DEMO_ADMIN_TOKEN>`。Token 必须是至少 32 位的随机值，只能放在服务端环境变量或请求头中，禁止放入 URL、浏览器代码或日志。该入口只建立索引，不负责发布知识版本。
 
-`POST /api/knowledge/search` 提供经过 Zod 校验的服务端检索边界，请求体最大 8 KiB，单次最多返回 8 条结果。Production 与 Chat、Feedback 一样使用 Supabase 原子共享限流；客户端标识先用 `ANONYMOUS_COOKIE_SECRET` 执行 HMAC-SHA256，数据库不保存原始 IP。共享计数后端异常时接口失败关闭为 503。该方案适合当前低流量作品集；面向公众高流量时仍应评估边缘 WAF、套餐配额和专用 Redis/Upstash。
+`POST /api/knowledge/search` 提供经过 Zod 校验的服务端检索边界，请求体最大 8 KiB，单次最多返回 8 条结果。Production 的 Chat、Feedback、公开 Knowledge Search、`POST /api/maps/nearby` 和受保护的知识评测使用 Supabase 原子共享限流；客户端标识先用 `ANONYMOUS_COOKIE_SECRET` 执行 HMAC-SHA256，数据库不保存原始 IP。共享计数后端异常时接口失败关闭为 503。该方案适合当前低流量作品集；面向公众高流量时仍应评估边缘 WAF、套餐配额和专用 Redis/Upstash。
 
 ## 6. Vercel
 

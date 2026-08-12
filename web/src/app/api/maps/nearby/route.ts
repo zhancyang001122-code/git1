@@ -5,10 +5,19 @@ import type {
   PlaceResult,
   WalkingRouteResult,
 } from "@/features/maps/types";
+import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
+import { createEnvironmentFixedWindowRateLimiter } from "@/lib/distributed-rate-limit";
 import { AppError, toPublicError } from "@/lib/errors";
+import { requestClientKey, type RateLimiter } from "@/lib/rate-limit";
 import { requestIdFor } from "@/lib/request-id";
 
 type MapsRuntimeFactory = () => Promise<MapsRuntime> | MapsRuntime;
+
+const mapsRateLimiter = createEnvironmentFixedWindowRateLimiter({
+  scope: "maps_nearby_ip",
+  limit: 30,
+  windowMs: 60_000,
+});
 
 function errorResponse(error: unknown, requestId: string): Response {
   const normalized = toPublicError(error, requestId);
@@ -21,13 +30,26 @@ function errorResponse(error: unknown, requestId: string): Response {
 
 export function createNearbyMapsHandler(
   runtimeFactory: MapsRuntimeFactory = createMapsRuntime,
+  rateLimiter: RateLimiter = mapsRateLimiter,
 ) {
   return async function POST(request: Request): Promise<Response> {
     const requestId = requestIdFor(request);
+    try {
+      const rateLimit = await rateLimiter.check(requestClientKey(request));
+      if (!rateLimit.allowed) return rateLimitResponse(rateLimit, requestId);
+    } catch (error) {
+      return errorResponse(error, requestId);
+    }
     let body: unknown;
     try {
-      body = await request.json();
+      body = await readJsonWithLimit(request, 8_192);
     } catch (error) {
+      if (
+        error instanceof AppError &&
+        error.code === "REQUEST_BODY_TOO_LARGE"
+      ) {
+        return errorResponse(error, requestId);
+      }
       return errorResponse(
         new AppError({
           code: "INVALID_MAP_REQUEST",

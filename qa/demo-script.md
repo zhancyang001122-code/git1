@@ -61,7 +61,7 @@ UI
 
 - 相同工具和参数单轮去重；无效参数只允许修复一次；最多 8 轮。
 - 外部调用有超时、错误归一化、局部降级和脱敏工具审计。
-- 当前质量证据：446 个 Vitest、121 个 pgTAP、17 条 SQL Role RLS、14 条 PostgREST 权限检查、47 个默认 E2E 通过，2 个专项环境用例按配置跳过；Production Live 双场景连续通过。
+- 当前质量证据：454 个 Vitest、121 个 pgTAP、17 条 SQL Role RLS、14 条 PostgREST 权限检查、47 个默认 E2E 通过，2 个专项环境用例按配置跳过；Production Live 双场景连续通过。
 - 四个 Demo 知识版本已通过持久化队列、独立 Worker、百炼 Embedding 和 Supabase pgvector 完成 Production 检索；管理视图还会显示逐请求分档的模型公开原价估算及覆盖率。
 
 ## 诚实边界与结束陈述（约 15 秒）

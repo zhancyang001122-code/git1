@@ -5,9 +5,24 @@ import {
   createEnvironmentFixedWindowRateLimiter,
   createSupabaseFixedWindowRateLimiter,
 } from "@/lib/distributed-rate-limit";
-import { createFixedWindowRateLimiter } from "@/lib/rate-limit";
+import {
+  createFixedWindowRateLimiter,
+  requestClientKey,
+} from "@/lib/rate-limit";
 
 describe("fixed window rate limiter", () => {
+  it("prefers Vercel's forwarded client address over generic proxy headers", () => {
+    const request = new Request("https://example.test", {
+      headers: {
+        "x-vercel-forwarded-for": "203.0.113.42",
+        "x-forwarded-for": "198.51.100.7",
+        "x-real-ip": "192.0.2.3",
+      },
+    });
+
+    expect(requestClientKey(request)).toBe("203.0.113.42");
+  });
+
   it("limits a hashed client key and resets after the window", () => {
     let now = 1_000;
     const limiter = createFixedWindowRateLimiter({
