@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { chromium, expect } from "@playwright/test";
 
 const baseUrl = new URL(
@@ -11,6 +13,15 @@ if (!token || token.length < 32) {
   throw new Error(
     "ADMIN_VERIFICATION_TOKEN must contain at least 32 characters",
   );
+}
+const incidentMonitorRequestId =
+  process.env.INCIDENT_MONITOR_REQUEST_ID?.trim() || randomUUID();
+if (
+  !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    incidentMonitorRequestId,
+  )
+) {
+  throw new Error("INCIDENT_MONITOR_REQUEST_ID must be a UUID");
 }
 const proxyServer = process.env.DEPLOYMENT_PROXY_SERVER?.trim();
 if (proxyServer) {
@@ -59,6 +70,7 @@ try {
 
   const monitorResponse = await context.request.get(
     new URL("/api/internal/ai-ops-monitor", baseUrl).href,
+    { headers: { "x-request-id": incidentMonitorRequestId } },
   );
   expect(monitorResponse.status()).toBe(200);
   const monitor = await monitorResponse.json();
@@ -96,7 +108,7 @@ try {
   await expect(page).toHaveURL(/\/knowledge-admin\/login(?:\?|$)/);
 
   console.log(
-    "PASS Production admin redirect, login, AI Ops incident monitor, secure cookie, logout and re-protection flow.",
+    `PASS Production admin redirect, login, AI Ops incident monitor (${incidentMonitorRequestId}), secure cookie, logout and re-protection flow.`,
   );
 } finally {
   await browser.close();
