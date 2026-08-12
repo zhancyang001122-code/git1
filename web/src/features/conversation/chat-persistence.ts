@@ -6,6 +6,10 @@ import type { ProviderMessage } from "@/features/agent/provider";
 import type { ConversationRepository } from "@/features/conversation/repository";
 import { summarizeConversation } from "@/features/conversation/summarizer";
 import { AppError } from "@/lib/errors";
+import {
+  estimateAIRequestCost,
+  type AIModelPricingConfiguration,
+} from "@/features/ai-ops/pricing";
 
 export interface PreparedChatTurn {
   sessionId: string;
@@ -66,12 +70,14 @@ interface SupabaseChatPersistenceOptions {
   repository: ConversationRepository;
   anonymousId: string;
   modelName: string;
+  pricing?: AIModelPricingConfiguration | null;
 }
 
 export function createSupabaseChatPersistence({
   repository,
   anonymousId,
   modelName,
+  pricing,
 }: SupabaseChatPersistenceOptions): ChatPersistence {
   return {
     async prepare(request) {
@@ -111,6 +117,19 @@ export function createSupabaseChatPersistence({
         messages: providerHistory(messages),
         ...(conversationSummary && { conversationSummary }),
         async persistAssistant(completion) {
+          const costs = pricing
+            ? (completion.usageRounds ?? []).map((usage) =>
+                estimateAIRequestCost({ modelName, ...usage }, pricing),
+              )
+            : [];
+          const estimatedCostCny =
+            costs.length > 0 && costs.every((cost) => cost !== null)
+              ? Number(
+                  costs
+                    .reduce((total, cost) => total + (cost ?? 0), 0)
+                    .toFixed(6),
+                )
+              : null;
           const assistantMessage = await repository.appendMessage({
             sessionId: session.id,
             role: "assistant",
@@ -125,6 +144,10 @@ export function createSupabaseChatPersistence({
             modelName,
             inputTokens: completion.inputTokens ?? null,
             outputTokens: completion.outputTokens ?? null,
+            firstTokenMs: completion.firstTokenMs ?? null,
+            estimatedCostCny,
+            pricingEffectiveFrom:
+              estimatedCostCny === null ? null : pricing!.effectiveFrom,
           });
           if (messages.length + 1 > 12) {
             const summary = summarizeConversation([

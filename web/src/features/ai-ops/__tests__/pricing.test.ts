@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   estimateAIModelCost,
+  estimateAIRequestCost,
   pricingConfigurationFromEnvironment,
   type AIModelPricingConfiguration,
 } from "@/features/ai-ops/pricing";
@@ -31,6 +32,39 @@ const pricing: AIModelPricingConfiguration = {
 };
 
 describe("AI model cost estimation", () => {
+  it("prices one request with an auditable tier and rejects uncovered usage", () => {
+    expect(
+      estimateAIRequestCost(
+        {
+          modelName: "qwen-plus",
+          inputTokens: 2_000,
+          outputTokens: 1_000,
+        },
+        pricing,
+      ),
+    ).toBe(0.0036);
+    expect(
+      estimateAIRequestCost(
+        {
+          modelName: "qwen-max",
+          inputTokens: 2_000,
+          outputTokens: 1_000,
+        },
+        pricing,
+      ),
+    ).toBeNull();
+    expect(
+      estimateAIRequestCost(
+        {
+          modelName: "qwen-plus",
+          inputTokens: null,
+          outputTokens: 1_000,
+        },
+        pricing,
+      ),
+    ).toBeNull();
+  });
+
   it("loads pricing only when the complete auditable configuration is present", () => {
     expect(pricingConfigurationFromEnvironment({})).toBeNull();
     expect(() =>

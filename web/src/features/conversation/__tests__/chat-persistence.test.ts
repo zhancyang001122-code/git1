@@ -9,11 +9,25 @@ import type {
   ConversationRepository,
   ConversationSession,
 } from "@/features/conversation/repository";
+import type { AIModelPricingConfiguration } from "@/features/ai-ops/pricing";
 
 const sessionId = "71000000-0000-0000-0000-000000000001";
 const userMessageId = "72000000-0000-0000-0000-000000000001";
 const assistantMessageId = "72000000-0000-0000-0000-000000000002";
 const anonymousId = "anonymous-owner-token";
+const pricing: AIModelPricingConfiguration = {
+  model: "qwen-plus",
+  modeLabel: "非思考模式",
+  effectiveFrom: "2026-08-12",
+  sourceUrl: "https://help.aliyun.com/zh/model-studio/qwen-plus",
+  tiers: [
+    {
+      maxInputTokens: 128_000,
+      inputCnyPerMillion: 0.8,
+      outputCnyPerMillion: 2,
+    },
+  ],
+};
 
 function session(owner = anonymousId): ConversationSession {
   return {
@@ -43,6 +57,9 @@ function message(
     modelName: null,
     inputTokens: null,
     outputTokens: null,
+    firstTokenMs: null,
+    estimatedCostCny: null,
+    pricingEffectiveFrom: null,
     createdAt: "2026-08-11T00:00:00.000Z",
   };
 }
@@ -75,6 +92,7 @@ describe("chat persistence", () => {
       repository: repo,
       anonymousId,
       modelName: "qwen-plus",
+      pricing,
     });
 
     await expect(
@@ -95,6 +113,7 @@ describe("chat persistence", () => {
       repository: repo,
       anonymousId,
       modelName: "qwen-plus",
+      pricing,
     });
 
     const prepared = await persistence.prepare({
@@ -118,6 +137,8 @@ describe("chat persistence", () => {
       finishReason: "stop",
       inputTokens: 12,
       outputTokens: 8,
+      firstTokenMs: 420,
+      usageRounds: [{ inputTokens: 12, outputTokens: 8 }],
     });
     expect(repo.appendMessage).toHaveBeenLastCalledWith({
       sessionId,
@@ -127,6 +148,9 @@ describe("chat persistence", () => {
       modelName: "qwen-plus",
       inputTokens: 12,
       outputTokens: 8,
+      firstTokenMs: 420,
+      estimatedCostCny: 0.000026,
+      pricingEffectiveFrom: "2026-08-12",
     });
   });
 

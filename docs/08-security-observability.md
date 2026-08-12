@@ -45,7 +45,7 @@ chat -> model -> tool -> external API -> response
 
 当前实现提供进程内聚合耗时指标、JSON 结构化日志，以及由 Supabase `get_ai_ops_dashboard`、`get_rag_ops_trend` 和 `get_ai_model_usage` RPC 生成的持久化汇总。`search_ai_tool_run_logs` 可以跨 Vercel 实例按终态和工具名检索安全审计元数据，但刻意不返回 `input_json`、`output_summary`、对话正文或 Prompt。21 个 API Route 文件中的 23 个方法统一经过 `observeRoute()`，用 Next.js `after()` 在响应完成后向 `api_route_logs` 写入路由静态键、HTTP 方法、状态码、耗时、`requestId` 和稳定错误码；不记录 URL 查询参数、请求正文、Cookie、Authorization、IP、响应正文或异常详情。自动覆盖测试会阻止未包装的新 Route 合入。`search_api_route_logs` 只允许按 HTTP 方法、状态类和最多 50 条记录查询。两张审计表和两个查询 RPC 均只向 `service_role` 授权。
 
-`get_ai_ops_alerts` 集中计算四类阈值状态。Vercel Cron 每天调用受 `CRON_SECRET` 保护的监控 Route，把活跃信号同步到 `ai_ops_incidents`：同一告警键最多一个活跃事故，重复检测只刷新指标，信号恢复自动解决。管理员可以认领和填写解决说明；打开、认领、手动解决与自动恢复都追加到 `ai_ops_incident_events`，事件表对服务端角色也不提供 UPDATE/DELETE。受保护的知识运营页展示 Token、终态工具失败率、反馈、评测、知识库存、RAG 日趋势、逐请求分档的 `qwen-plus` 公开原价估算、站内告警、事故认领、工具审计和 API Route 日志。审计持久化采用 fail-open：写日志失败会输出不含异常详情的稳定告警，但不会把原本成功的用户请求改成失败。
+`get_ai_ops_alerts` 集中计算六类阈值状态。新增首 Token P95 的定义是“服务器收到 `/api/chat` 请求到首次生成用户可见 `assistant_delta`”，它不代表浏览器渲染或公网最后一跳；至少 20 个有文本输出的回答后，P95 超过 6000ms 才告警。单会话成本按每轮千问请求分别选价格档并汇总，只有窗口内所有会话都具备完整 Token 与价格版本且至少 5 个会话时才判定，最高估算超过 0.1 元告警；这是估算，不等同于账单。Vercel Cron 每天调用受 `CRON_SECRET` 保护的监控 Route，把活跃信号同步到 `ai_ops_incidents`：同一告警键最多一个活跃事故，重复检测只刷新指标，信号恢复自动解决。管理员可以认领和填写解决说明；打开、认领、手动解决与自动恢复都追加到 `ai_ops_incident_events`，事件表对服务端角色也不提供 UPDATE/DELETE。受保护的知识运营页展示 Token、终态工具失败率、反馈、评测、知识库存、RAG 日趋势、逐请求分档的 `qwen-plus` 公开原价估算、站内告警、事故认领、工具审计和 API Route 日志。审计持久化采用 fail-open：写日志失败会输出不含异常详情的稳定告警，但不会把原本成功的用户请求改成失败。
 
 这仍不是完整企业监控：当前没有首 Token P95、单会话成本告警，也没有短信、飞书、Slack、邮件或 PagerDuty 外发和值班升级。因此验收清单继续把“完整主动告警平台”保留为未完成项。
 
@@ -55,7 +55,7 @@ chat -> model -> tool -> external API -> response
 - 已实现：RAG 零结果率 > 20%，最少 10 个样本。
 - 已实现：存在失败索引任务，或任务超时/可执行后等待超过 15 分钟。
 - 已实现：RAG/拒答评测失败率 > 10%，最少 5 个样本。
-- 未实现：首 Token P95 > 6s。
-- 未实现：单会话成本超阈值。
+- 已实现：首 Token P95 > 6s，至少 20 个有文本输出的回答。
+- 已实现：完整计价覆盖下，单会话模型成本估算 > 0.1 元，至少 5 个会话。
 - 已实现：持久化事故、幂等认领、必填解决说明、自动恢复和不可变事件审计。
 - 未实现：外部通知与真实值班升级。

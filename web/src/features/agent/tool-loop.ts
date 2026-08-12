@@ -119,12 +119,14 @@ function completion(
   finishReason: ChatTurnCompletion["finishReason"],
   inputTokens: number | undefined,
   outputTokens: number | undefined,
+  usageRounds: readonly { inputTokens: number; outputTokens: number }[],
 ): ChatTurnCompletion {
   return {
     assistantText,
     finishReason,
     ...(inputTokens !== undefined && { inputTokens }),
     ...(outputTokens !== undefined && { outputTokens }),
+    ...(usageRounds.length > 0 && { usageRounds }),
   };
 }
 
@@ -146,6 +148,8 @@ export async function* runAgentToolLoop(
   let assistantText = "";
   let inputTokens: number | undefined;
   let outputTokens: number | undefined;
+  const usageRounds: { inputTokens: number; outputTokens: number }[] = [];
+  let usageCoverageComplete = true;
   let auditWarningEmitted = false;
   const resultCards: NonNullable<ChatTurnCompletion["cards"]>[number][] = [];
   const citations: KnowledgeCitation[] = [];
@@ -154,6 +158,8 @@ export async function* runAgentToolLoop(
     let roundText = "";
     let calls: readonly ProviderToolCall[] = [];
     let finished = false;
+    let roundInputTokens: number | undefined;
+    let roundOutputTokens: number | undefined;
     const providerInput = {
       messages,
       ...(input.executor && {
@@ -171,9 +177,9 @@ export async function* runAgentToolLoop(
         yield { type: "assistant_delta", delta: event.delta };
       } else if (event.type === "usage") {
         if (event.inputTokens !== undefined)
-          inputTokens = (inputTokens ?? 0) + event.inputTokens;
+          roundInputTokens = (roundInputTokens ?? 0) + event.inputTokens;
         if (event.outputTokens !== undefined)
-          outputTokens = (outputTokens ?? 0) + event.outputTokens;
+          roundOutputTokens = (roundOutputTokens ?? 0) + event.outputTokens;
       } else if (event.type === "tool_calls") {
         calls = event.calls;
       } else if (event.type === "finish") {
@@ -188,6 +194,23 @@ export async function* runAgentToolLoop(
         retryable: true,
       });
     }
+    if (
+      usageCoverageComplete &&
+      roundInputTokens !== undefined &&
+      roundOutputTokens !== undefined
+    ) {
+      usageRounds.push({
+        inputTokens: roundInputTokens,
+        outputTokens: roundOutputTokens,
+      });
+      inputTokens = (inputTokens ?? 0) + roundInputTokens;
+      outputTokens = (outputTokens ?? 0) + roundOutputTokens;
+    } else {
+      usageCoverageComplete = false;
+      inputTokens = undefined;
+      outputTokens = undefined;
+      usageRounds.length = 0;
+    }
 
     if (calls.length === 0) {
       const final = completion(
@@ -195,6 +218,7 @@ export async function* runAgentToolLoop(
         "stop",
         inputTokens,
         outputTokens,
+        usageRounds,
       );
       if (resultCards.length > 0) final.cards = resultCards;
       if (citations.length > 0) final.citations = citations;
@@ -215,6 +239,7 @@ export async function* runAgentToolLoop(
         "fallback",
         inputTokens,
         outputTokens,
+        usageRounds,
       );
       if (resultCards.length > 0) final.cards = resultCards;
       if (citations.length > 0) final.citations = citations;
@@ -407,6 +432,7 @@ export async function* runAgentToolLoop(
         "tool_limit",
         inputTokens,
         outputTokens,
+        usageRounds,
       );
       if (resultCards.length > 0) final.cards = resultCards;
       if (citations.length > 0) final.citations = citations;

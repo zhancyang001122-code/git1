@@ -77,6 +77,8 @@ const operationalAlertRowSchema = z.object({
     "rag_no_result_rate",
     "knowledge_index_backlog",
     "rag_eval_failure_rate",
+    "first_token_p95",
+    "session_cost",
   ]),
   severity: z.enum(["warning", "critical"]),
   state: z.enum(["alert", "ok", "insufficient_data"]),

@@ -142,8 +142,8 @@ select is(
     select count(*)
     from public.get_ai_ops_alerts(1)
   ),
-  4::bigint,
-  'alert evaluation returns the four documented signals'
+  6::bigint,
+  'alert evaluation returns the six documented signals'
 );
 select is(
   (

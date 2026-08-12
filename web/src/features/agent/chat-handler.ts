@@ -38,6 +38,7 @@ import { createHousingRuntime } from "@/features/housing/runtime";
 import { createSupabaseKnowledgeCandidateSink } from "@/features/knowledge/candidate-sink";
 import { createDemoKnowledgeCandidateSink } from "@/features/knowledge-ops/demo-store";
 import { metrics } from "@/features/observability/metrics";
+import { pricingConfigurationFromEnvironment } from "@/features/ai-ops/pricing";
 import { AppError, toPublicError } from "@/lib/errors";
 import { parsePublicEnv, parseServerEnv } from "@/lib/env";
 import { rateLimitResponse, readJsonWithLimit } from "@/lib/api-security";
@@ -219,6 +220,7 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
       repository,
       anonymousId,
       modelName: serverConfiguration.DASHSCOPE_MODEL,
+      pricing: pricingConfigurationFromEnvironment(process.env),
     }),
     timeoutMs: serverConfiguration.AI_REQUEST_TIMEOUT_MS,
     tools: {
@@ -287,6 +289,7 @@ export function createChatHandler(
     const body = new ReadableStream<Uint8Array>({
       async start(controller) {
         let errorCode: string | undefined;
+        let firstTokenMs: number | undefined;
         try {
           const contextWindow = buildContextWindow({
             systemPrompt: XIAOZHI_SYSTEM_PROMPT,
@@ -313,8 +316,18 @@ export function createChatHandler(
               debug: runtime.tools.debugEnabled,
               maxToolRounds: runtime.tools.maxRounds,
             }),
-            onComplete: prepared.persistAssistant,
+            onComplete: (completion) =>
+              prepared.persistAssistant({
+                ...completion,
+                ...(firstTokenMs !== undefined && { firstTokenMs }),
+              }),
           })) {
+            if (
+              event.type === "assistant_delta" &&
+              firstTokenMs === undefined
+            ) {
+              firstTokenMs = Math.max(0, Date.now() - startedAt);
+            }
             controller.enqueue(encoder.encode(encodeSseEvent(event)));
             if (event.type === "session" && runtime.warning) {
               const warning: ChatStreamEvent = {

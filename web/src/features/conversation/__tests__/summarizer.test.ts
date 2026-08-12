@@ -17,6 +17,9 @@ function message(
     modelName: null,
     inputTokens: null,
     outputTokens: null,
+    firstTokenMs: null,
+    estimatedCostCny: null,
+    pricingEffectiveFrom: null,
     createdAt: "2026-08-11T00:00:00.000Z",
   };
 }

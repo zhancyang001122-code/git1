@@ -77,6 +77,10 @@ const aiOpsIncidentsMigration = migrations.find((migration) =>
   migration.name.endsWith("_ai_ops_incidents.sql"),
 );
 assert(aiOpsIncidentsMigration, "AI Ops incidents migration is missing");
+const aiModelSlosMigration = migrations.find((migration) =>
+  migration.name.endsWith("_ai_model_slos.sql"),
+);
+assert(aiModelSlosMigration, "AI model SLO migration is missing");
 
 for (const migration of migrations) {
   const normalized = migration.sql.trim().toLowerCase();
@@ -105,6 +109,7 @@ const aiOpsAlertsSql = aiOpsAlertsMigration.sql;
 const distributedRateLimitsSql = distributedRateLimitsMigration.sql;
 const apiRouteLogsSql = apiRouteLogsMigration.sql;
 const aiOpsIncidentsSql = aiOpsIncidentsMigration.sql;
+const aiModelSlosSql = aiModelSlosMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -226,6 +231,39 @@ for (const requirement of [
   },
 ]) {
   assert(requirement.pattern.test(aiOpsIncidentsSql), requirement.message);
+}
+
+for (const requirement of [
+  {
+    pattern: /add column first_token_ms integer/i,
+    message: "first-token latency column is missing",
+  },
+  {
+    pattern: /add column estimated_cost_cny numeric/i,
+    message: "estimated request cost column is missing",
+  },
+  {
+    pattern: /add column pricing_effective_from date/i,
+    message: "cost pricing provenance column is missing",
+  },
+  {
+    pattern: /percentile_disc\(0\.95\)/i,
+    message: "first-token P95 computation is missing",
+  },
+  {
+    pattern: /'first_token_p95'::text/i,
+    message: "first-token alert is missing",
+  },
+  {
+    pattern: /'session_cost'::text/i,
+    message: "session-cost alert is missing",
+  },
+  {
+    pattern: /requests = priced_requests/i,
+    message: "session-cost alert must exclude partially priced sessions",
+  },
+]) {
+  assert(requirement.pattern.test(aiModelSlosSql), requirement.message);
 }
 
 for (const requirement of [

@@ -22,6 +22,13 @@ const appendMessageSchema = z
     modelName: z.string().trim().min(1).max(120).nullable().optional(),
     inputTokens: z.number().int().nonnegative().nullable().optional(),
     outputTokens: z.number().int().nonnegative().nullable().optional(),
+    firstTokenMs: z.number().int().min(0).max(300_000).nullable().optional(),
+    estimatedCostCny: z.number().nonnegative().nullable().optional(),
+    pricingEffectiveFrom: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .nullable()
+      .optional(),
   })
   .strict();
 const listSchema = z
@@ -57,13 +64,16 @@ const messageRowSchema = z.object({
   model_name: z.string().nullable(),
   input_tokens: z.number().int().nullable(),
   output_tokens: z.number().int().nullable(),
+  first_token_ms: z.number().int().nullable(),
+  estimated_cost_cny: z.coerce.number().nonnegative().nullable(),
+  pricing_effective_from: z.string().nullable(),
   created_at: z.string(),
 });
 
 const SESSION_COLUMNS =
   "id,user_id,anonymous_id,title,summary,last_location_label,last_longitude,last_latitude,created_at,updated_at";
 const MESSAGE_COLUMNS =
-  "id,session_id,role,content,structured_payload,model_name,input_tokens,output_tokens,created_at";
+  "id,session_id,role,content,structured_payload,model_name,input_tokens,output_tokens,first_token_ms,estimated_cost_cny,pricing_effective_from,created_at";
 
 export interface ConversationSession {
   id: string;
@@ -86,6 +96,9 @@ export interface ConversationMessage {
   modelName: string | null;
   inputTokens: number | null;
   outputTokens: number | null;
+  firstTokenMs: number | null;
+  estimatedCostCny: number | null;
+  pricingEffectiveFrom: string | null;
   createdAt: string;
 }
 
@@ -175,6 +188,9 @@ function mapMessage(row: unknown): ConversationMessage {
     modelName: value.model_name,
     inputTokens: value.input_tokens,
     outputTokens: value.output_tokens,
+    firstTokenMs: value.first_token_ms,
+    estimatedCostCny: value.estimated_cost_cny,
+    pricingEffectiveFrom: value.pricing_effective_from,
     createdAt: value.created_at,
   };
 }
@@ -235,6 +251,9 @@ export function createSupabaseConversationRepository(
           model_name: value.modelName ?? null,
           input_tokens: value.inputTokens ?? null,
           output_tokens: value.outputTokens ?? null,
+          first_token_ms: value.firstTokenMs ?? null,
+          estimated_cost_cny: value.estimatedCostCny ?? null,
+          pricing_effective_from: value.pricingEffectiveFrom ?? null,
         })
         .select(MESSAGE_COLUMNS)
         .single();

@@ -9,6 +9,8 @@ const alertKeySchema = z.enum([
   "rag_no_result_rate",
   "knowledge_index_backlog",
   "rag_eval_failure_rate",
+  "first_token_p95",
+  "session_cost",
 ]);
 const severitySchema = z.enum(["warning", "critical"]);
 const incidentStatusSchema = z.enum(["open", "acknowledged", "resolved"]);

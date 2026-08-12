@@ -117,6 +117,54 @@ describe("agent tool loop", () => {
     ]);
   });
 
+  it("keeps model usage split by request round for tiered pricing", async () => {
+    const provider = new SequenceProvider([
+      [
+        { type: "usage", inputTokens: 100_000, outputTokens: 100 },
+        toolCall("call-priced"),
+        { type: "finish", reason: "tool_calls" },
+      ],
+      [
+        { type: "text_delta", delta: "已完成。" },
+        { type: "usage", inputTokens: 100_000, outputTokens: 200 },
+        { type: "finish", reason: "stop" },
+      ],
+    ]);
+    const { completions } = await collect(provider);
+
+    expect(completions).toEqual([
+      expect.objectContaining({
+        inputTokens: 200_000,
+        outputTokens: 300,
+        usageRounds: [
+          { inputTokens: 100_000, outputTokens: 100 },
+          { inputTokens: 100_000, outputTokens: 200 },
+        ],
+      }),
+    ]);
+  });
+
+  it("does not price a turn when any model round omits usage", async () => {
+    const provider = new SequenceProvider([
+      [
+        toolCall("call-missing-usage"),
+        { type: "finish", reason: "tool_calls" },
+      ],
+      [
+        { type: "text_delta", delta: "已完成。" },
+        { type: "usage", inputTokens: 100, outputTokens: 20 },
+        { type: "finish", reason: "stop" },
+      ],
+    ]);
+    const { completions } = await collect(provider);
+
+    expect(completions).toEqual([
+      expect.not.objectContaining({
+        usageRounds: expect.anything(),
+      }),
+    ]);
+  });
+
   it("deduplicates canonical name and arguments across the whole user turn", async () => {
     const business = createDemoRepository();
     const listHouses = vi.spyOn(business, "listHouses");

@@ -112,6 +112,9 @@ describe("SupabaseConversationRepository", () => {
       model_name: null,
       input_tokens: null,
       output_tokens: null,
+      first_token_ms: null,
+      estimated_cost_cny: null,
+      pricing_effective_from: null,
       created_at: "2026-08-11T00:00:00.000Z",
     };
     const fake = fakeClient({ data: [row] });

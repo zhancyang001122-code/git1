@@ -45,6 +45,7 @@ describe("orchestrateChatTurn", () => {
       finishReason: "stop",
       inputTokens: 20,
       outputTokens: 8,
+      usageRounds: [{ inputTokens: 20, outputTokens: 8 }],
     });
   });
 

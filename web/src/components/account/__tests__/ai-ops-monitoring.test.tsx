@@ -25,6 +25,28 @@ describe("OperationalAlerts", () => {
             measuredAt: "2026-08-12T00:00:00.000Z",
           },
           {
+            key: "first_token_p95",
+            severity: "warning",
+            state: "ok",
+            title: "首 Token P95",
+            metricValue: 1250,
+            thresholdValue: 6000,
+            sampleCount: 24,
+            detail: "服务端从收到请求到首个可见回答文本的 P95 为 1250 ms",
+            measuredAt: "2026-08-12T00:00:00.000Z",
+          },
+          {
+            key: "session_cost",
+            severity: "warning",
+            state: "ok",
+            title: "单会话成本估算",
+            metricValue: 0.03,
+            thresholdValue: 0.1,
+            sampleCount: 5,
+            detail: "完整计价会话中的最高模型成本估算为 0.03 元",
+            measuredAt: "2026-08-12T00:00:00.000Z",
+          },
+          {
             key: "rag_no_result_rate",
             severity: "warning",
             state: "insufficient_data",
@@ -42,7 +64,9 @@ describe("OperationalAlerts", () => {
     expect(screen.getByText("1 个站内告警")).toBeInTheDocument();
     expect(screen.getByText("告警中")).toBeInTheDocument();
     expect(screen.getByText("样本不足")).toBeInTheDocument();
-    expect(screen.getByText(/不包含外部通知/)).toBeInTheDocument();
+    expect(screen.getByText(/当前 1250ms · 阈值 6000ms/)).toBeInTheDocument();
+    expect(screen.getByText(/当前 0.03 元 · 阈值 0.1 元/)).toBeInTheDocument();
+    expect(screen.getByText(/成本是带价格版本的估算/)).toBeInTheDocument();
   });
 
   it("does not invent centralized alerts in Demo mode", () => {

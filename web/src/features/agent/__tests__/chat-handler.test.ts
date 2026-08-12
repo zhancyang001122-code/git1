@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createChatHandler } from "@/features/agent/chat-handler";
 import { DemoToolCallingProvider } from "@/features/agent/demo-tool-provider";
@@ -131,6 +131,47 @@ describe("POST /api/chat handler", () => {
     ]);
     expect(events[2]).toEqual({ type: "assistant_delta", delta: "你好，杭州" });
     expect(responseText).not.toContain("secret");
+  });
+
+  it("persists server-side time to the first visible assistant token", async () => {
+    const persistAssistant = vi.fn(
+      async (completion: { assistantText: string; firstTokenMs?: number }) => {
+        void completion;
+      },
+    );
+    const post = createChatHandler(async () => ({
+      provider: new FakeAIProvider([
+        { type: "text_delta", delta: "首个回答" },
+        { type: "finish", reason: "stop" },
+      ]),
+      persistence: {
+        prepare: async () => ({
+          sessionId: "71000000-0000-4000-8000-000000000001",
+          messageId: "72000000-0000-4000-8000-000000000001",
+          messages: [{ role: "user", content: "测试首 Token" }],
+          persistAssistant,
+        }),
+      },
+      timeoutMs: 1_000,
+    }));
+
+    const response = await post(
+      new Request("http://localhost/api/chat", {
+        method: "POST",
+        body: JSON.stringify({ message: "测试首 Token" }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    await response.text();
+
+    expect(persistAssistant).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assistantText: "首个回答",
+        firstTokenMs: expect.any(Number),
+      }),
+    );
+    const completion = persistAssistant.mock.calls[0]?.[0];
+    expect(completion?.firstTokenMs).toBeGreaterThanOrEqual(0);
   });
 
   it("streams public tool progress and cards without leaking tool names", async () => {

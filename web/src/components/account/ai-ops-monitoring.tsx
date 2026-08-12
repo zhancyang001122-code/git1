@@ -84,7 +84,14 @@ export function OperationalAlerts({
               : alert.state === "ok"
                 ? "text-success"
                 : "text-text-subtle";
-          const unit = alert.key === "knowledge_index_backlog" ? " 个" : "%";
+          const unit =
+            alert.key === "knowledge_index_backlog"
+              ? " 个"
+              : alert.key === "first_token_p95"
+                ? "ms"
+                : alert.key === "session_cost"
+                  ? " 元"
+                  : "%";
           return (
             <li key={alert.key} className="rounded-card bg-surface-tint p-3">
               <div className="flex items-center justify-between gap-3">
@@ -107,7 +114,7 @@ export function OperationalAlerts({
       </ul>
 
       <p className="mt-3 text-xs leading-5 text-text-subtle">
-        每次打开页面按集中式真实记录计算；这是站内阈值状态，不包含外部通知、值班升级或事故认领。
+        每次打开页面按集中式真实记录计算；成本是带价格版本的估算，不等同于账单。外部通知和值班升级仍未接入。
       </p>
     </section>
   );

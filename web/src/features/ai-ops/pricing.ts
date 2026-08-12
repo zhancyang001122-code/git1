@@ -31,6 +31,35 @@ export interface AIModelCostEstimate {
   pricing: AIModelPricingConfiguration;
 }
 
+export interface AIRequestUsage {
+  modelName: string;
+  inputTokens: number | null;
+  outputTokens: number | null;
+}
+
+export function estimateAIRequestCost(
+  usage: AIRequestUsage,
+  pricing: AIModelPricingConfiguration,
+): number | null {
+  if (
+    usage.modelName !== pricing.model ||
+    usage.inputTokens === null ||
+    usage.outputTokens === null
+  ) {
+    return null;
+  }
+  const tier = pricing.tiers.find(
+    (candidate) => usage.inputTokens! <= candidate.maxInputTokens,
+  );
+  if (!tier) return null;
+  return Number(
+    (
+      (usage.inputTokens * tier.inputCnyPerMillion) / 1_000_000 +
+      (usage.outputTokens * tier.outputCnyPerMillion) / 1_000_000
+    ).toFixed(6),
+  );
+}
+
 export function pricingConfigurationFromEnvironment(
   input: EnvironmentInput,
 ): AIModelPricingConfiguration | null {
@@ -55,25 +84,10 @@ export function estimateAIModelCost(
 
   for (const bucket of usage) {
     totalRequests += bucket.requests;
-    const tier =
-      bucket.inputTokens === null
-        ? undefined
-        : pricing.tiers.find(
-            (candidate) => bucket.inputTokens! <= candidate.maxInputTokens,
-          );
-    if (
-      bucket.modelName !== pricing.model ||
-      bucket.inputTokens === null ||
-      bucket.outputTokens === null ||
-      !tier
-    ) {
-      continue;
-    }
+    const requestCost = estimateAIRequestCost(bucket, pricing);
+    if (requestCost === null) continue;
     coveredRequests += bucket.requests;
-    cost +=
-      bucket.requests *
-      ((bucket.inputTokens * tier.inputCnyPerMillion) / 1_000_000 +
-        (bucket.outputTokens * tier.outputCnyPerMillion) / 1_000_000);
+    cost += bucket.requests * requestCost;
   }
 
   const unpricedRequests = totalRequests - coveredRequests;
