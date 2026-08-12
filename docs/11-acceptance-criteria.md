@@ -41,16 +41,15 @@
 
 ## P0 Auth、授权与隐私
 
-- [x] 邮箱 6 位 OTP 本地 Mailpit 发送、验证与会话 Cookie
+- [x] 历史邮箱 OTP 方案曾通过本地 Mailpit；当前固定演示码通过本地真实 Supabase Session/RLS E2E
 - [x] `/me/preferences` 未登录服务端跳转，并保留安全站内 `next`
 - [x] 偏好 API 只从 `auth.getUser()` 获取用户 ID，不接受客户端 `userId`
 - [x] SQL Role 与 PostgREST 两层验证本人可读写删、跨用户不可读改删、匿名不可访问
 - [x] 模型偏好工具只生成无副作用提案；取消零写入，确认才调用 API
 - [x] 关闭长期记忆删除整行偏好；登出不等同于删除数据
-- [x] 面试演示 Auth 无 CAPTCHA；Production 单邮箱白名单在发送与验证两端均失败关闭
+- [x] 面试演示 Auth 无 CAPTCHA；公开固定码只映射服务端隔离演示账号，不下发 Supabase 凭据
 - [x] Production 子域名、DNS、TLS、Supabase Auth Site URL 与完整 Live 回归
-- [ ] 自定义 SMTP、发件域名验证与真实邮箱冒烟
-- [ ] 生产环境使用作者邮箱完成一次真实 OTP 冒烟
+- [ ] Production 固定演示码完成真实 Supabase Session、偏好、退出、重登和清理冒烟
 
 ## P0 AI
 
@@ -119,4 +118,4 @@
 2. 带来源的退款规则
 3. 房源 + 超市 + 押金规则组合任务
 
-Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。四份作品集首方公开资料已完成受控发布、真实百炼 Embedding、Production 检索和版本化引用；固定评测 20/20 通过，其中 3/3 千问生成用例通过。该证据证明作品集公开边界的 RAG 链路和内容质量，不等于真实企业客服资料已经交付。AI Ops 已能按线上逐请求 Token 和核验后的 `qwen-plus` 非思考模式公开原价估算人民币成本，但明确排除免费额度、优惠、Embedding 与 Rerank，因此不是阿里云账单。Production 管理页已使用 Sensitive 随机口令完成登录、Cookie 和主动退出验收；`xiaozhi.zaneyang.xyz` 已完成 DNS、TLS、Supabase Site URL 和完整 Live 回归，生产 Auth 仍需作者邮箱、自定义 SMTP 与真实 OTP 冒烟。Auth/偏好本地证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；Production 基线见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`；自定义域名见 `docs/task-reports/2026-08-13-production-domain.md`；首方 RAG 证据见 `docs/task-reports/2026-08-13-portfolio-first-party-rag.md`；管理会话见 `web/docs/task-reports/2026-08-12-production-admin-session.md`；Worker 证据见 `docs/task-reports/2026-08-12-knowledge-index-worker.md`；成本估算证据见 `web/docs/task-reports/2026-08-12-ai-cost-estimate.md`。
+Production Live 已连续通过“历史房源 + 高德”和“演示商品 + 偏好提案”真实千问编排，且反馈可写入远端 Supabase。四份作品集首方公开资料已完成受控发布、真实百炼 Embedding、Production 检索和版本化引用；固定评测 20/20 通过，其中 3/3 千问生成用例通过。该证据证明作品集公开边界的 RAG 链路和内容质量，不等于真实企业客服资料已经交付。AI Ops 已能按线上逐请求 Token 和核验后的 `qwen-plus` 非思考模式公开原价估算人民币成本，但明确排除免费额度、优惠、Embedding 与 Rerank，因此不是阿里云账单。Production 管理页已使用 Sensitive 随机口令完成登录、Cookie 和主动退出验收；`xiaozhi.zaneyang.xyz` 已完成 DNS、TLS、Supabase Site URL 和完整 Live 回归。根据作者 2026-08-13 的新决策，邮箱 OTP 与 SMTP 已从当前范围移除，改为公开固定演示码映射到隔离 Supabase 演示账号；它用于作品集体验，不冒充生产级用户认证。Auth/偏好历史 OTP 证据见 `docs/task-reports/2026-08-12-auth-preferences.md`；当前固定演示码证据见 `docs/task-reports/2026-08-13-fixed-demo-auth.md`；Production 基线见 `docs/task-reports/2026-08-12-vercel-production-baseline.md`；自定义域名见 `docs/task-reports/2026-08-13-production-domain.md`；首方 RAG 证据见 `docs/task-reports/2026-08-13-portfolio-first-party-rag.md`；管理会话见 `web/docs/task-reports/2026-08-12-production-admin-session.md`；Worker 证据见 `docs/task-reports/2026-08-12-knowledge-index-worker.md`；成本估算证据见 `web/docs/task-reports/2026-08-12-ai-cost-estimate.md`。

@@ -1,12 +1,7 @@
-import { randomUUID } from "node:crypto";
-
-import { readLocalSupabaseEnvironment } from "./local-supabase-env.mjs";
-
-const local = readLocalSupabaseEnvironment();
-const appUrl = process.env.AUTH_TEST_APP_URL ?? "http://127.0.0.1:3101";
-const mailpitUrl = local.MAILPIT_URL;
-const email =
-  process.env.AUTH_TEST_EMAIL ?? `auth-api-${randomUUID()}@example.test`;
+const appUrl = new URL(
+  process.env.AUTH_TEST_APP_URL ?? "http://127.0.0.1:3101",
+);
+const demoCode = "666666";
 const cookies = new Map();
 
 function assert(condition, message) {
@@ -33,15 +28,17 @@ function cookieHeader() {
 }
 
 async function appRequest(path, init = {}) {
-  const response = await fetch(`${appUrl}${path}`, {
+  const response = await fetch(new URL(path, appUrl), {
     ...init,
     headers: {
       accept: "application/json",
-      origin: appUrl,
+      origin: appUrl.origin,
       ...(cookies.size > 0 && { cookie: cookieHeader() }),
       ...(init.body && { "content-type": "application/json" }),
       ...init.headers,
     },
+    redirect: "manual",
+    signal: AbortSignal.timeout(30_000),
   });
   updateCookies(response);
   return response;
@@ -63,65 +60,32 @@ async function expectStatus(label, response, status) {
   return payload;
 }
 
-function recipientMatches(message) {
-  const recipients = Array.isArray(message.To) ? message.To : [message.To];
-  return recipients.some((recipient) => recipient?.Address === email);
+async function signIn(label) {
+  const payload = await expectStatus(
+    label,
+    await appRequest("/api/auth/demo-login", {
+      method: "POST",
+      body: JSON.stringify({ code: demoCode, next: "/me/preferences" }),
+    }),
+    200,
+  );
+  assert(payload.next === "/me/preferences", "safe return path changed");
+  assert(cookies.size > 0, "demo login did not set a session cookie");
 }
 
-async function capturedOtp() {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
-    const listResponse = await fetch(`${mailpitUrl}/api/v1/messages`);
-    const list = await listResponse.json();
-    const captured = list.messages?.find(recipientMatches);
-    if (captured?.ID) {
-      const messageResponse = await fetch(
-        `${mailpitUrl}/api/v1/message/${encodeURIComponent(captured.ID)}`,
-      );
-      const message = await messageResponse.json();
-      const match = `${message.Text ?? ""}\n${message.HTML ?? ""}`.match(
-        /(?<!\d)(\d{6})(?!\d)/,
-      );
-      if (match?.[1]) return match[1];
-    }
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  throw new Error("Mailpit did not capture a six-digit OTP");
-}
+await signIn("fixed demo code establishes a Supabase session");
 
 await expectStatus(
-  "application sends local email OTP",
-  await appRequest("/api/auth/otp/send", {
+  "wrong demo code is rejected",
+  await appRequest("/api/auth/demo-login", {
     method: "POST",
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ code: "123456" }),
   }),
-  200,
-);
-const otp = await capturedOtp();
-console.log("PASS Mailpit captures the custom six-digit OTP template");
-
-const verified = await expectStatus(
-  "application verifies OTP and establishes a session",
-  await appRequest("/api/auth/otp/verify", {
-    method: "POST",
-    body: JSON.stringify({ email, token: otp, next: "/me/preferences" }),
-  }),
-  200,
-);
-assert(verified.next === "/me/preferences", "safe return path changed");
-assert(cookies.size > 0, "Auth verification did not set a session cookie");
-
-const empty = await expectStatus(
-  "authenticated user reads an empty preference state",
-  await appRequest("/api/preferences"),
-  200,
-);
-assert(
-  empty.allowLongTermMemory === false,
-  "expected preferences to be disabled",
+  400,
 );
 
 const saved = await expectStatus(
-  "authenticated user saves consented preferences",
+  "authenticated demo user saves consented preferences",
   await appRequest("/api/preferences", {
     method: "PATCH",
     body: JSON.stringify({
@@ -140,8 +104,20 @@ assert(
   "saved preference response did not match",
 );
 
+await expectStatus(
+  "application signs out the demo session",
+  await appRequest("/api/auth/sign-out", { method: "POST" }),
+  200,
+);
+await expectStatus(
+  "signed-out session cannot read preferences",
+  await appRequest("/api/preferences"),
+  401,
+);
+
+await signIn("fixed demo code signs in again without email delivery");
 const persisted = await expectStatus(
-  "saved preferences survive a separate request",
+  "RLS preference survives a separate authenticated session",
   await appRequest("/api/preferences"),
   200,
 );
@@ -151,26 +127,21 @@ assert(
 );
 
 const removed = await expectStatus(
-  "user revokes memory and deletes the preference row",
+  "demo user clears shared preferences before handoff",
   await appRequest("/api/preferences", {
     method: "PATCH",
     body: JSON.stringify({ allowLongTermMemory: false }),
   }),
   200,
 );
-assert(removed.preferences === null, "revoked preferences still returned data");
+assert(removed.preferences === null, "cleared preferences still returned data");
 
 await expectStatus(
-  "application signs out the current session",
+  "application signs out the cleaned demo session",
   await appRequest("/api/auth/sign-out", { method: "POST" }),
   200,
 );
-await expectStatus(
-  "signed-out session can no longer read preferences",
-  await appRequest("/api/preferences"),
-  401,
-);
 
 console.log(
-  "Local Auth and Preferences API verification completed without logging email, OTP, cookies, or preference payloads.",
+  "Demo Auth and RLS preference verification completed without logging account credentials, cookies or preference payloads.",
 );

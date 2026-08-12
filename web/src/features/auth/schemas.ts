@@ -1,23 +1,10 @@
 import { z } from "zod";
 
-const emailSchema = z
-  .string()
-  .trim()
-  .min(3)
-  .max(254)
-  .email()
-  .transform((value) => value.toLowerCase());
+export const DEMO_LOGIN_CODE = "666666";
 
-export const otpSendSchema = z
+export const demoLoginSchema = z
   .object({
-    email: emailSchema,
-  })
-  .strict();
-
-export const otpVerifySchema = z
-  .object({
-    email: emailSchema,
-    token: z
+    code: z
       .string()
       .trim()
       .regex(/^\d{6}$/),
@@ -25,5 +12,4 @@ export const otpVerifySchema = z
   })
   .strict();
 
-export type OtpSendInput = z.infer<typeof otpSendSchema>;
-export type OtpVerifyInput = z.infer<typeof otpVerifySchema>;
+export type DemoLoginInput = z.infer<typeof demoLoginSchema>;

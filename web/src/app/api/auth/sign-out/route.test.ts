@@ -6,8 +6,7 @@ import { AppError } from "@/lib/errors";
 
 function runtime(): AuthRuntime {
   return {
-    sendOtp: vi.fn(async () => undefined),
-    verifyOtp: vi.fn(async () => undefined),
+    signInDemo: vi.fn(async () => undefined),
     signOut: vi.fn(async () => undefined),
   };
 }

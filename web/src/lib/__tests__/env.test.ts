@@ -41,14 +41,16 @@ describe("environment contract", () => {
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
       SUPABASE_FALLBACK_TO_DEMO: "true",
-      AUTH_ALLOWED_EMAIL: "owner@example.com",
+      DEMO_AUTH_EMAIL: "demo@example.com",
+      DEMO_AUTH_PASSWORD: "test-only-random-demo-password-32chars",
     });
 
     expect(value).not.toHaveProperty("SUPABASE_SECRET_KEY");
     expect(value).not.toHaveProperty("SUPABASE_SERVICE_ROLE_KEY");
     expect(value).not.toHaveProperty("DASHSCOPE_API_KEY");
     expect(value).not.toHaveProperty("AMAP_WEB_SERVICE_KEY");
-    expect(value).not.toHaveProperty("AUTH_ALLOWED_EMAIL");
+    expect(value).not.toHaveProperty("DEMO_AUTH_EMAIL");
+    expect(value).not.toHaveProperty("DEMO_AUTH_PASSWORD");
   });
 
   it("keeps server credentials in the server parser", () => {
@@ -58,7 +60,8 @@ describe("environment contract", () => {
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
       SUPABASE_FALLBACK_TO_DEMO: "true",
-      AUTH_ALLOWED_EMAIL: " Owner@Example.COM ",
+      DEMO_AUTH_EMAIL: " Demo@Example.COM ",
+      DEMO_AUTH_PASSWORD: "test-only-random-demo-password-32chars",
     });
 
     expect(value).toMatchObject({
@@ -67,7 +70,8 @@ describe("environment contract", () => {
       DASHSCOPE_API_KEY: "qwen-secret",
       AMAP_WEB_SERVICE_KEY: "amap-secret",
       SUPABASE_FALLBACK_TO_DEMO: true,
-      AUTH_ALLOWED_EMAIL: "owner@example.com",
+      DEMO_AUTH_EMAIL: "demo@example.com",
+      DEMO_AUTH_PASSWORD: "test-only-random-demo-password-32chars",
       DASHSCOPE_MODEL: "qwen-plus",
       DASHSCOPE_EMBEDDING_MODEL: "text-embedding-v4",
       DASHSCOPE_EMBEDDING_DIMENSIONS: 1024,
@@ -87,9 +91,7 @@ describe("environment contract", () => {
   });
 
   it("rejects a malformed Auth allowlist email", () => {
-    expect(() =>
-      parseServerEnv({ AUTH_ALLOWED_EMAIL: "not-an-email" }),
-    ).toThrow();
+    expect(() => parseServerEnv({ DEMO_AUTH_EMAIL: "not-an-email" })).toThrow();
   });
 
   it("rejects invalid RAG dimensions, weights and rerank configuration", () => {

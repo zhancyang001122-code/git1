@@ -12,6 +12,7 @@
     "db:verify-rls": "node scripts/verify-rls.mjs",
     "db:verify-http": "node scripts/verify-postgrest-rls.mjs",
     "auth:verify-local": "node scripts/verify-auth-preferences.mjs",
+    "auth:provision-demo-user": "node scripts/provision-demo-auth-user.mjs",
     "feedback:verify-local": "node scripts/verify-live-feedback.mjs",
     "knowledge:verify-worker": "node scripts/verify-knowledge-index-worker.mjs",
     "knowledge:verify-admin-production": "node scripts/verify-admin-production.mjs",

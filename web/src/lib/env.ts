@@ -120,7 +120,11 @@ const serverEnvSchema = z
     SUPABASE_SECRET_KEY: optionalString,
     SUPABASE_SERVICE_ROLE_KEY: optionalString,
     SUPABASE_FALLBACK_TO_DEMO: stringBoolean(false),
-    AUTH_ALLOWED_EMAIL: optionalEmail,
+    DEMO_AUTH_EMAIL: optionalEmail,
+    DEMO_AUTH_PASSWORD: z.preprocess(
+      emptyStringToUndefined,
+      z.string().min(32).optional(),
+    ),
     ANONYMOUS_COOKIE_SECRET: z.preprocess(
       emptyStringToUndefined,
       z.string().min(32).optional(),

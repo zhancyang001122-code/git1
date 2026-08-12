@@ -6,6 +6,7 @@ const demoAdminToken = "playwright-demo-admin-token-000001";
 
 export default defineConfig({
   testDir: "./e2e",
+  testIgnore: "auth-preferences.spec.ts",
   fullyParallel: true,
   workers: 6,
   forbidOnly: Boolean(process.env.CI),

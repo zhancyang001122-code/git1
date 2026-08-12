@@ -139,6 +139,8 @@ NEXT_PUBLIC_DEMO_MODE=true
 - `SUPABASE_SECRET_KEY`（优先，新版 `sb_secret_`）
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_URL`（可选，仅覆盖服务端管理流量地址）
+- `DEMO_AUTH_EMAIL`（隔离 Supabase 演示用户，不在页面展示）
+- `DEMO_AUTH_PASSWORD`（32 位以上随机值，仅保存为部署平台 Sensitive 变量）
 - `DASHSCOPE_API_KEY`
 - `AMAP_WEB_SERVICE_KEY`
 - `DEMO_ADMIN_TOKEN`

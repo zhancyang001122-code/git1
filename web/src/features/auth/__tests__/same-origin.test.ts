@@ -6,7 +6,7 @@ describe("assertSameOrigin", () => {
   it("accepts a matching browser origin", () => {
     expect(() =>
       assertSameOrigin(
-        new Request("https://xiaozhi.example/api/auth/otp/send", {
+        new Request("https://xiaozhi.example/api/auth/demo-login", {
           method: "POST",
           headers: { origin: "https://xiaozhi.example" },
         }),
@@ -17,7 +17,7 @@ describe("assertSameOrigin", () => {
   it("accepts the public Host origin when a local Next server normalizes request.url", () => {
     expect(() =>
       assertSameOrigin(
-        new Request("http://localhost:3101/api/auth/otp/send", {
+        new Request("http://localhost:3101/api/auth/demo-login", {
           method: "POST",
           headers: {
             host: "127.0.0.1:3101",
@@ -29,7 +29,7 @@ describe("assertSameOrigin", () => {
 
     expect(() =>
       assertSameOrigin(
-        new Request("http://localhost:3101/api/auth/otp/send", {
+        new Request("http://localhost:3101/api/auth/demo-login", {
           method: "POST",
           headers: {
             host: "127.0.0.1:3101",
@@ -44,7 +44,7 @@ describe("assertSameOrigin", () => {
     for (const origin of ["https://evil.example", "not-a-url"]) {
       expect(() =>
         assertSameOrigin(
-          new Request("https://xiaozhi.example/api/auth/otp/send", {
+          new Request("https://xiaozhi.example/api/auth/demo-login", {
             method: "POST",
             headers: { origin },
           }),
@@ -56,7 +56,7 @@ describe("assertSameOrigin", () => {
   });
 
   it("rejects a missing origin unless a trusted local caller opts in", () => {
-    const request = new Request("http://127.0.0.1:3000/api/auth/otp/send", {
+    const request = new Request("http://127.0.0.1:3000/api/auth/demo-login", {
       method: "POST",
     });
     expect(() => assertSameOrigin(request)).toThrowError(

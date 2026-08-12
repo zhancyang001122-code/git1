@@ -7,12 +7,16 @@ const housingDatasetQuestion =
 const productBoundaryQuestion =
   /(?:小智|本项目|平台|系统|Production|Live|千问|大模型).*(?:原生微信小程序|小程序|产品形态|能力边界|外部服务|接通|数据来源|事实来源|负责|角色)/iu;
 
+const housingSearchRequest =
+  /(?:推荐|找|查询|筛选|看看).*(?:房|租房|一居室|两居室|开间|合租)/u;
+
 export function requiredEvidenceTool(
   message: string,
 ): "search_knowledge" | null {
   const normalized = message.trim();
   if (
-    knowledgePolicyQuestion.test(normalized) ||
+    (knowledgePolicyQuestion.test(normalized) &&
+      !housingSearchRequest.test(normalized)) ||
     housingDatasetQuestion.test(normalized) ||
     productBoundaryQuestion.test(normalized)
   ) {

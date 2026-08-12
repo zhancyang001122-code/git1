@@ -6,7 +6,7 @@
 
 ## 为什么 Supabase，不用 MySQL？
 
-我把 Supabase 选作目标后端，因为它基于 PostgreSQL，同时提供 API、Auth、RLS 和 pgvector，适合快速交付。远端项目已应用迁移并承载 60,202 条历史房源、对话、工具审计和反馈；用户偏好还通过本地 SQL Role、PostgREST 和真实 OTP 会话验证了 RLS。企业已有 MySQL 时不会强迫迁库，而是通过 Business Service 接入。
+我把 Supabase 选作目标后端，因为它基于 PostgreSQL，同时提供 API、Auth、RLS 和 pgvector，适合快速交付。远端项目已应用迁移并承载 60,202 条历史房源、对话、工具审计和反馈；用户偏好通过 SQL Role、PostgREST 和真实 Supabase Session 验证了 RLS。作品集当前用公开固定码进入隔离演示账号，省去邮件服务但不冒充生产级身份认证。企业已有 MySQL 时不会强迫迁库，而是通过 Business Service 接入。
 
 ## 为什么业务数据不用 RAG？
 
@@ -74,7 +74,7 @@ Dify 适合快速验证；本作品需要展示工具契约、数据边界、版
 
 ## Vercel 多实例怎样限流？
 
-Chat、Feedback、公开知识检索、地图直连和知识评测不能依赖某一个 Node.js 进程里的 `Map`，否则请求换到另一个实例就会重新计数。Production 通过 Supabase RPC 对 `scope + HMAC 客户端摘要 + 固定窗口` 做原子 upsert，所有实例共享计数；原始 IP 不进入数据库。知识评测先鉴权再计数，未授权请求不能消耗管理员额度。计数后端异常时成本敏感接口返回 503，而不是无限放行。Demo 仍使用内存实现，OTP 则按低频单邮箱作品演示的既定边界保持简化，并明确不适用于公众注册。
+Chat、Feedback、公开知识检索、地图直连和知识评测不能依赖某一个 Node.js 进程里的 `Map`，否则请求换到另一个实例就会重新计数。Production 通过 Supabase RPC 对 `scope + HMAC 客户端摘要 + 固定窗口` 做原子 upsert，所有实例共享计数；原始 IP 不进入数据库。知识评测先鉴权再计数，未授权请求不能消耗管理员额度。计数后端异常时成本敏感接口返回 503，而不是无限放行。固定演示码登录使用单实例轻量限流，因为它只服务低频共享作品账号；面向公众注册时必须换成真实身份和跨实例防滥用。
 
 ## HttpOnly Cookie 是否就不用防 CSRF？
 

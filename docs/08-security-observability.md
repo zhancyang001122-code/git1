@@ -12,7 +12,7 @@
 - Demo Admin 用独立 token；生产改为 RBAC/SSO。
 - 管理会话 Cookie 为 `HttpOnly + Secure + SameSite=Strict`；所有使用 Cookie 的管理写操作还必须通过 Same-Origin 校验。Bearer 管理调用保留给受信脚本，不依赖浏览器 Origin。Feedback、Auth 和偏好写入同样校验 Same-Origin，跨源请求在限流和业务状态加载前拒绝。
 - 日志按字段递归过滤 key/token/authorization/cookie/password/service role、手机号和精确地址；不依赖开发者手工记得打码。
-- Chat、Feedback、公开 Knowledge Search、地图直连和受保护的知识评测使用 Supabase 原子固定窗口共享限流，覆盖 Vercel 多实例；客户端标识先使用服务端密钥执行 HMAC-SHA256，只持久化 64 位摘要和短时窗口计数，不保存原始 IP。Demo 使用进程内限流。管理发布/索引已有独立口令，仍使用单实例固定窗口；低频单邮箱 OTP 按面试作品边界保持简化方案，不冒充公众注册系统。
+- Chat、Feedback、公开 Knowledge Search、地图直连和受保护的知识评测使用 Supabase 原子固定窗口共享限流，覆盖 Vercel 多实例；客户端标识先使用服务端密钥执行 HMAC-SHA256，只持久化 64 位摘要和短时窗口计数，不保存原始 IP。Demo 使用进程内限流。管理发布/索引已有独立口令，仍使用单实例固定窗口；公开固定演示码只映射到隔离 Supabase 演示账号，并使用轻量登录限流，不冒充公众注册系统。
 - JSON/管理登录表单在解析前检查声明长度和实际 UTF-8 字节数；聊天最大请求体 16 KiB，候选草稿 64 KiB，反馈、地图和公开检索 8 KiB，管理登录、发布、索引、评测与回滚 4 KiB。
 
 ## 可靠性

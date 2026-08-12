@@ -9,7 +9,7 @@ export default async function Page({
 }) {
   const { next } = await searchParams;
   return (
-    <DetailShell title="登录小智" backHref="/me">
+    <DetailShell title="演示账号" backHref="/me">
       <LoginExperience nextPath={safeNextPath(next)} />
     </DetailShell>
   );

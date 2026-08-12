@@ -244,7 +244,7 @@ export function PreferencesExperience({
             </h2>
             <p className="mt-1 text-sm leading-6 text-text-muted">
               保存到 Supabase
-              云端，仅用于小智个性化；关闭后会删除已保存的整行偏好。
+              云端，仅用于小智个性化；当前是共享演示账号，请勿填写真实隐私，关闭后会删除已保存的整行偏好。
             </p>
             {enabled ? (
               <p className="mt-2 text-xs leading-5 text-text-subtle">

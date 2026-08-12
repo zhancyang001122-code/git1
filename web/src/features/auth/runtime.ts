@@ -6,41 +6,43 @@ import {
   isMissingAuthSession,
   mapSupabaseAuthError,
 } from "@/features/auth/error-map";
+import { serverEnv } from "@/lib/env";
+import { AppError } from "@/lib/errors";
 
 export interface AuthRuntime {
-  sendOtp(input: { email: string }): Promise<void>;
-  verifyOtp(input: { email: string; token: string }): Promise<void>;
+  signInDemo(): Promise<void>;
   signOut(): Promise<void>;
 }
 
 export async function createSupabaseAuthRuntime(): Promise<AuthRuntime> {
   const client = await createServerSupabaseClient();
   return {
-    async sendOtp({ email }) {
-      const { error } = await client.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: true },
+    async signInDemo() {
+      const environment = serverEnv();
+      if (!environment.DEMO_AUTH_EMAIL || !environment.DEMO_AUTH_PASSWORD) {
+        throw new AppError({
+          code: "AUTH_UNAVAILABLE",
+          message: "演示账号尚未配置，请联系作品作者",
+          status: 503,
+          retryable: true,
+        });
+      }
+      const { data, error } = await client.auth.signInWithPassword({
+        email: environment.DEMO_AUTH_EMAIL,
+        password: environment.DEMO_AUTH_PASSWORD,
       });
-      if (error) throw mapSupabaseAuthError(error, "send");
-    },
-    async verifyOtp({ email, token }) {
-      const { data, error } = await client.auth.verifyOtp({
-        email,
-        token,
-        type: "email",
-      });
-      if (error) throw mapSupabaseAuthError(error, "verify");
+      if (error) throw mapSupabaseAuthError(error);
       if (!data.user || !data.session) {
-        throw mapSupabaseAuthError(
-          { code: "otp_session_missing", status: 400 },
-          "verify",
-        );
+        throw mapSupabaseAuthError({
+          code: "demo_session_missing",
+          status: 503,
+        });
       }
     },
     async signOut() {
       const { error } = await client.auth.signOut({ scope: "local" });
       if (error && !isMissingAuthSession(error)) {
-        throw mapSupabaseAuthError(error, "sign-out");
+        throw mapSupabaseAuthError(error);
       }
     },
   };
