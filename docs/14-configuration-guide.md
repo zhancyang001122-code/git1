@@ -92,7 +92,7 @@ RAG_FINAL_K=5
 ## 6. Vercel
 
 1. 导入代码仓库，Root Directory 设置为 `web/`。
-2. Node.js 设置为 22。
+2. Node.js 设置为 24.x，与当前 Vercel 项目和已验证 Production 构建一致。
 3. 分别配置 Preview 和 Production 环境变量。
 4. 部署前完成 Supabase migrations 和 embedding。
 5. 部署后访问 `/api/health`，再运行 staging/live smoke tests。

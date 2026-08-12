@@ -38,5 +38,6 @@
 - Supabase dry-run 只包含 `202608120026_manual_knowledge_intake.sql`，随后正式应用成功；迁移历史显示本地与远端 `202608050001` 至 `202608120026` 全部一致。
 - linked `knowledge_ops_live.test.sql`：51/51 通过，覆盖新 RPC 的 service-role 专用权限、草稿状态、版本号保留，以及既有发布、索引队列和回滚流程。
 - Vercel Production deployment：`dpl_9ktWPtBEep1qT7ZoVTsM7gXKuW6R`，状态 `READY`，别名为 `https://xiaozhi-local-life.vercel.app`。
+- rerank 安全加固后的最新 Production deployment：`dpl_6QWDG6yHxb7fj1TzzcwdiK6LUkEN`，状态 `READY`；正式别名再次通过 Live 回归与受控材料录入/清理回归。
 - `pnpm deploy:verify-production`：Live 健康检查、移动端布局、房源、高德、演示商业数据、偏好提案和反馈链路通过。
 - `pnpm deploy:verify-knowledge-intake`：使用真实 Production 管理会话录入唯一临时材料，持久化结果为 `drafted`，保留 `smoke-v1`，匿名不可读且不可检索；脚本随后按唯一 ID 删除并复查无残留。
