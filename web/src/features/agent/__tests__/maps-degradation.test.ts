@@ -14,6 +14,7 @@ function timedOutNearbyService(): MapsService {
   return {
     convertGps: async (point) => point,
     geocode: async () => ({ longitude: 120.163102, latitude: 30.274085 }),
+    reverseGeocode: async () => ({ name: "武林广场", city: "杭州" }),
     searchNearby: async () => {
       throw new AppError({
         code: "AMAP_TIMEOUT",

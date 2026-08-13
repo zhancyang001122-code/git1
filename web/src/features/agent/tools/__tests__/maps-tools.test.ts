@@ -70,6 +70,40 @@ describe("map tools", () => {
     });
   });
 
+  it("uses the globally selected location when no center is explicit", async () => {
+    const maps = new FakeMapsService();
+    const searchNearby = vi.spyOn(maps, "searchNearby");
+    const selectedLocation = {
+      label: "杭州 · 武林广场",
+      city: "杭州",
+      amapPoint: { longitude: 120.163102, latitude: 30.274085 },
+      wgs84Point: { longitude: 120.1585, latitude: 30.2764 },
+    };
+    const result = await createTaskSixToolRegistry()
+      .get("search_nearby_places")
+      .execute(
+        {
+          keyword: "超市",
+          city: "杭州",
+          center_name: null,
+          longitude: null,
+          latitude: null,
+          radius_m: 1500,
+          limit: 5,
+        },
+        createToolTestContext({ maps, selectedLocation }),
+      );
+
+    expect(searchNearby).toHaveBeenCalledWith(
+      expect.objectContaining({
+        city: "杭州",
+        center: selectedLocation.amapPoint,
+      }),
+      expect.any(AbortSignal),
+    );
+    expect(result).toMatchObject({ ok: true, resultCount: 1 });
+  });
+
   it("returns walking distance only from the maps service", async () => {
     const result = await createTaskSixToolRegistry()
       .get("calculate_walking_route")

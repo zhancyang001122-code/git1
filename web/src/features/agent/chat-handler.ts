@@ -297,6 +297,15 @@ export function createChatHandler(
             conversationSummary: prepared.conversationSummary,
             recentMessages: prepared.messages,
             pageContext: chatRequest.context,
+            ...(chatRequest.location &&
+              chatRequest.locationLabel &&
+              chatRequest.locationCity && {
+                selectedLocation: {
+                  label: chatRequest.locationLabel,
+                  city: chatRequest.locationCity,
+                  point: chatRequest.location,
+                },
+              }),
           });
           const evidenceTool = runtime.tools
             ? requiredEvidenceTool(chatRequest.message)
@@ -315,6 +324,18 @@ export function createChatHandler(
               toolExecutor: runtime.tools.executor,
               toolContext: {
                 ...runtime.tools.context,
+                userMessage: chatRequest.message,
+                ...(chatRequest.location &&
+                  chatRequest.locationWgs84 &&
+                  chatRequest.locationLabel &&
+                  chatRequest.locationCity && {
+                    selectedLocation: {
+                      label: chatRequest.locationLabel,
+                      city: chatRequest.locationCity,
+                      amapPoint: chatRequest.location,
+                      wgs84Point: chatRequest.locationWgs84,
+                    },
+                  }),
                 sessionId: prepared.sessionId,
                 messageId: prepared.messageId,
                 requestId,

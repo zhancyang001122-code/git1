@@ -4,18 +4,19 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { SearchBar } from "@/components/ui/search-bar";
-
-const quickPrompts = [
-  "找武林广场附近房源",
-  "附近有什么好吃的",
-  "今晚买点菜",
-  "团购退款规则",
-] as const;
+import { useSelectedLocation } from "@/features/location/selected-location-provider";
 
 export function HomeSearchExperience() {
   const router = useRouter();
+  const { location } = useSelectedLocation();
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const quickPrompts = [
+    `找${location.name}附近房源`,
+    "附近有什么好吃的",
+    "今晚买点菜",
+    "团购退款规则",
+  ] as const;
 
   function choosePrompt(prompt: string) {
     setQuery(prompt);

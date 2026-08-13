@@ -1,4 +1,5 @@
 import { nearbyApiRequestSchema } from "@/features/maps/schemas";
+import { gcj02ToWgs84 } from "@/features/maps/coordinate-systems";
 import { createMapsRuntime, type MapsRuntime } from "@/features/maps/runtime";
 import type {
   GeoPoint,
@@ -80,7 +81,16 @@ export function createNearbyMapsHandler(
     try {
       const runtime = await runtimeFactory();
       let center: GeoPoint | undefined;
-      let data: PlaceResult[] | WalkingRouteResult | null;
+      let data:
+        | PlaceResult[]
+        | WalkingRouteResult
+        | {
+            name: string;
+            city: string;
+            point: GeoPoint;
+            wgs84Point: GeoPoint;
+          }
+        | null;
       if (parsed.data.action === "search") {
         const search = parsed.data;
         center =
@@ -97,7 +107,7 @@ export function createNearbyMapsHandler(
           },
           request.signal,
         );
-      } else {
+      } else if (parsed.data.action === "route") {
         data = await runtime.service.walkingRoute(
           {
             origin: parsed.data.origin,
@@ -105,6 +115,41 @@ export function createNearbyMapsHandler(
           },
           request.signal,
         );
+      } else if (parsed.data.kind === "manual") {
+        const point = await runtime.service.geocode(
+          { address: parsed.data.name, city: parsed.data.city },
+          request.signal,
+        );
+        if (!point) {
+          throw new AppError({
+            code: "AMAP_NO_RESULT",
+            message: "没有识别到这个地点，请补充城市或更具体的名称",
+            status: 404,
+          });
+        }
+        data = {
+          name: parsed.data.name,
+          city: parsed.data.city,
+          point,
+          wgs84Point: gcj02ToWgs84(point),
+        };
+      } else {
+        const point = await runtime.service.convertGps(
+          parsed.data.point,
+          request.signal,
+        );
+        const address = await runtime.service.reverseGeocode(
+          point,
+          request.signal,
+        );
+        if (!address) {
+          throw new AppError({
+            code: "AMAP_NO_RESULT",
+            message: "暂时无法识别当前位置",
+            status: 404,
+          });
+        }
+        data = { ...address, point, wgs84Point: parsed.data.point };
       }
       return Response.json(
         {

@@ -13,6 +13,7 @@ import type {
 } from "@/features/agent/tools/types";
 import type { Deal, House, Product } from "@/features/business/domain";
 import type { HistoricalHousingItem } from "@/features/housing/types";
+import { gcj02ToWgs84 } from "@/features/maps/coordinate-systems";
 
 function contract(name: ToolName) {
   return toolContractDefinitions.find(
@@ -146,16 +147,8 @@ function failure<T>(
 const searchHouses: ToolDefinition<ToolInputs["search_houses"]> = {
   ...contract("search_houses"),
   publicLabel: "正在查询房源",
-  source: (context, input) => {
-    const requestedCenter = input?.near_location
-      ? normalizedCenterName(input.near_location)
-      : null;
-    const configuredCenter = context.housing
-      ? normalizedCenterName(context.housing.defaultCenter.label)
-      : null;
-    return context.housing &&
-      context.housing.mode !== "unavailable" &&
-      (requestedCenter === null || requestedCenter === configuredCenter)
+  source: (context) => {
+    return context.housing && context.housing.mode !== "unavailable"
       ? "housing_history_2024"
       : context.businessSource;
   },
@@ -169,14 +162,19 @@ const searchHouses: ToolDefinition<ToolInputs["search_houses"]> = {
       const configuredCenter = normalizedCenterName(
         housing.defaultCenter.label,
       );
-      if (requestedCenter !== null && requestedCenter !== configuredCenter) {
-        return failure(
-          "housing_history_2024",
-          "HOUSING_LOCATION_NOT_GEOCODED",
-          `本地历史房源当前只配置了${housing.defaultCenter.label}坐标；接入高德后才能查询其他地点`,
-        );
-      }
-      if (input.city !== "杭州") {
+      const selectedCityWasOverridden = Boolean(
+        context.selectedLocation &&
+        input.city !== context.selectedLocation.city &&
+        context.userMessage?.includes(input.city),
+      );
+      const usesSelectedLocation =
+        requestedCenter === null &&
+        context.selectedLocation !== undefined &&
+        !selectedCityWasOverridden;
+      const city = usesSelectedLocation
+        ? context.selectedLocation!.city
+        : input.city;
+      if (city !== "杭州") {
         return failure(
           "housing_history_2024",
           "HOUSING_UNSUPPORTED_CITY",
@@ -190,10 +188,36 @@ const searchHouses: ToolDefinition<ToolInputs["search_houses"]> = {
           "历史房源服务尚未完成配置",
         );
       }
+      let center = housing.defaultCenter;
+      if (usesSelectedLocation) {
+        center = {
+          label: context.selectedLocation!.label,
+          ...context.selectedLocation!.wgs84Point,
+        };
+      } else if (
+        requestedCenter !== null &&
+        requestedCenter !== configuredCenter
+      ) {
+        const amapPoint = await context.maps.geocode(
+          { address: requestedCenter, city },
+          context.signal,
+        );
+        if (!amapPoint) {
+          return failure(
+            "housing_history_2024",
+            "HOUSING_LOCATION_NOT_GEOCODED",
+            "高德地图没有识别到房源查询中心，请补充更具体的地点",
+          );
+        }
+        center = {
+          label: requestedCenter,
+          ...gcj02ToWgs84(amapPoint),
+        };
+      }
       const result = await housing.service.search(
         {
-          city: input.city,
-          center: housing.defaultCenter,
+          city,
+          center,
           radiusM: housing.radiusM,
           filters: {
             minPrice: input.min_price,
@@ -217,7 +241,7 @@ const searchHouses: ToolDefinition<ToolInputs["search_houses"]> = {
           total: items.length,
           historicalYear: 2024,
           datasetPeriod: result.datasetPeriod,
-          centerLabel: housing.defaultCenter.label,
+          centerLabel: center.label,
           radiusM: housing.radiusM,
           isHistorical: result.isHistorical,
           isRealtime: result.isRealtime,

@@ -8,6 +8,12 @@ export interface GeocodeInput {
   city?: string;
 }
 
+export interface ResolvedLocation {
+  name: string;
+  city: string;
+  point: GeoPoint;
+}
+
 export interface NearbySearchInput {
   keyword: string;
   city?: string;
@@ -51,6 +57,10 @@ export interface WalkingRouteResult {
 export interface MapsService {
   convertGps(point: GeoPoint, signal?: AbortSignal): Promise<GeoPoint>;
   geocode(input: GeocodeInput, signal?: AbortSignal): Promise<GeoPoint | null>;
+  reverseGeocode(
+    point: GeoPoint,
+    signal?: AbortSignal,
+  ): Promise<Omit<ResolvedLocation, "point"> | null>;
   searchNearby(
     input: NearbySearchInput,
     signal?: AbortSignal,

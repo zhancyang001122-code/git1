@@ -9,9 +9,53 @@ const uuid = z
 const sessionTitle = z.string().trim().min(1).max(120).default("新对话");
 const anonymousId = z.string().regex(/^[A-Za-z0-9_-]{16,128}$/);
 const createSessionSchema = z.union([
-  z.object({ userId: uuid, title: sessionTitle }).strict(),
-  z.object({ anonymousId, title: sessionTitle }).strict(),
+  z
+    .object({
+      userId: uuid,
+      title: sessionTitle,
+      locationLabel: z.string().trim().min(1).max(120).optional(),
+      location: z
+        .object({
+          longitude: z.number().finite().min(-180).max(180),
+          latitude: z.number().finite().min(-90).max(90),
+        })
+        .strict()
+        .optional(),
+    })
+    .strict()
+    .refine(
+      (value) => Boolean(value.locationLabel) === Boolean(value.location),
+    ),
+  z
+    .object({
+      anonymousId,
+      title: sessionTitle,
+      locationLabel: z.string().trim().min(1).max(120).optional(),
+      location: z
+        .object({
+          longitude: z.number().finite().min(-180).max(180),
+          latitude: z.number().finite().min(-90).max(90),
+        })
+        .strict()
+        .optional(),
+    })
+    .strict()
+    .refine(
+      (value) => Boolean(value.locationLabel) === Boolean(value.location),
+    ),
 ]);
+const updateLocationSchema = z
+  .object({
+    sessionId: uuid,
+    locationLabel: z.string().trim().min(1).max(120),
+    location: z
+      .object({
+        longitude: z.number().finite().min(-180).max(180),
+        latitude: z.number().finite().min(-90).max(90),
+      })
+      .strict(),
+  })
+  .strict();
 const messageRole = z.enum(["system", "user", "assistant", "tool"]);
 const appendMessageSchema = z
   .object({
@@ -119,6 +163,11 @@ export interface ConversationRepository {
     options?: z.input<typeof listSchema>,
   ): Promise<readonly ConversationMessage[]>;
   updateSummary(sessionId: string, summary: string): Promise<void>;
+  updateLocation(
+    sessionId: string,
+    locationLabel: string,
+    location: { longitude: number; latitude: number },
+  ): Promise<void>;
 }
 
 function invalidInput(cause: unknown): never {
@@ -201,12 +250,24 @@ export function createSupabaseConversationRepository(
   return {
     async createSession(input) {
       const value = parse(createSessionSchema, input);
+      const locationFields =
+        value.location && value.locationLabel
+          ? {
+              last_location_label: value.locationLabel,
+              last_longitude: value.location.longitude,
+              last_latitude: value.location.latitude,
+            }
+          : {};
       const result = await client
         .from("conversation_sessions")
         .insert(
           "userId" in value
-            ? { user_id: value.userId, title: value.title }
-            : { anonymous_id: value.anonymousId, title: value.title },
+            ? { user_id: value.userId, title: value.title, ...locationFields }
+            : {
+                anonymous_id: value.anonymousId,
+                title: value.title,
+                ...locationFields,
+              },
         )
         .select(SESSION_COLUMNS)
         .single();
@@ -283,6 +344,23 @@ export function createSupabaseConversationRepository(
       const result = await client
         .from("conversation_sessions")
         .update({ summary: value.summary })
+        .eq("id", value.sessionId);
+      if (result.error) queryFailed(result.error);
+    },
+
+    async updateLocation(inputSessionId, inputLabel, inputLocation) {
+      const value = parse(updateLocationSchema, {
+        sessionId: inputSessionId,
+        locationLabel: inputLabel,
+        location: inputLocation,
+      });
+      const result = await client
+        .from("conversation_sessions")
+        .update({
+          last_location_label: value.locationLabel,
+          last_longitude: value.location.longitude,
+          last_latitude: value.location.latitude,
+        })
         .eq("id", value.sessionId);
       if (result.error) queryFailed(result.error);
     },

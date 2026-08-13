@@ -32,6 +32,10 @@ class UnavailableMapsService implements MapsService {
     return this.unavailable();
   }
 
+  async reverseGeocode(): Promise<never> {
+    return this.unavailable();
+  }
+
   async searchNearby(): Promise<never> {
     return this.unavailable();
   }

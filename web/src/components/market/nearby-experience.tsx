@@ -10,19 +10,20 @@ import {
   RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
+import { LocationPickerSheet } from "@/components/location/location-picker-sheet";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { SourceBadge } from "@/components/ui/source-badge";
 import { Tag } from "@/components/ui/tag";
+import { resolveBrowserLocation } from "@/features/location/location-client";
+import {
+  selectedLocationLabel,
+  type SelectedLocation,
+} from "@/features/location/selected-location";
+import { useSelectedLocation } from "@/features/location/selected-location-provider";
 import type { GeoPoint, PlaceResult } from "@/features/maps/types";
-
-interface DefaultLocation {
-  name: string;
-  city: string;
-  point: GeoPoint;
-}
 
 const placeSchema = z.object({
   id: z.string(),
@@ -54,123 +55,110 @@ const routeResponseSchema = z.object({
 
 const categories = ["超市", "餐饮", "咖啡", "医院"] as const;
 
-export function NearbyExperience({
-  defaultLocation,
-}: {
-  defaultLocation: DefaultLocation;
-}) {
+export function NearbyExperience() {
+  const { location, ready, setLocation } = useSelectedLocation();
   const [category, setCategory] = useState<(typeof categories)[number]>("超市");
   const [center, setCenter] = useState<GeoPoint | null>(null);
-  const [locationLabel, setLocationLabel] = useState("选择定位方式");
   const [notice, setNotice] = useState<string | null>(null);
   const [places, setPlaces] = useState<readonly PlaceResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [routes, setRoutes] = useState<Record<string, string>>({});
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const searchedLocationKey = useRef<string | null>(null);
   const [lastSearch, setLastSearch] = useState<{
-    point: GeoPoint;
-    label: string;
+    location: SelectedLocation;
     category: (typeof categories)[number];
-    coordinateSystem: "gps" | "amap";
   } | null>(null);
 
-  async function search(
-    point: GeoPoint,
-    label: string,
-    nextCategory = category,
-    coordinateSystem: "gps" | "amap" = "amap",
-  ) {
-    setLastSearch({
-      point,
-      label,
-      category: nextCategory,
-      coordinateSystem,
-    });
-    setLoading(true);
-    setError(null);
-    setLocationLabel(label);
-    try {
-      const response = await fetch("/api/maps/nearby", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          action: "search",
-          keyword: nextCategory,
-          city: defaultLocation.city,
-          center: point,
-          coordinateSystem,
-          radiusM: 2000,
-          limit: 6,
-        }),
+  const search = useCallback(
+    async (
+      selected: SelectedLocation,
+      nextCategory: (typeof categories)[number],
+    ) => {
+      const point = selected.point;
+      setLastSearch({
+        location: selected,
+        category: nextCategory,
       });
-      const body: unknown = await response.json();
-      if (!response.ok) {
-        const message = z
-          .object({ error: z.object({ message: z.string() }) })
-          .safeParse(body);
-        throw new Error(
-          message.success ? message.data.error.message : "周边查询失败",
-        );
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch("/api/maps/nearby", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            action: "search",
+            keyword: nextCategory,
+            city: selected.city,
+            center: point,
+            coordinateSystem: "amap",
+            radiusM: 2000,
+            limit: 6,
+          }),
+        });
+        const body: unknown = await response.json();
+        if (!response.ok) {
+          const message = z
+            .object({ error: z.object({ message: z.string() }) })
+            .safeParse(body);
+          throw new Error(
+            message.success ? message.data.error.message : "周边查询失败",
+          );
+        }
+        const parsed = searchResponseSchema.parse(body);
+        setCenter(parsed.center);
+        setPlaces(parsed.data);
+        if (parsed.warning)
+          setNotice((current) =>
+            current && current !== parsed.warning
+              ? `${current}；${parsed.warning}`
+              : (parsed.warning ?? current),
+          );
+      } catch (caught) {
+        setPlaces([]);
+        setError(caught instanceof Error ? caught.message : "周边查询失败");
+      } finally {
+        setLoading(false);
       }
-      const parsed = searchResponseSchema.parse(body);
-      setCenter(parsed.center);
-      setPlaces(parsed.data);
-      if (parsed.warning)
-        setNotice((current) =>
-          current && current !== parsed.warning
-            ? `${current}；${parsed.warning}`
-            : (parsed.warning ?? current),
-        );
-    } catch (caught) {
-      setPlaces([]);
-      setError(caught instanceof Error ? caught.message : "周边查询失败");
-    } finally {
-      setLoading(false);
-    }
-  }
+    },
+    [],
+  );
 
-  function selectDefaultLocation(reason?: string) {
-    setNotice(reason ?? `已使用${defaultLocation.city}${defaultLocation.name}`);
-    void search(
-      defaultLocation.point,
-      `${defaultLocation.city} · ${defaultLocation.name}`,
-    );
-  }
-
-  function useBrowserLocation() {
-    if (!("geolocation" in navigator)) {
-      selectDefaultLocation(
-        `当前浏览器不支持定位，已改用${defaultLocation.city}${defaultLocation.name}`,
+  async function handleBrowserLocation() {
+    setLocating(true);
+    setError(null);
+    try {
+      const result = await resolveBrowserLocation();
+      setLocation(result.location);
+      setNotice(
+        result.warning ??
+          "已更新全站查询位置；浏览器 GPS 已在服务端转换为高德坐标。",
       );
-      return;
+    } catch (caught) {
+      setNotice(
+        `${caught instanceof Error ? caught.message : "定位失败"}，继续使用${selectedLocationLabel(location)}。`,
+      );
+      await search(location, category);
+    } finally {
+      setLocating(false);
     }
-    setLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setNotice("已使用浏览器提供的位置；结果由服务端地图能力查询");
-        void search(
-          {
-            longitude: position.coords.longitude,
-            latitude: position.coords.latitude,
-          },
-          "我的位置",
-          category,
-          "gps",
-        );
-      },
-      () => {
-        selectDefaultLocation(
-          `定位权限未开启，已改用${defaultLocation.city}${defaultLocation.name}`,
-        );
-      },
-      { enableHighAccuracy: true, timeout: 8_000, maximumAge: 60_000 },
-    );
   }
 
   async function changeCategory(next: (typeof categories)[number]) {
     setCategory(next);
-    if (center) await search(center, locationLabel, next);
+    if (center) await search(location, next);
   }
+
+  useEffect(() => {
+    if (!ready) return;
+    const key = `${location.city}:${location.name}:${location.point.longitude}:${location.point.latitude}:${location.source}`;
+    if (location.source === "default" || searchedLocationKey.current === key)
+      return;
+    searchedLocationKey.current = key;
+    void search(location, category);
+  }, [category, location, ready, search]);
 
   async function calculateRoute(place: PlaceResult) {
     if (!center) return;
@@ -204,7 +192,7 @@ export function NearbyExperience({
       <section className="rounded-feature bg-gradient-to-br from-brand-soft to-accent/10 p-5 text-center">
         <MapPinned className="mx-auto size-8 text-brand" />
         <h2 className="mt-3 text-lg font-semibold text-text">
-          {locationLabel}
+          {selectedLocationLabel(location)}
         </h2>
         <p className="mt-1 text-sm text-text-muted">
           只有你主动点击后，浏览器才会请求定位权限
@@ -212,24 +200,42 @@ export function NearbyExperience({
         <div className="mt-4 grid grid-cols-2 gap-3">
           <button
             type="button"
-            onClick={useBrowserLocation}
-            disabled={loading}
-            className="flex min-h-12 items-center justify-center gap-2 rounded-card bg-brand px-3 text-sm font-semibold text-white disabled:opacity-60"
+            onClick={() => void handleBrowserLocation()}
+            disabled={loading || locating}
+            className="flex min-h-12 min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-card bg-brand px-2 text-sm font-semibold text-white disabled:opacity-60"
           >
             <LocateFixed className="size-4" />
-            使用我的位置
+            {locating ? "正在定位" : "使用我的位置"}
           </button>
           <button
             type="button"
-            onClick={() => selectDefaultLocation()}
-            disabled={loading}
-            className="flex min-h-12 items-center justify-center gap-2 rounded-card border border-border bg-surface px-3 text-sm font-semibold text-text disabled:opacity-60"
+            onClick={() => setPickerOpen(true)}
+            disabled={loading || locating}
+            className="flex min-h-12 min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-card border border-border bg-surface px-2 text-sm font-semibold text-text disabled:opacity-60"
           >
             <MapPin className="size-4" />
-            使用{defaultLocation.name}
+            手动选择地点
           </button>
         </div>
+        <button
+          type="button"
+          onClick={() => void search(location, category)}
+          disabled={loading || locating}
+          className="mt-3 min-h-11 w-full rounded-control text-sm font-medium text-brand outline-none hover:bg-white/60 focus-visible:ring-2 focus-visible:ring-brand disabled:opacity-60"
+        >
+          查询当前地点周边
+        </button>
       </section>
+
+      {pickerOpen ? (
+        <LocationPickerSheet
+          open={pickerOpen}
+          onOpenChange={setPickerOpen}
+          onSelected={(_selected, warning) => {
+            setNotice(warning ?? "已更新全站查询位置，并自动查询当前分类。");
+          }}
+        />
+      ) : null}
 
       <section aria-label="周边分类">
         <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1">
@@ -272,12 +278,7 @@ export function NearbyExperience({
             <button
               type="button"
               onClick={() =>
-                void search(
-                  lastSearch.point,
-                  lastSearch.label,
-                  lastSearch.category,
-                  lastSearch.coordinateSystem,
-                )
+                void search(lastSearch.location, lastSearch.category)
               }
               className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-control border border-danger/20 bg-surface px-3 font-medium outline-none focus-visible:ring-2 focus-visible:ring-danger"
             >

@@ -138,6 +138,62 @@ describe("business tools", () => {
     });
   });
 
+  it("uses the globally selected WGS84 center for a generic nearby housing query", async () => {
+    const search = vi.fn(async () => ({
+      items: [],
+      sourceLabel: "2024年11月杭州租房历史快照",
+      datasetPeriod: "2024-11" as const,
+      isHistorical: true as const,
+      isRealtime: false as const,
+      disclaimer: "仅供历史房源参考",
+      requestId: "housing-request-selected",
+      durationMs: 8,
+      warnings: [],
+    }));
+    const selectedLocation = {
+      label: "杭州 · 西湖文化广场",
+      city: "杭州",
+      amapPoint: { longitude: 120.165, latitude: 30.287 },
+      wgs84Point: { longitude: 120.1604, latitude: 30.2894 },
+    };
+
+    await createTaskSixToolRegistry()
+      .get("search_houses")
+      .execute(
+        {
+          city: "杭州",
+          near_location: null,
+          min_price: null,
+          max_price: 4_000,
+          room_type: null,
+          limit: 5,
+        },
+        createToolTestContext({
+          selectedLocation,
+          housing: {
+            mode: "supabase",
+            service: { search },
+            defaultCenter: {
+              label: "武林广场",
+              longitude: 120.1585,
+              latitude: 30.2764,
+            },
+            radiusM: 2_000,
+          },
+        }),
+      );
+
+    expect(search).toHaveBeenCalledWith(
+      expect.objectContaining({
+        center: {
+          label: selectedLocation.label,
+          ...selectedLocation.wgs84Point,
+        },
+      }),
+      expect.any(AbortSignal),
+    );
+  });
+
   it("does not expose exact stock from a search but does from the stock tool", async () => {
     const registry = createTaskSixToolRegistry();
     const context = createToolTestContext({ business: createDemoRepository() });

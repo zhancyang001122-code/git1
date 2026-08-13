@@ -1,22 +1,44 @@
-import { MapPin } from "lucide-react";
+"use client";
 
-import { Tag } from "@/components/ui/tag";
+import { ChevronRight, MapPin } from "lucide-react";
+import { useState } from "react";
+
+import { LocationPickerSheet } from "@/components/location/location-picker-sheet";
+import { useSelectedLocation } from "@/features/location/selected-location-provider";
 
 export function HomeLocationHeader() {
+  const { location } = useSelectedLocation();
+  const [open, setOpen] = useState(false);
+
   return (
-    <div className="flex min-h-11 items-center justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand">
-          <MapPin aria-hidden="true" className="size-[18px]" strokeWidth={2} />
+    <>
+      <button
+        type="button"
+        aria-label={`选择位置：${location.city} · ${location.name}`}
+        onClick={() => setOpen(true)}
+        className="flex min-h-12 w-full items-center justify-between gap-3 rounded-control px-1 text-left outline-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand">
+            <MapPin
+              aria-hidden="true"
+              className="size-[18px]"
+              strokeWidth={2}
+            />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-xs text-text-subtle">当前查询位置</span>
+            <span className="block truncate text-sm font-semibold text-text">
+              {location.city} · {location.name}
+            </span>
+          </span>
         </span>
-        <div className="min-w-0">
-          <p className="text-xs text-text-subtle">当前展示位置</p>
-          <p className="truncate text-sm font-semibold text-text">
-            杭州 · 武林广场
-          </p>
-        </div>
-      </div>
-      <Tag className="shrink-0">演示定位</Tag>
-    </div>
+        <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-brand">
+          切换
+          <ChevronRight aria-hidden="true" className="size-4" />
+        </span>
+      </button>
+      {open ? <LocationPickerSheet open={open} onOpenChange={setOpen} /> : null}
+    </>
   );
 }

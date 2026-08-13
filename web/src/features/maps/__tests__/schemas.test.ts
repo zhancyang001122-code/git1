@@ -17,7 +17,7 @@ describe("map contracts", () => {
     });
   });
 
-  it("requires a named center or a complete coordinate pair", () => {
+  it("allows the shared selected location fallback but still requires coordinate pairs", () => {
     const base = {
       keyword: "超市",
       city: "杭州",
@@ -28,7 +28,7 @@ describe("map contracts", () => {
       limit: 5,
     };
 
-    expect(nearbySearchInputSchema.safeParse(base).success).toBe(false);
+    expect(nearbySearchInputSchema.safeParse(base).success).toBe(true);
     expect(
       nearbySearchInputSchema.safeParse({ ...base, center_name: "武林广场" })
         .success,
@@ -40,5 +40,11 @@ describe("map contracts", () => {
         latitude: 30.27,
       }).success,
     ).toBe(true);
+    expect(
+      nearbySearchInputSchema.safeParse({
+        ...base,
+        longitude: 120.16,
+      }).success,
+    ).toBe(false);
   });
 });

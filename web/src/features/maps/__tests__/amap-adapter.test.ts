@@ -4,6 +4,7 @@ import geocodeSuccess from "../../../../tests/fixtures/amap/geocode-success.json
 import convertSuccess from "../../../../tests/fixtures/amap/convert-success.json";
 import invalidKey from "../../../../tests/fixtures/amap/invalid-key.json";
 import nearbySuccess from "../../../../tests/fixtures/amap/nearby-success.json";
+import reverseGeocodeSuccess from "../../../../tests/fixtures/amap/regeocode-success.json";
 import quota from "../../../../tests/fixtures/amap/quota.json";
 import walkingSuccess from "../../../../tests/fixtures/amap/walking-success.json";
 import { AmapAdapter } from "@/features/maps/amap-adapter";
@@ -70,6 +71,20 @@ describe("AmapAdapter", () => {
     expect(nearbyUrl.pathname).toBe("/v3/place/around");
     expect(nearbyUrl.searchParams.get("location")).toBe("120.163102,30.274085");
     expect(nearbyUrl.searchParams.get("key")).toBe("server-key");
+  });
+
+  it("reverse geocodes an AMap point into a stable city and place label", async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(response(reverseGeocodeSuccess));
+    const adapter = new AmapAdapter({ key: "server-key", fetcher });
+
+    await expect(
+      adapter.reverseGeocode({ longitude: 120.163102, latitude: 30.274085 }),
+    ).resolves.toEqual({ city: "杭州", name: "天水街道" });
+    const url = new URL(String(fetcher.mock.calls[0]?.[0]));
+    expect(url.pathname).toBe("/v3/geocode/regeo");
+    expect(url.searchParams.get("location")).toBe("120.163102,30.274085");
   });
 
   it.each([

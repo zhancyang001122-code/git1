@@ -8,6 +8,7 @@ import type { ToolContractDefinition } from "@/features/agent/tools/schemas";
 import type { BusinessRepository } from "@/features/business/repository";
 import type { MemoryRepository } from "@/features/memory/repository";
 import type { MapsService } from "@/features/maps/types";
+import type { GeoPoint } from "@/features/maps/types";
 import type { HousingRuntime } from "@/features/housing/types";
 import type {
   KnowledgeCandidateSink,
@@ -70,6 +71,13 @@ export interface ToolContext {
   audit: ToolAuditSink;
   businessSource: "housing_history_2024" | "supabase_mock";
   userId: string | null;
+  userMessage?: string;
+  selectedLocation?: {
+    label: string;
+    city: string;
+    amapPoint: GeoPoint;
+    wgs84Point: GeoPoint;
+  };
   sessionId: string;
   messageId: string;
   requestId: string;

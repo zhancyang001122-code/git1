@@ -22,15 +22,6 @@ export const nearbySearchInputSchema = z
   })
   .strict()
   .superRefine((value, context) => {
-    const coordinatesProvided =
-      value.longitude !== null && value.latitude !== null;
-    if (value.center_name === null && !coordinatesProvided) {
-      context.addIssue({
-        code: "custom",
-        message: "地点名称或完整经纬度至少提供一项",
-        path: ["center_name"],
-      });
-    }
     if ((value.longitude === null) !== (value.latitude === null)) {
       context.addIssue({
         code: "custom",
@@ -49,7 +40,22 @@ export const walkingRouteInputSchema = z
   })
   .strict();
 
-export const nearbyApiRequestSchema = z.discriminatedUnion("action", [
+export const nearbyApiRequestSchema = z.union([
+  z
+    .object({
+      action: z.literal("resolve"),
+      kind: z.literal("manual"),
+      city: z.string().trim().min(1).max(40),
+      name: z.string().trim().min(1).max(120),
+    })
+    .strict(),
+  z
+    .object({
+      action: z.literal("resolve"),
+      kind: z.literal("browser"),
+      point: geoPointSchema,
+    })
+    .strict(),
   z
     .object({
       action: z.literal("search"),

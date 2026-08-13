@@ -80,6 +80,9 @@ function createReadOnlyDemoRepositories() {
     async updateSummary() {
       return persistenceDisabled();
     },
+    async updateLocation() {
+      return persistenceDisabled();
+    },
   };
   const aiOps: AIOpsRepository = {
     async recordToolRun() {

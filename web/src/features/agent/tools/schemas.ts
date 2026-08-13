@@ -324,7 +324,11 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
       properties: {
         keyword: { type: "string", minLength: 1 },
         city: { type: "string" },
-        center_name: { type: ["string", "null"] },
+        center_name: {
+          type: ["string", "null"],
+          description:
+            "Named search center; null uses coordinates or the user's globally selected location.",
+        },
         longitude: { type: ["number", "null"], minimum: -180, maximum: 180 },
         latitude: { type: ["number", "null"], minimum: -90, maximum: 90 },
         radius_m: {
@@ -345,14 +349,6 @@ export const toolContractDefinitions: readonly ToolContractDefinition[] = [
         "limit",
       ],
       additionalProperties: false,
-      allOf: [
-        {
-          anyOf: [
-            { required: ["center_name"] },
-            { required: ["longitude", "latitude"] },
-          ],
-        },
-      ],
     },
   },
   {

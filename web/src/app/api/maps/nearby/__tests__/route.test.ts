@@ -98,4 +98,50 @@ describe("nearby maps route", () => {
       data: [{ source: "amap", isDemo: true }],
     });
   });
+
+  it("resolves a manual location with both AMap and WGS84 coordinates", async () => {
+    const response = await createNearbyMapsHandler(async () => ({
+      service: new FakeMapsService(),
+      mode: "demo",
+    }))(
+      request({
+        action: "resolve",
+        kind: "manual",
+        city: "绍兴",
+        name: "鲁迅故里",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      data: {
+        city: "绍兴",
+        name: "鲁迅故里",
+        point: { longitude: 120.586109, latitude: 29.995762 },
+        wgs84Point: {
+          longitude: expect.any(Number),
+          latitude: expect.any(Number),
+        },
+      },
+      mode: "demo",
+    });
+  });
+
+  it("keeps raw browser GPS as WGS84 after converting it for AMap", async () => {
+    const rawGps = { longitude: 120.5815, latitude: 29.9982 };
+    const response = await createNearbyMapsHandler(async () => ({
+      service: new FakeMapsService(),
+      mode: "demo",
+    }))(request({ action: "resolve", kind: "browser", point: rawGps }));
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      data: {
+        city: "绍兴",
+        name: "当前位置",
+        point: rawGps,
+        wgs84Point: rawGps,
+      },
+    });
+  });
 });

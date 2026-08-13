@@ -1,7 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { HomePage } from "@/components/home/home-page";
+import { SelectedLocationProvider } from "@/features/location/selected-location-provider";
 
 const mocks = vi.hoisted(() => ({ push: vi.fn() }));
 
@@ -11,11 +13,28 @@ vi.mock("next/navigation", () => ({
 
 beforeEach(() => {
   mocks.push.mockClear();
+  localStorage.clear();
 });
+
+const defaultLocation = {
+  name: "武林广场",
+  city: "杭州",
+  point: { longitude: 120.16328, latitude: 30.27415 },
+  wgs84Point: { longitude: 120.15868, latitude: 30.27645 },
+  source: "default" as const,
+};
+
+function renderHome() {
+  return render(
+    <SelectedLocationProvider defaultLocation={defaultLocation}>
+      <HomePage />
+    </SelectedLocationProvider>,
+  );
+}
 
 describe("HomePage", () => {
   it("renders every required home section", () => {
-    render(<HomePage />);
+    renderHome();
 
     expect(screen.getByText("杭州 · 武林广场")).toBeInTheDocument();
     expect(
@@ -38,7 +57,7 @@ describe("HomePage", () => {
   });
 
   it("submits quick prompts through the validated chat route", () => {
-    render(<HomePage />);
+    renderHome();
 
     fireEvent.click(screen.getByRole("button", { name: "找武林广场附近房源" }));
     expect(screen.getByRole("searchbox")).toHaveValue("找武林广场附近房源");
@@ -50,7 +69,7 @@ describe("HomePage", () => {
   });
 
   it("navigates with the exact encoded search query", () => {
-    render(<HomePage />);
+    renderHome();
 
     fireEvent.change(screen.getByRole("searchbox"), {
       target: { value: "武林广场附近 3500 元房源" },
@@ -63,7 +82,7 @@ describe("HomePage", () => {
   });
 
   it("links service entries to their completed routes", () => {
-    render(<HomePage />);
+    renderHome();
 
     expect(screen.getByRole("link", { name: "租房" })).toHaveAttribute(
       "href",
@@ -73,5 +92,26 @@ describe("HomePage", () => {
       "href",
       "/deals",
     );
+  });
+
+  it("opens an accessible location picker from the home location header", async () => {
+    renderHome();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "选择位置：杭州 · 武林广场" }),
+    );
+
+    expect(
+      screen.getByRole("dialog", { name: "选择位置" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "使用我的当前位置" }),
+    ).toBeEnabled();
+    expect(screen.getByRole("button", { name: "确认手动选择" })).toBeDisabled();
+    await userEvent.clear(screen.getByLabelText("城市"));
+    await userEvent.type(screen.getByLabelText("城市"), "绍兴");
+    await userEvent.type(screen.getByLabelText("地点名称或地址"), "鲁迅故里");
+    expect(screen.getByRole("button", { name: "确认手动选择" })).toBeEnabled();
+    expect(screen.getByText(/选择保存在当前浏览器/)).toBeInTheDocument();
   });
 });

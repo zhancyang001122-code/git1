@@ -27,6 +27,8 @@
 
 请求：`chatRequestSchema`。响应：`text/event-stream; charset=utf-8`。
 
+可选位置上下文必须作为完整一组传入：`location`（高德 GCJ-02）、`locationWgs84`、`locationLabel`、`locationCity`。只提供其中一部分返回 `INVALID_CHAT_REQUEST`。未在自然语言中指定其他地点时，地图工具使用 GCJ-02 坐标，历史房源工具使用 WGS84 坐标；自然语言中的明确地点优先。
+
 SSE 示例：
 
 ```text
@@ -55,6 +57,10 @@ data: {"finishReason":"stop"}
 - 任一工具失败不直接结束整轮；Agent 判断能否降级。
 - 第 8 轮工具调用后停止，并说明需要用户缩小范围。
 - 浏览器断开时使用 `AbortSignal` 中止模型和工具请求。
+
+## `POST /api/maps/nearby`
+
+`action=resolve` 支持 `kind=manual`（城市 + 地点名称）和 `kind=browser`（浏览器 WGS84 坐标）。服务端通过高德地理编码、坐标转换或逆地理编码返回标准化地点，响应同时包含 `point`（高德 GCJ-02）和 `wgs84Point`。`action=search` 与 `action=route` 只接收高德坐标。API Key 仅在服务端使用。
 
 ## `GET /api/houses`
 

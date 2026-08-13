@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Building2,
   MapPinned,
@@ -12,13 +14,9 @@ import { AppShell } from "@/components/layout/app-shell";
 import { PageHeader } from "@/components/layout/page-header";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { SectionHeader } from "@/components/ui/section-header";
+import { useSelectedLocation } from "@/features/location/selected-location-provider";
 
-const tasks = [
-  {
-    label: "找预算内一居室",
-    prompt: "找武林广场附近3500以内的一居室",
-    icon: Building2,
-  },
+const staticTasks = [
   {
     label: "附近适合两个人吃饭",
     prompt: "附近适合两个人吃饭的地方",
@@ -34,14 +32,23 @@ const tasks = [
     prompt: "未使用团购券可以退款吗",
     icon: MessageSquareText,
   },
-  {
-    label: "帮我推荐周末去处",
-    prompt: "推荐一条杭州周末散步路线",
-    icon: MapPinned,
-  },
 ] as const;
 
 export function XiaozhiWelcomePage() {
+  const { location } = useSelectedLocation();
+  const tasks = [
+    {
+      label: "找预算内一居室",
+      prompt: `找${location.name}附近3500以内的一居室`,
+      icon: Building2,
+    },
+    ...staticTasks,
+    {
+      label: "帮我推荐周末去处",
+      prompt: `推荐一条${location.name}附近的周末散步路线`,
+      icon: MapPinned,
+    },
+  ] as const;
   return (
     <AppShell activeNav="xiaozhi" header={<PageHeader title="小智" />}>
       <div className="space-y-4 px-4 py-3">
@@ -96,7 +103,7 @@ export function XiaozhiWelcomePage() {
           <SectionHeader id="xiaozhi-questions" title="你还可以问" />
           <div className="space-y-2">
             {[
-              "武林广场附近有哪些演示房源？",
+              `${location.name}附近有哪些 2024 年历史房源？`,
               "团购券过期一定能退吗？",
               "哪些商品当前有演示库存？",
             ].map((question) => (

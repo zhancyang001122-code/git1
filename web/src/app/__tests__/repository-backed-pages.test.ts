@@ -33,11 +33,19 @@ describe("business page data boundaries", () => {
 });
 
 describe("map page data boundaries", () => {
-  it("nearby/page.tsx uses validated public defaults and never exposes the AMap key", async () => {
-    const source = await readFile(`${appDirectory}/nearby/page.tsx`, "utf8");
+  it("keeps the shared location default in the root provider and never exposes the AMap key", async () => {
+    const nearbySource = await readFile(
+      `${appDirectory}/nearby/page.tsx`,
+      "utf8",
+    );
+    const layoutSource = await readFile(`${appDirectory}/layout.tsx`, "utf8");
 
-    expect(source).toContain("publicEnv");
-    expect(source).not.toContain("AMAP_WEB_SERVICE_KEY");
-    expect(source).not.toContain("createDemoRepository");
+    expect(layoutSource).toContain("publicEnv");
+    expect(layoutSource).toContain("SelectedLocationProvider");
+    expect(nearbySource).toContain("NearbyExperience");
+    expect(`${layoutSource}${nearbySource}`).not.toContain(
+      "AMAP_WEB_SERVICE_KEY",
+    );
+    expect(nearbySource).not.toContain("createDemoRepository");
   });
 });

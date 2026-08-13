@@ -45,6 +45,10 @@ const searchNearbyPlaces: ToolDefinition<ToolInputs["search_nearby_places"]> = {
   source: () => "amap",
   inputSchema: toolInputSchemas.search_nearby_places,
   async execute(input, context) {
+    const usesSelectedLocation =
+      input.center_name === null &&
+      input.longitude === null &&
+      input.latitude === null;
     const center =
       input.center_name !== null
         ? await context.maps.geocode(
@@ -53,12 +57,18 @@ const searchNearbyPlaces: ToolDefinition<ToolInputs["search_nearby_places"]> = {
           )
         : input.longitude !== null && input.latitude !== null
           ? { longitude: input.longitude, latitude: input.latitude }
-          : null;
-    if (!center) return failure("AMAP_NO_RESULT", "高德地图没有识别到查询中心");
+          : (context.selectedLocation?.amapPoint ?? null);
+    if (!center)
+      return usesSelectedLocation
+        ? failure("AMAP_LOCATION_REQUIRED", "请先在首页或周边页选择查询位置")
+        : failure("AMAP_NO_RESULT", "高德地图没有识别到查询中心");
+    const city = usesSelectedLocation
+      ? (context.selectedLocation?.city ?? input.city)
+      : input.city;
     const places = await context.maps.searchNearby(
       {
         keyword: input.keyword,
-        city: input.city,
+        city,
         center,
         radiusM: input.radius_m,
         limit: input.limit,
@@ -74,6 +84,9 @@ const searchNearbyPlaces: ToolDefinition<ToolInputs["search_nearby_places"]> = {
       data: {
         items,
         center,
+        centerLabel: usesSelectedLocation
+          ? context.selectedLocation?.label
+          : input.center_name,
         source: "amap",
         isDemo: places.every((place) => place.isDemo),
       },

@@ -139,14 +139,50 @@ test("nearby search and walking route stay explicitly labelled in demo mode", as
   page,
 }) => {
   await page.goto("/nearby");
+  await expect(page.getByText("杭州 · 武林广场")).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "选择定位方式" }),
+    page.getByRole("button", { name: "手动选择地点" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "使用武林广场" }).click();
+  await page.getByRole("button", { name: "查询当前地点周边" }).click();
   await expect(page.getByText("武林生活超市（演示）")).toBeVisible();
   await expect(page.getByText("接口演示数据", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "计算步行路线" }).click();
   await expect(page.getByRole("button", { name: /步行 \d+ 米/ })).toBeVisible();
+});
+
+test("manual location persists across home, nearby and chat requests", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /选择位置：/ }).click();
+  await page.getByLabel("城市").fill("绍兴");
+  await page.getByLabel("地点名称或地址").fill("鲁迅故里");
+  await page.getByRole("button", { name: "确认手动选择" }).click();
+  await expect(
+    page.getByRole("button", { name: "选择位置：绍兴 · 鲁迅故里" }),
+  ).toBeVisible();
+
+  await page.goto("/nearby");
+  await expect(
+    page.getByRole("heading", { name: "绍兴 · 鲁迅故里" }),
+  ).toBeVisible();
+
+  const chatRequest = page.waitForRequest(
+    (request) =>
+      request.url().endsWith("/api/chat") && request.method() === "POST",
+  );
+  await page.goto("/xiaozhi/chat?q=附近有什么超市");
+  await page.getByRole("button", { name: "发送" }).click();
+  const body = (await chatRequest).postDataJSON();
+  expect(body).toMatchObject({
+    locationCity: "绍兴",
+    locationLabel: "绍兴 · 鲁迅故里",
+    location: { longitude: 120.586109, latitude: 29.995762 },
+    locationWgs84: {
+      longitude: expect.any(Number),
+      latitude: expect.any(Number),
+    },
+  });
 });
 
 test("chat composes housing and AMap tools without inventing current availability", async ({

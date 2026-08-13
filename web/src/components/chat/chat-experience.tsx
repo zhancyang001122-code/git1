@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import type { ChatRequest } from "@/features/agent/chat-request";
 import type { ChatContext } from "@/features/chat/chat-context";
+import { selectedLocationLabel } from "@/features/location/selected-location";
+import { useSelectedLocation } from "@/features/location/selected-location-provider";
 
 interface Message {
   id: string;
@@ -71,6 +73,7 @@ export function ChatExperience({
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [lastPrompt, setLastPrompt] = useState(initialContext.prompt ?? "");
   const [sessionId, setSessionId] = useState<string | undefined>();
+  const { location } = useSelectedLocation();
   const { state: stream, status, send, cancel, reset } = useChatStream();
   const running = status === "streaming";
 
@@ -88,6 +91,10 @@ export function ChatExperience({
     const result = await send({
       ...(sessionId && { sessionId }),
       message: normalized,
+      location: location.point,
+      locationWgs84: location.wgs84Point,
+      locationLabel: selectedLocationLabel(location),
+      locationCity: location.city,
       ...(requestContext(initialContext) && {
         context: requestContext(initialContext),
       }),
@@ -178,8 +185,8 @@ export function ChatExperience({
     <div className="flex min-h-[calc(100dvh-48px)] flex-col bg-page">
       <div className="flex-1 space-y-4 px-4 py-3">
         <DemoNotice>
-          回答通过服务端流式 API
-          生成；演示模式、未接通能力和保存失败都会明确标注。
+          回答通过服务端流式 API 生成；当前查询位置为{" "}
+          {selectedLocationLabel(location)}。明确输入其他地点时，以问题为准。
         </DemoNotice>
         {messages.length === 0 && !running ? (
           <section className="rounded-feature bg-brand-soft p-5 text-center">

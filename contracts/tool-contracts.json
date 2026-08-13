@@ -155,7 +155,10 @@
         "properties": {
           "keyword": { "type": "string", "minLength": 1 },
           "city": { "type": "string" },
-          "center_name": { "type": ["string", "null"] },
+          "center_name": {
+            "type": ["string", "null"],
+            "description": "Named search center; null uses coordinates or the user's globally selected location."
+          },
           "longitude": {
             "type": ["number", "null"],
             "minimum": -180,
@@ -188,15 +191,7 @@
           "radius_m",
           "limit"
         ],
-        "additionalProperties": false,
-        "allOf": [
-          {
-            "anyOf": [
-              { "required": ["center_name"] },
-              { "required": ["longitude", "latitude"] }
-            ]
-          }
-        ]
+        "additionalProperties": false
       }
     },
     {

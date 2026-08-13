@@ -55,7 +55,19 @@ export class FakeMapsService implements MapsService {
   }
 
   async geocode(input: GeocodeInput): Promise<GeoPoint | null> {
-    return /武林广场/.test(input.address) ? WULIN_SQUARE : null;
+    if (/武林广场/.test(input.address)) return WULIN_SQUARE;
+    if (/鲁迅故里/.test(input.address))
+      return { longitude: 120.586109, latitude: 29.995762 };
+    return null;
+  }
+
+  async reverseGeocode(
+    point: GeoPoint,
+  ): Promise<{ name: string; city: string } | null> {
+    return {
+      name: "当前位置",
+      city: point.longitude > 120.4 ? "绍兴" : "杭州",
+    };
   }
 
   async searchNearby(input: NearbySearchInput): Promise<PlaceResult[]> {

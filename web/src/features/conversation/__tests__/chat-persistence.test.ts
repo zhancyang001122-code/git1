@@ -78,6 +78,7 @@ function repository(overrides: Partial<ConversationRepository> = {}) {
     ),
     listMessages: vi.fn(async () => [message("user", "之前的问题")]),
     updateSummary: vi.fn(async () => {}),
+    updateLocation: vi.fn(async () => {}),
     ...overrides,
   };
   return repo;

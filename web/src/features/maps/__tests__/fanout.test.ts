@@ -12,6 +12,7 @@ describe("bounded nearby fan-out", () => {
     const service: MapsService = {
       convertGps: async (point) => point,
       geocode: async () => null,
+      reverseGeocode: async () => null,
       walkingRoute: async (input) => {
         routeCalls += 1;
         return {

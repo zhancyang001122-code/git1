@@ -12,7 +12,9 @@ export const chatRequestSchema = z
     sessionId: z.uuid().optional(),
     message: z.string().trim().min(1).max(4_000),
     location: geoPointSchema.optional(),
+    locationWgs84: geoPointSchema.optional(),
     locationLabel: z.string().trim().max(120).optional(),
+    locationCity: z.string().trim().min(1).max(40).optional(),
     context: z
       .object({
         sourceType: z
@@ -24,6 +26,22 @@ export const chatRequestSchema = z
       .optional(),
     debug: z.boolean().default(false),
   })
-  .strict();
+  .strict()
+  .superRefine((value, context) => {
+    const fields = [
+      value.location,
+      value.locationWgs84,
+      value.locationLabel,
+      value.locationCity,
+    ];
+    const supplied = fields.filter((field) => field !== undefined).length;
+    if (supplied !== 0 && supplied !== fields.length) {
+      context.addIssue({
+        code: "custom",
+        message: "位置坐标、WGS84 坐标、城市和标签必须同时提供",
+        path: ["location"],
+      });
+    }
+  });
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>;

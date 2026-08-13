@@ -25,6 +25,35 @@ function latestUserText(messages: readonly ProviderMessage[]): string {
   return messages.findLast((message) => message.role === "user")?.content ?? "";
 }
 
+interface SelectedLocationContext {
+  label: string;
+  city: string;
+  point: { longitude: number; latitude: number };
+}
+
+function selectedLocationContext(
+  messages: readonly ProviderMessage[],
+): SelectedLocationContext | null {
+  const prefix = "用户当前选择的位置";
+  const message = messages.find(
+    (candidate) =>
+      candidate.role === "system" && candidate.content.startsWith(prefix),
+  );
+  const json = message?.content.slice(message.content.indexOf("：") + 1);
+  if (!json) return null;
+  try {
+    const value = JSON.parse(json) as Partial<SelectedLocationContext>;
+    return typeof value.label === "string" &&
+      typeof value.city === "string" &&
+      typeof value.point?.longitude === "number" &&
+      typeof value.point.latitude === "number"
+      ? (value as SelectedLocationContext)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 function latestToolExchange(messages: readonly ProviderMessage[]): {
   name: string;
   payload: InternalToolPayload;
@@ -96,15 +125,21 @@ function nearbyKeyword(text: string): string {
   );
 }
 
-function hasNamedMapCenter(text: string): boolean {
-  return /武林广场|绍兴/.test(text);
-}
-
-function nearbyCall(text: string): ProviderToolCall {
-  const namedCenter = text.includes("绍兴") ? "绍兴市政府" : "武林广场";
+function nearbyCall(
+  text: string,
+  selectedLocation?: SelectedLocationContext | null,
+): ProviderToolCall {
+  const namedCenter = text.includes("绍兴")
+    ? "绍兴市政府"
+    : text.includes("武林广场")
+      ? "武林广场"
+      : selectedLocation &&
+          text.includes(selectedLocation.label.split(" · ").at(-1) ?? "")
+        ? (selectedLocation.label.split(" · ").at(-1) ?? null)
+        : null;
   return call("search_nearby_places", {
     keyword: nearbyKeyword(text),
-    city: text.includes("绍兴") ? "绍兴" : "杭州",
+    city: text.includes("绍兴") ? "绍兴" : (selectedLocation?.city ?? "杭州"),
     center_name: namedCenter,
     longitude: null,
     latitude: null,
@@ -153,7 +188,10 @@ function knowledgeCall(text: string): ProviderToolCall {
   });
 }
 
-function route(text: string): ProviderToolCall | null {
+function route(
+  text: string,
+  selectedLocation?: SelectedLocationContext | null,
+): ProviderToolCall | null {
   if (
     requiresKnowledge(text) &&
     !/(?:推荐|找).*(?:房|一居室|两居室|开间|合租)/.test(text)
@@ -172,17 +210,21 @@ function route(text: string): ProviderToolCall | null {
   }
   if (
     /(?:附近|周边)/.test(text) &&
-    hasNamedMapCenter(text) &&
     !/(?:房|租房|一居室|两居室|开间|合租)/.test(text)
   ) {
-    return nearbyCall(text);
+    return nearbyCall(text, selectedLocation);
   }
   if (/(?:房|租房|一居室|两居室|开间|合租)/.test(text)) {
     const maximum = amount(text);
     const roomType = /(一居室|两居室|开间|合租)/.exec(text)?.[1] ?? null;
     return call("search_houses", {
-      city: text.includes("绍兴") ? "绍兴" : "杭州",
-      near_location: text.includes("武林广场") ? "武林广场" : null,
+      city: text.includes("绍兴") ? "绍兴" : (selectedLocation?.city ?? "杭州"),
+      near_location: text.includes("武林广场")
+        ? "武林广场"
+        : selectedLocation &&
+            text.includes(selectedLocation.label.split(" · ").at(-1) ?? "")
+          ? (selectedLocation.label.split(" · ").at(-1) ?? null)
+          : null,
       min_price: null,
       max_price: maximum,
       room_type: roomType,
@@ -323,6 +365,7 @@ export class DemoToolCallingProvider implements AIProvider {
   ): AsyncIterable<ProviderEvent> {
     signal.throwIfAborted();
     const userText = latestUserText(input.messages);
+    const selectedLocation = selectedLocationContext(input.messages);
     const exchange = latestToolExchange(input.messages);
     const completedToolNames = new Set(
       input.messages.flatMap((message) =>
@@ -346,11 +389,13 @@ export class DemoToolCallingProvider implements AIProvider {
       if (
         exchange.name === "search_houses" &&
         /(?:附近|周边|路线|距离|步行)/.test(userText) &&
-        hasNamedMapCenter(userText) &&
         exchange.payload.ok &&
         (exchange.payload.resultCount ?? 0) > 0
       ) {
-        yield { type: "tool_calls", calls: [nearbyCall(userText)] };
+        yield {
+          type: "tool_calls",
+          calls: [nearbyCall(userText, selectedLocation)],
+        };
         yield { type: "finish", reason: "tool_calls" };
         return;
       }
@@ -408,7 +453,7 @@ export class DemoToolCallingProvider implements AIProvider {
       return;
     }
 
-    const requestedTool = route(userText);
+    const requestedTool = route(userText, selectedLocation);
     if (requestedTool) {
       yield { type: "tool_calls", calls: [requestedTool] };
       yield { type: "finish", reason: "tool_calls" };

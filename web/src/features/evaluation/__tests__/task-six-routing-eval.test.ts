@@ -61,6 +61,7 @@ function timedOutMaps(): MapsService {
   return {
     convertGps: timeout,
     geocode: timeout,
+    reverseGeocode: timeout,
     searchNearby: timeout,
     walkingRoute: timeout,
   };

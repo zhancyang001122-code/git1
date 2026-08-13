@@ -40,6 +40,20 @@ const geocodeResponseSchema = envelopeSchema.extend({
     )
     .optional(),
 });
+const optionalTextOrArray = z.union([z.string(), z.array(z.unknown())]);
+const reverseGeocodeResponseSchema = envelopeSchema.extend({
+  regeocode: z
+    .object({
+      formatted_address: z.string(),
+      addressComponent: z.object({
+        city: optionalTextOrArray,
+        province: optionalTextOrArray,
+        district: optionalTextOrArray,
+        township: optionalTextOrArray.optional(),
+      }),
+    })
+    .optional(),
+});
 const nearbyResponseSchema = envelopeSchema.extend({
   pois: z
     .array(
@@ -247,6 +261,40 @@ export class AmapAdapter implements MapsService {
       throw serviceError(result.data.infocode);
     const first = result.data.geocodes?.[0];
     return first ? parseCoordinate(first.location) : null;
+  }
+
+  async reverseGeocode(
+    point: GeoPoint,
+    signal?: AbortSignal,
+  ): Promise<{ name: string; city: string } | null> {
+    const raw = await this.request(
+      "/v3/geocode/regeo",
+      new URLSearchParams({
+        location: serializeCoordinate(point),
+        extensions: "base",
+      }),
+      signal,
+    );
+    const result = reverseGeocodeResponseSchema.safeParse(raw);
+    if (!result.success) throw serviceError("invalid");
+    if (result.data.status !== "1" || result.data.infocode !== "10000")
+      throw serviceError(result.data.infocode);
+    const regeocode = result.data.regeocode;
+    if (!regeocode) return null;
+    const component = regeocode.addressComponent;
+    const city =
+      typeof component.city === "string" && component.city.trim()
+        ? component.city.replace(/市$/, "")
+        : typeof component.province === "string"
+          ? component.province.replace(/市$/, "")
+          : "当前位置";
+    const name =
+      typeof component.township === "string" && component.township.trim()
+        ? component.township
+        : typeof component.district === "string" && component.district.trim()
+          ? component.district
+          : regeocode.formatted_address;
+    return { name, city };
   }
 
   async searchNearby(

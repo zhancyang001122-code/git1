@@ -3,26 +3,42 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { NearbyExperience } from "@/components/market/nearby-experience";
+import { SelectedLocationProvider } from "@/features/location/selected-location-provider";
 
 const defaultLocation = {
   name: "武林广场",
   city: "杭州",
   point: { longitude: 120.163102, latitude: 30.274085 },
+  wgs84Point: { longitude: 120.1585, latitude: 30.2764 },
 };
 
 afterEach(() => vi.restoreAllMocks());
 
+function renderNearby() {
+  return render(
+    <SelectedLocationProvider
+      defaultLocation={{ ...defaultLocation, source: "default" }}
+    >
+      <NearbyExperience />
+    </SelectedLocationProvider>,
+  );
+}
+
 describe("NearbyExperience", () => {
   it("asks before using browser location", () => {
-    render(<NearbyExperience defaultLocation={defaultLocation} />);
+    renderNearby();
 
-    expect(screen.getByText("选择定位方式")).toBeInTheDocument();
+    expect(screen.getByText("杭州 · 武林广场")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "使用我的位置" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "手动选择地点" })).toBeEnabled();
+    expect(
+      screen.queryByRole("button", { name: "使用武林广场" }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText("武林生活超市（演示）")).not.toBeInTheDocument();
   });
 
   it("falls back visibly to Wulin Square when geolocation is denied", async () => {
-    render(<NearbyExperience defaultLocation={defaultLocation} />);
+    renderNearby();
     Object.defineProperty(navigator, "geolocation", {
       configurable: true,
       value: {
@@ -60,7 +76,7 @@ describe("NearbyExperience", () => {
     await userEvent.click(screen.getByRole("button", { name: "使用我的位置" }));
 
     expect(
-      await screen.findByText(/定位权限未开启，已改用杭州武林广场/),
+      await screen.findByText(/定位权限未开启.*继续使用杭州 · 武林广场/),
     ).toBeInTheDocument();
     expect(await screen.findByText("武林生活超市（演示）")).toBeInTheDocument();
     await waitFor(() =>
@@ -92,8 +108,8 @@ describe("NearbyExperience", () => {
         ),
       );
 
-    render(<NearbyExperience defaultLocation={defaultLocation} />);
-    await user.click(screen.getByRole("button", { name: "使用武林广场" }));
+    renderNearby();
+    await user.click(screen.getByRole("button", { name: "查询当前地点周边" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "高德服务暂时不可用",
     );

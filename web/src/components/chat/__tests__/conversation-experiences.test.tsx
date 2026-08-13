@@ -6,12 +6,21 @@ import { CommunityPostDetail } from "@/components/chat/community-post-detail";
 import { ConversationHistory } from "@/components/chat/conversation-history";
 import { demoCommunityPosts } from "@/features/business/demo-data";
 import { encodeSseEvent } from "@/features/agent/sse";
+import { SelectedLocationProvider } from "@/features/location/selected-location-provider";
 
 afterEach(() => {
   vi.unstubAllGlobals();
 });
 
 describe("conversation experiences", () => {
+  const selectedLocation = {
+    name: "鲁迅故里",
+    city: "绍兴",
+    point: { longitude: 120.586109, latitude: 29.995762 },
+    wgs84Point: { longitude: 120.5815, latitude: 29.9982 },
+    source: "manual" as const,
+  };
+
   it("renders the server SSE warning and streamed answer", async () => {
     const responseText = [
       encodeSseEvent({
@@ -87,6 +96,42 @@ describe("conversation experiences", () => {
     await waitFor(() =>
       expect(screen.getByText("本轮请求已取消。")).toBeInTheDocument(),
     );
+  });
+
+  it("sends the shared selected location with every chat request", async () => {
+    const responseText = [
+      encodeSseEvent({
+        type: "session",
+        sessionId: "71000000-0000-0000-0000-000000000001",
+        messageId: "72000000-0000-0000-0000-000000000001",
+      }),
+      encodeSseEvent({ type: "assistant_delta", delta: "已按当前位置查询" }),
+      encodeSseEvent({ type: "done", finishReason: "stop" }),
+    ].join("");
+    const fetchMock = vi.fn<typeof fetch>(
+      async () => new Response(responseText),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <SelectedLocationProvider defaultLocation={selectedLocation}>
+        <ChatExperience
+          initialContext={{ prompt: "附近有什么超市", debug: false }}
+        />
+      </SelectedLocationProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "发送" }));
+
+    await screen.findByText("已按当前位置查询");
+    const request = JSON.parse(
+      String(fetchMock.mock.calls[0]?.[1]?.body),
+    ) as Record<string, unknown>;
+    expect(request).toMatchObject({
+      location: selectedLocation.point,
+      locationWgs84: selectedLocation.wgs84Point,
+      locationLabel: "绍兴 · 鲁迅故里",
+      locationCity: "绍兴",
+    });
   });
 
   it("submits message-scoped feedback to the server API", async () => {

@@ -22,4 +22,20 @@ describe("chatRequestSchema", () => {
       }).success,
     ).toBe(false);
   });
+
+  it("requires the complete selected-location payload as one trusted unit", () => {
+    const complete = {
+      message: "附近有什么超市",
+      location: { longitude: 120.163102, latitude: 30.274085 },
+      locationWgs84: { longitude: 120.1585, latitude: 30.2764 },
+      locationLabel: "杭州 · 武林广场",
+      locationCity: "杭州",
+    };
+
+    expect(chatRequestSchema.safeParse(complete).success).toBe(true);
+    expect(
+      chatRequestSchema.safeParse({ ...complete, locationWgs84: undefined })
+        .success,
+    ).toBe(false);
+  });
 });

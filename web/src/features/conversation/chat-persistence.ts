@@ -95,7 +95,26 @@ export function createSupabaseChatPersistence({
         session = await repository.createSession({
           anonymousId,
           title: sessionTitle(request.message),
+          ...(request.location &&
+            request.locationLabel && {
+              location: request.location,
+              locationLabel: request.locationLabel,
+            }),
         });
+      }
+
+      if (
+        request.location &&
+        request.locationLabel &&
+        (session.lastLocationLabel !== request.locationLabel ||
+          session.location?.longitude !== request.location.longitude ||
+          session.location?.latitude !== request.location.latitude)
+      ) {
+        await repository.updateLocation(
+          session.id,
+          request.locationLabel,
+          request.location,
+        );
       }
 
       const userMessage = await repository.appendMessage({
