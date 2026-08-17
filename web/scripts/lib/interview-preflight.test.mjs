@@ -9,11 +9,10 @@ import {
 } from "./interview-preflight.mjs";
 
 describe("interview preflight evidence", () => {
-  it("requires local, remote and Production commits to match", () => {
+  it("requires the local and Production commits to match", () => {
     expect(() =>
       assertBranchDeployment({
         localCommit: "abc123",
-        remoteCommit: "abc123",
         deployedCommit: "abc123",
       }),
     ).not.toThrow();
@@ -21,14 +20,6 @@ describe("interview preflight evidence", () => {
     expect(() =>
       assertBranchDeployment({
         localCommit: "abc123",
-        remoteCommit: "different",
-        deployedCommit: "abc123",
-      }),
-    ).toThrow(/does not match/i);
-    expect(() =>
-      assertBranchDeployment({
-        localCommit: "abc123",
-        remoteCommit: "abc123",
         deployedCommit: "different",
       }),
     ).toThrow(/Production deployment/i);

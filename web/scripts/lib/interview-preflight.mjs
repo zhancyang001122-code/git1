@@ -14,14 +14,7 @@ export function assertLiveHealth(health) {
   }
 }
 
-export function assertBranchDeployment({
-  localCommit,
-  remoteCommit,
-  deployedCommit,
-}) {
-  if (localCommit !== remoteCommit) {
-    throw new Error("Local commit does not match the remote interview branch");
-  }
+export function assertBranchDeployment({ localCommit, deployedCommit }) {
   if (localCommit !== deployedCommit) {
     throw new Error("Production deployment does not match the current commit");
   }

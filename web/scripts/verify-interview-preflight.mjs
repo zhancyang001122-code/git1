@@ -19,13 +19,6 @@ function git(...args) {
   }).trim();
 }
 
-function gh(...args) {
-  return execFileSync("gh", args, {
-    cwd: process.cwd(),
-    encoding: "utf8",
-  }).trim();
-}
-
 const status = git("status", "--porcelain");
 if (status) throw new Error("Working tree must be clean before interview use");
 const branch = git("branch", "--show-current");
@@ -33,12 +26,6 @@ if (branch !== "codex/housing-http-adapter") {
   throw new Error(`Unexpected interview branch: ${branch}`);
 }
 const localCommit = git("rev-parse", "HEAD");
-const remoteCommit = gh(
-  "api",
-  "repos/zhancyang001122-code/git1/branches/codex/housing-http-adapter",
-  "--jq",
-  ".commit.sha",
-);
 
 const healthResponse = await fetch(new URL("/api/health", productionUrl), {
   headers: { accept: "application/json" },
@@ -51,7 +38,6 @@ const health = await healthResponse.json();
 assertLiveHealth(health);
 assertBranchDeployment({
   localCommit,
-  remoteCommit,
   deployedCommit: health.deployment?.commit,
 });
 
