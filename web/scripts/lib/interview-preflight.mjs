@@ -17,16 +17,13 @@ export function assertLiveHealth(health) {
 export function assertBranchDeployment({
   localCommit,
   remoteCommit,
-  statuses,
+  deployedCommit,
 }) {
   if (localCommit !== remoteCommit) {
     throw new Error("Local commit does not match the remote interview branch");
   }
-  const vercel = statuses.find((status) => status.context === "Vercel");
-  if (vercel?.state !== "success") {
-    throw new Error(
-      "Vercel deployment is not successful for the current commit",
-    );
+  if (localCommit !== deployedCommit) {
+    throw new Error("Production deployment does not match the current commit");
   }
 }
 

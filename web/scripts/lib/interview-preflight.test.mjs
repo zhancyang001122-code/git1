@@ -9,12 +9,12 @@ import {
 } from "./interview-preflight.mjs";
 
 describe("interview preflight evidence", () => {
-  it("requires the current branch commit to have a successful Vercel status", () => {
+  it("requires local, remote and Production commits to match", () => {
     expect(() =>
       assertBranchDeployment({
         localCommit: "abc123",
         remoteCommit: "abc123",
-        statuses: [{ context: "Vercel", state: "success" }],
+        deployedCommit: "abc123",
       }),
     ).not.toThrow();
 
@@ -22,16 +22,16 @@ describe("interview preflight evidence", () => {
       assertBranchDeployment({
         localCommit: "abc123",
         remoteCommit: "different",
-        statuses: [{ context: "Vercel", state: "success" }],
+        deployedCommit: "abc123",
       }),
     ).toThrow(/does not match/i);
     expect(() =>
       assertBranchDeployment({
         localCommit: "abc123",
         remoteCommit: "abc123",
-        statuses: [{ context: "Vercel", state: "pending" }],
+        deployedCommit: "different",
       }),
-    ).toThrow(/Vercel deployment/i);
+    ).toThrow(/Production deployment/i);
   });
 
   it("requires stable invalid-request evidence", () => {

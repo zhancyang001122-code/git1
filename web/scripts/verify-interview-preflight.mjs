@@ -39,14 +39,6 @@ const remoteCommit = gh(
   "--jq",
   ".commit.sha",
 );
-const commitStatus = JSON.parse(
-  gh("api", `repos/zhancyang001122-code/git1/commits/${localCommit}/status`),
-);
-assertBranchDeployment({
-  localCommit,
-  remoteCommit,
-  statuses: commitStatus.statuses,
-});
 
 const healthResponse = await fetch(new URL("/api/health", productionUrl), {
   headers: { accept: "application/json" },
@@ -55,7 +47,13 @@ const healthResponse = await fetch(new URL("/api/health", productionUrl), {
 if (!healthResponse.ok) {
   throw new Error(`Production health returned ${healthResponse.status}`);
 }
-assertLiveHealth(await healthResponse.json());
+const health = await healthResponse.json();
+assertLiveHealth(health);
+assertBranchDeployment({
+  localCommit,
+  remoteCommit,
+  deployedCommit: health.deployment?.commit,
+});
 
 const invalidResponse = await fetch(new URL("/api/chat", productionUrl), {
   method: "POST",

@@ -121,4 +121,4 @@ data: {"finishReason":"stop"}
 
 ## `GET /api/health`
 
-返回应用、Supabase、Qwen、AMap 的配置可用性，不返回任何密钥。外部服务只做轻量连通性检查或报告 `not_checked`。
+返回应用、Supabase、Qwen、AMap 的配置可用性，以及公开的部署 Git commit 标识；不返回任何密钥。外部服务只报告配置状态，真实连通性由 `pnpm interview:preflight` 调用受控业务接口验证。

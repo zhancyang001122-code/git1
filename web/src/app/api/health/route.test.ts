@@ -27,6 +27,7 @@ describe("GET /api/health", () => {
         amap: "disabled",
         housing: "disabled",
       },
+      deployment: { commit: null },
     });
   });
 
@@ -74,5 +75,16 @@ describe("GET /api/health", () => {
     expect(serializedBody).not.toContain(
       "housing-secret-value-that-is-at-least-32-characters",
     );
+  });
+
+  it("publishes only the deployment commit identifier", async () => {
+    vi.stubEnv("VERCEL_GIT_COMMIT_SHA", "abc123def456");
+    vi.stubEnv("SUPABASE_SECRET_KEY", "must-not-appear");
+
+    const response = await GET(request());
+    const body = await response.json();
+
+    expect(body.deployment).toEqual({ commit: "abc123def456" });
+    expect(JSON.stringify(body)).not.toContain("must-not-appear");
   });
 });
