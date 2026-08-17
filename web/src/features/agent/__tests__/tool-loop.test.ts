@@ -124,6 +124,38 @@ describe("agent tool loop", () => {
     ]);
   });
 
+  it("exposes provider degradation and persists the turn as a fallback", async () => {
+    const provider = new SequenceProvider([
+      [
+        {
+          type: "warning",
+          code: "QWEN_RULE_FALLBACK",
+          message: "千问暂不可用，已进入规则降级。",
+        },
+        { type: "text_delta", delta: "规则化回答。" },
+        { type: "finish", reason: "stop" },
+      ],
+    ]);
+
+    const { events, completions } = await collect(provider);
+
+    expect(events).toContainEqual({
+      type: "warning",
+      code: "QWEN_RULE_FALLBACK",
+      message: "千问暂不可用，已进入规则降级。",
+    });
+    expect(events.at(-1)).toEqual({
+      type: "done",
+      finishReason: "fallback",
+    });
+    expect(completions).toEqual([
+      expect.objectContaining({
+        assistantText: "规则化回答。",
+        finishReason: "fallback",
+      }),
+    ]);
+  });
+
   it("requires a named evidence tool only on the first model round", async () => {
     const provider = new SequenceProvider([
       [toolCall("call-required"), { type: "finish", reason: "tool_calls" }],

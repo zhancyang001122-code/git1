@@ -11,6 +11,7 @@ import { requiredEvidenceTool } from "@/features/agent/grounding-policy";
 import { orchestrateChatTurn } from "@/features/agent/orchestrator";
 import type { AIProvider } from "@/features/agent/provider";
 import { createQwenProvider } from "@/features/agent/qwen-provider";
+import { ResilientAIProvider } from "@/features/agent/resilient-provider";
 import { encodeSseEvent } from "@/features/agent/sse";
 import { XIAOZHI_SYSTEM_PROMPT } from "@/features/agent/system-prompt";
 import {
@@ -216,7 +217,10 @@ async function defaultChatRuntime(request: ChatRequest): Promise<ChatRuntime> {
   });
   const authenticated = await serverClient.auth.getUser();
   return {
-    provider: createQwenProvider(),
+    provider: new ResilientAIProvider({
+      primary: createQwenProvider(),
+      fallback: new DemoToolCallingProvider(),
+    }),
     persistence: createSupabaseChatPersistence({
       repository,
       anonymousId,

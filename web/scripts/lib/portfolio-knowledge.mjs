@@ -175,6 +175,9 @@ export function summarizeGeneration(events) {
       event.data.status === "succeeded",
   );
   const error = events.find((event) => event.type === "error");
+  const warningCodes = events
+    .filter((event) => event.type === "warning")
+    .map((event) => event.data.code);
   return {
     assistantText: events
       .filter((event) => event.type === "assistant_delta")
@@ -183,6 +186,7 @@ export function summarizeGeneration(events) {
     toolSucceeded,
     citations,
     errorCode: error?.data?.code ?? null,
+    warningCodes,
   };
 }
 

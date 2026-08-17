@@ -49,6 +49,7 @@ describe("interview preflight evidence", () => {
         assistantText: "千问负责选择工具和表达，但不是事实来源。",
         toolSucceeded: true,
         errorCode: null,
+        warningCodes: [],
         citations: [
           {
             title: "小智作品集：AI 事实来源与知识治理",
@@ -65,7 +66,25 @@ describe("interview preflight evidence", () => {
         assistantText: "模型直接回答。",
         toolSucceeded: false,
         errorCode: null,
+        warningCodes: [],
         citations: [],
+      }),
+    ).toThrow(/first-party RAG/i);
+
+    expect(() =>
+      assertFirstPartyRag({
+        assistantText: "千问负责选择工具和表达，但不是事实来源。",
+        toolSucceeded: true,
+        errorCode: null,
+        warningCodes: ["QWEN_RULE_FALLBACK"],
+        citations: [
+          {
+            title: "小智作品集：AI 事实来源与知识治理",
+            materialKind: "portfolio_first_party",
+            versionLabel: "2026.08.1",
+            effectiveFrom: "2026-08-12",
+          },
+        ],
       }),
     ).toThrow(/first-party RAG/i);
   });

@@ -153,6 +153,7 @@ export async function* runAgentToolLoop(
   const usageRounds: { inputTokens: number; outputTokens: number }[] = [];
   let usageCoverageComplete = true;
   let auditWarningEmitted = false;
+  let providerDegraded = false;
   const resultCards: NonNullable<ChatTurnCompletion["cards"]>[number][] = [];
   const citations: KnowledgeCitation[] = [];
 
@@ -189,6 +190,13 @@ export async function* runAgentToolLoop(
           roundOutputTokens = (roundOutputTokens ?? 0) + event.outputTokens;
       } else if (event.type === "tool_calls") {
         calls = event.calls;
+      } else if (event.type === "warning") {
+        providerDegraded = true;
+        yield {
+          type: "warning",
+          code: event.code,
+          message: event.message,
+        };
       } else if (event.type === "finish") {
         finished = true;
       }
@@ -232,7 +240,7 @@ export async function* runAgentToolLoop(
     if (calls.length === 0) {
       const final = completion(
         assistantText,
-        "stop",
+        providerDegraded ? "fallback" : "stop",
         inputTokens,
         outputTokens,
         usageRounds,
@@ -246,7 +254,10 @@ export async function* runAgentToolLoop(
           message: "回答已生成，但对话记录暂未保存",
         };
       }
-      yield { type: "done", finishReason: "stop" };
+      yield {
+        type: "done",
+        finishReason: providerDegraded ? "fallback" : "stop",
+      };
       return;
     }
 

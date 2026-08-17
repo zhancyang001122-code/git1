@@ -34,6 +34,7 @@ export type ProviderEvent =
   | { type: "text_delta"; delta: string }
   | { type: "tool_calls"; calls: readonly ProviderToolCall[] }
   | { type: "usage"; inputTokens?: number; outputTokens?: number }
+  | { type: "warning"; code: string; message: string }
   | { type: "finish"; reason: string };
 
 export interface AIProvider {

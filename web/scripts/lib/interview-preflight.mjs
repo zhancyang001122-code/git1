@@ -35,6 +35,7 @@ export function assertFirstPartyRag(result) {
   const valid =
     result?.toolSucceeded === true &&
     result?.errorCode === null &&
+    !result?.warningCodes?.includes("QWEN_RULE_FALLBACK") &&
     result?.assistantText?.includes("工具") &&
     /事实(?:的)?来源/.test(result.assistantText) &&
     citations.length > 0 &&
