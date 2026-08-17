@@ -73,6 +73,14 @@ RAG_FINAL_K=5
 
 配置 Web 服务 Key 后运行 `pnpm external:verify-amap`，依次验证武林广场地理编码、2 公里内超市 POI 和到首个结果的步行路线，不打印 Key。
 
+本机 Live 所需密钥全部配置到 `web/.env.local` 后，在 `web/` 运行：
+
+```powershell
+pnpm local:preflight
+```
+
+该命令会在独立回环端口临时启动 Next.js，验证本机配置状态、真实高德、真实千问/RAG、历史房源和主要浏览器流程，并在结束后关闭临时服务。它只报告缺少的环境变量名称，不打印密钥；验证会写入少量测试对话和反馈数据。
+
 ## 5. RAG 初始化
 
 种子迁移会创建 published 文章、版本和 pending chunks。应用实现 indexing 后：
@@ -96,7 +104,7 @@ RAG_FINAL_K=5
 3. 分别配置 Preview 和 Production 环境变量。
 4. 部署前完成 Supabase migrations 和 embedding。
 5. 部署后访问 `/api/health`，再运行 staging/live smoke tests。
-6. 生成二维码并准备本地录屏备份。
+6. 面试前运行真实预检并确认自定义域名可以打开。
 
 Production 切到 Live 后，在 `web/` 运行：
 

@@ -75,7 +75,7 @@ app/components -> application service -> port/interface -> adapter/repository
 ## 9. Git 与提交
 
 - 每个实施 Task 独立提交，提交信息使用 `feat:`、`fix:`、`test:`、`docs:`、`chore:`。
-- 不提交 `.env.local`、密钥、Supabase 数据库密码、真实用户数据和测试录屏中的隐私。
+- 不提交 `.env.local`、密钥、Supabase 数据库密码、真实用户数据和演示截图中的隐私。
 - 不把格式化、无关重构和功能变更混在同一提交。
 - 报告实际验证命令和结果，不用“应该可以”代替证据。
 

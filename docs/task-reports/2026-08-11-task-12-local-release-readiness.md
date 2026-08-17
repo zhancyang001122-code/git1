@@ -43,5 +43,5 @@
 2. 配置 Supabase 并执行迁移、RLS HTTP 验证和历史房源导入。
 3. 配置百炼与高德，生成正式知识 Embedding，运行 21+ 评测案例。
 4. 部署 Vercel Preview，执行 staging smoke；通过后部署 Production。
-5. 执行生产冒烟、手机二维码和三分钟录屏。
+5. 执行生产冒烟、手机二维码和现场真实预检。
 6. 复核所有验收项后再创建 release commit 和 `xiaozhi-interview-v1` 标签。

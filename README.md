@@ -89,6 +89,14 @@ pnpm deploy:verify-production
 
 该命令会创建两条测试对话和一条点赞反馈，不用于高频监控。
 
+本机 Live 回归（需要先在 `web/.env.local` 配齐真实服务密钥）：
+
+```powershell
+pnpm local:preflight
+```
+
+该命令使用独立回环端口临时启动并验证本机应用，结束后自动关闭，不会打印密钥。
+
 ## 关键文档
 
 - [应用说明](web/README.md)

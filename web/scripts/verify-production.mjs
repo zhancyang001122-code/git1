@@ -1,13 +1,13 @@
 import { chromium, expect } from "@playwright/test";
 
+import { validateVerificationUrl } from "./lib/local-live-preflight.mjs";
+
 const baseUrl =
   process.env.DEPLOYMENT_URL?.trim() ||
   process.env.PRODUCTION_URL?.trim() ||
   "https://xiaozhi.zaneyang.xyz";
 const url = new URL(baseUrl);
-if (url.protocol !== "https:") {
-  throw new Error("DEPLOYMENT_URL must use HTTPS");
-}
+validateVerificationUrl(url);
 const modeArgument = process.argv.find((value) => value.startsWith("--mode="));
 const expectedMode =
   modeArgument?.slice("--mode=".length).trim() ||

@@ -109,7 +109,7 @@ Component：导航、卡片、SSE reducer、工具进度、引用。
 Integration：API、repository、Qwen/AMap fixture、Knowledge Service。  
 E2E：完整页面、三条主演示、知识闭环、服务降级、360/390/430px。
 
-每个 Task 完成后必须运行 lint、typecheck、unit tests 和 build；涉及页面或链路时增加 Playwright。最终 Vercel Root Directory 为 `web/`，并保留录屏作为网络故障备份。
+每个 Task 完成后必须运行 lint、typecheck、unit tests 和 build；涉及页面或链路时增加 Playwright。最终 Vercel Root Directory 为 `web/`，并保留可重复执行的生产预检作为网络故障定位依据。
 
 ## 10. 关键取舍
 
