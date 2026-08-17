@@ -102,7 +102,6 @@ pnpm deploy:verify-production
 - [Production Live 部署证据](docs/task-reports/2026-08-12-vercel-production-baseline.md)
 - [作品集首方 RAG 证据](docs/task-reports/2026-08-13-portfolio-first-party-rag.md)
 - [RAG 恢复与防复发证据](docs/task-reports/2026-08-13-rag-embedding-recovery.md)
-- [面试离线备份证据](docs/task-reports/2026-08-13-interview-backup.md)
 - [第 1 课真实请求链路练习单](docs/19-lesson-01-real-request-path.md)
 - [知识索引 Worker 证据](web/docs/task-reports/2026-08-12-knowledge-index-worker.md)
 - [AI 成本估算证据](web/docs/task-reports/2026-08-12-ai-cost-estimate.md)

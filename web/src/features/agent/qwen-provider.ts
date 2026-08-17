@@ -13,7 +13,11 @@ import type {
 } from "@/features/agent/provider";
 import { AppError } from "@/lib/errors";
 import { serverEnv } from "@/lib/env";
-import { createCircuitBreaker, type CircuitBreaker } from "@/lib/resilience";
+import {
+  createCircuitBreaker,
+  retryTransient,
+  type CircuitBreaker,
+} from "@/lib/resilience";
 
 const sharedQwenCircuitBreaker = createCircuitBreaker({
   failureThreshold: 3,
@@ -73,6 +77,7 @@ interface QwenProviderOptions {
   model: string;
   streamFactory: QwenStreamFactory;
   circuitBreaker?: CircuitBreaker;
+  retryJitterMs?: () => number;
 }
 
 interface ToolCallAccumulator {
@@ -168,13 +173,23 @@ export class QwenProvider implements AIProvider {
 
     try {
       signal.throwIfAborted();
-      const stream = await this.circuitBreaker.execute(async () => {
-        try {
-          return await this.options.streamFactory(request, signal);
-        } catch (error) {
-          throw normalizedError(error, signal);
-        }
-      });
+      const stream = await this.circuitBreaker.execute(() =>
+        retryTransient(
+          async () => {
+            try {
+              return await this.options.streamFactory(request, signal);
+            } catch (error) {
+              throw normalizedError(error, signal);
+            }
+          },
+          {
+            retries: 1,
+            ...(this.options.retryJitterMs && {
+              jitterMs: this.options.retryJitterMs,
+            }),
+          },
+        ),
+      );
       for await (const rawChunk of stream) {
         signal.throwIfAborted();
         const parsed = chunkSchema.safeParse(rawChunk);

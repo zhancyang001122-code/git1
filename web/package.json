@@ -34,7 +34,6 @@
     "test:e2e": "pnpm build && playwright test",
     "test:e2e:auth": "playwright test --config=playwright.auth.config.ts",
     "preview:capture": "playwright test --config=playwright.preview.config.ts",
-    "interview:record-production": "node scripts/capture-interview-production.mjs",
     "interview:preflight": "node scripts/verify-interview-preflight.mjs",
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",

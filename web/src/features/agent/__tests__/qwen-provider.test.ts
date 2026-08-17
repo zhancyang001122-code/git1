@@ -241,6 +241,30 @@ describe("QwenProvider", () => {
     });
   });
 
+  it("retries one transient failure before the response stream starts", async () => {
+    const factory: QwenStreamFactory = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("temporary connection reset"))
+      .mockResolvedValueOnce(
+        chunks([{ choices: [{ delta: {}, finish_reason: "stop" }] }]),
+      );
+    const provider = new QwenProvider({
+      model: "qwen-plus",
+      streamFactory: factory,
+      retryJitterMs: () => 0,
+    });
+    const events = [];
+
+    for await (const event of provider.streamTurn(
+      { messages: [{ role: "user", content: "测试重试" }] },
+      new AbortController().signal,
+    ))
+      events.push(event);
+
+    expect(factory).toHaveBeenCalledTimes(2);
+    expect(events).toContainEqual({ type: "finish", reason: "stop" });
+  });
+
   it("maps an aborted SDK request to a stable abort error", async () => {
     const controller = new AbortController();
     const provider = new QwenProvider({

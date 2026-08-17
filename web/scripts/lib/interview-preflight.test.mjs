@@ -4,7 +4,8 @@ import {
   assertBranchDeployment,
   assertFirstPartyRag,
   assertInvalidRequestBoundary,
-  expectedBackupFiles,
+  assertLiveAmap,
+  assertLiveHealth,
 } from "./interview-preflight.mjs";
 
 describe("interview preflight evidence", () => {
@@ -78,17 +79,52 @@ describe("interview preflight evidence", () => {
     ).toThrow(/first-party RAG/i);
   });
 
-  it("lists every required offline backup artifact", () => {
-    expect(expectedBackupFiles()).toEqual(
-      expect.arrayContaining([
-        "index.html",
-        "production-qr.png",
-        "recording-evidence.json",
-        "screens/index.html",
-        "videos/01-housing-amap.webm",
-        "videos/02-first-party-rag.webm",
-        "videos/03-commerce-preference.webm",
-      ]),
-    );
+  it("requires every production service to be configured in Live mode", () => {
+    expect(() =>
+      assertLiveHealth({
+        app: "xiaozhi",
+        mode: "live",
+        services: {
+          supabase: "configured",
+          qwen: "configured",
+          amap: "configured",
+          housing: "configured",
+        },
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertLiveHealth({
+        app: "xiaozhi",
+        mode: "live",
+        services: { supabase: "configured", qwen: "missing" },
+      }),
+    ).toThrow(/not fully configured/i);
+  });
+
+  it("requires a real Live AMap geocoding response", () => {
+    expect(() =>
+      assertLiveAmap({
+        status: 200,
+        body: {
+          mode: "live",
+          data: {
+            name: "武林广场",
+            point: { longitude: 120.163102, latitude: 30.274085 },
+          },
+        },
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertLiveAmap({
+        status: 200,
+        body: {
+          mode: "demo",
+          data: {
+            name: "武林广场",
+            point: { longitude: 120.163102, latitude: 30.274085 },
+          },
+        },
+      }),
+    ).toThrow(/AMap probe/i);
   });
 });

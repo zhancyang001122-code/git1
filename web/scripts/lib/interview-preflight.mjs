@@ -1,3 +1,19 @@
+export const PRODUCTION_INTERVIEW_URL = "https://xiaozhi.zaneyang.xyz";
+
+const requiredServices = ["supabase", "qwen", "amap", "housing"];
+
+export function assertLiveHealth(health) {
+  const valid =
+    health?.app === "xiaozhi" &&
+    health?.mode === "live" &&
+    requiredServices.every(
+      (service) => health?.services?.[service] === "configured",
+    );
+  if (!valid) {
+    throw new Error("Production Live health is not fully configured");
+  }
+}
+
 export function assertBranchDeployment({
   localCommit,
   remoteCommit,
@@ -48,14 +64,14 @@ export function assertFirstPartyRag(result) {
   }
 }
 
-export function expectedBackupFiles() {
-  return [
-    "index.html",
-    "production-qr.png",
-    "recording-evidence.json",
-    "screens/index.html",
-    "videos/01-housing-amap.webm",
-    "videos/02-first-party-rag.webm",
-    "videos/03-commerce-preference.webm",
-  ];
+export function assertLiveAmap({ status, body }) {
+  const valid =
+    status === 200 &&
+    body?.mode === "live" &&
+    body?.data?.name === "武林广场" &&
+    Number.isFinite(body?.data?.point?.longitude) &&
+    Number.isFinite(body?.data?.point?.latitude);
+  if (!valid) {
+    throw new Error("Production AMap probe did not return a Live location");
+  }
 }

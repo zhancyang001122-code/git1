@@ -1,23 +1,16 @@
 import { execFileSync } from "node:child_process";
-import { access, readFile } from "node:fs/promises";
-import path from "node:path";
 
 import { parseSse, summarizeGeneration } from "./lib/portfolio-knowledge.mjs";
 import {
   assertBranchDeployment,
   assertFirstPartyRag,
   assertInvalidRequestBoundary,
-  expectedBackupFiles,
-} from "./lib/interview-preflight.mjs";
-import {
+  assertLiveAmap,
   assertLiveHealth,
   PRODUCTION_INTERVIEW_URL,
-} from "./lib/interview-backup.mjs";
+} from "./lib/interview-preflight.mjs";
 
 const productionUrl = PRODUCTION_INTERVIEW_URL;
-const backupDir =
-  process.env.INTERVIEW_BACKUP_DIR?.trim() ||
-  "C:\\Users\\Administrator\\Desktop\\xiaozhi-interview-backup-20260813";
 
 function git(...args) {
   return execFileSync("git", args, {
@@ -77,6 +70,22 @@ assertInvalidRequestBoundary({
   body: invalidBody,
 });
 
+const amapResponse = await fetch(new URL("/api/maps/nearby", productionUrl), {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({
+    action: "resolve",
+    kind: "manual",
+    city: "杭州",
+    name: "武林广场",
+  }),
+  signal: AbortSignal.timeout(30_000),
+});
+assertLiveAmap({
+  status: amapResponse.status,
+  body: await amapResponse.json(),
+});
+
 const ragResponse = await fetch(new URL("/api/chat", productionUrl), {
   method: "POST",
   headers: { "content-type": "application/json" },
@@ -89,22 +98,16 @@ const ragResponse = await fetch(new URL("/api/chat", productionUrl), {
 const rag = summarizeGeneration(await parseSse(ragResponse));
 assertFirstPartyRag(rag);
 
-for (const file of expectedBackupFiles()) {
-  await access(path.join(backupDir, ...file.split("/")));
-}
-const evidence = JSON.parse(
-  await readFile(path.join(backupDir, "recording-evidence.json"), "utf8"),
-);
-if (
-  evidence.productionUrl !== productionUrl ||
-  evidence.health !== "live/configured" ||
-  evidence.commit !== localCommit ||
-  evidence.scenes?.length !== 3
-) {
-  throw new Error(
-    "Offline recording evidence does not match the current commit",
-  );
-}
+const liveFlowOutput = execFileSync(
+  process.execPath,
+  ["scripts/verify-production.mjs", "--mode=live"],
+  {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    env: process.env,
+  },
+).trim();
+if (liveFlowOutput) console.log(liveFlowOutput);
 
 console.log(
   JSON.stringify({
@@ -113,9 +116,9 @@ console.log(
     commit: localCommit,
     deployment: "success",
     invalidRequest: "400/INVALID_CHAT_REQUEST",
+    amap: "live/geocoding",
     firstPartyRag: "grounded/cited",
-    backupScenes: evidence.scenes.length,
-    backupDir,
-    note: "This preflight writes one test RAG conversation plus safe audit/rate-limit metadata. Run deploy:verify-production separately once before the interview; it writes two more test conversations and one feedback row.",
+    liveFlow: "PASS",
+    note: "This preflight performs real production checks and writes three test conversations plus one feedback row. It does not require or generate recording evidence.",
   }),
 );

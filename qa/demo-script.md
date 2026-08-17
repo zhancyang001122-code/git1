@@ -6,23 +6,13 @@
 2. 打开 `/api/health`，确认 `mode: "live"`，Supabase、Qwen、AMap 和 housing 均为 `configured`。
 3. 返回首页并新建空白对话。现场不要修改环境变量、数据库或供应商控制台。
 
-会前可在 `web/` 执行一次真实冒烟：
-
-```powershell
-$env:PRODUCTION_URL='https://xiaozhi.zaneyang.xyz'
-$env:EXPECTED_PRODUCTION_MODE='live'
-pnpm deploy:verify-production
-```
-
-该命令会创建两条测试对话和一条点赞反馈，不用于高频监控。
-
-然后执行低副作用会前总检查：
+会前在 `web/` 执行一次实时总检查：
 
 ```powershell
 pnpm interview:preflight
 ```
 
-该命令检查当前 Git/部署 SHA、四项 Live 服务状态、非法请求边界、首方 RAG 与离线备份，不读取或打印密钥。它会新增一条首方 RAG 测试对话及相应安全审计/限流元数据，不用于高频监控。
+该命令检查当前 Git/部署 SHA、四项 Live 服务状态、真实高德地理编码、非法请求边界、首方 RAG，以及房源 + 高德、商品 + 偏好、反馈的完整浏览器链路。它不读取或打印密钥，会新增三条测试对话和一条反馈记录，因此不用于高频监控。
 
 ## 场景一：历史房源 + 高德（约 55 秒）
 

@@ -31,9 +31,24 @@ if (proxyServer) {
     throw new Error("DEPLOYMENT_PROXY_SERVER must use HTTP, HTTPS or SOCKS5");
   }
 }
+const browserChannel =
+  process.env.DEPLOYMENT_BROWSER_CHANNEL?.trim() ||
+  (process.platform === "win32" ? "msedge" : undefined);
+if (browserChannel && !new Set(["chrome", "msedge"]).has(browserChannel)) {
+  throw new Error("DEPLOYMENT_BROWSER_CHANNEL must be chrome or msedge");
+}
+const bypassSystemProxyValue =
+  process.env.DEPLOYMENT_BYPASS_SYSTEM_PROXY?.trim() ||
+  (process.platform === "win32" ? "true" : "false");
+if (!new Set(["true", "false"]).has(bypassSystemProxyValue)) {
+  throw new Error("DEPLOYMENT_BYPASS_SYSTEM_PROXY must be true or false");
+}
+const bypassSystemProxy = bypassSystemProxyValue === "true";
 
 const browser = await chromium.launch({
   ...(proxyServer && { proxy: { server: proxyServer } }),
+  ...(!proxyServer && browserChannel && { channel: browserChannel }),
+  ...(!proxyServer && bypassSystemProxy && { args: ["--no-proxy-server"] }),
 });
 const healthPage = await browser.newPage({
   extraHTTPHeaders: protectedDeploymentHeaders,
@@ -119,7 +134,9 @@ try {
   await expect(searchButton).toBeEnabled({ timeout: 10_000 });
   await searchButton.click();
   await expect
-    .poll(() => new URL(page.url()).searchParams.get("q"))
+    .poll(() => new URL(page.url()).searchParams.get("q"), {
+      timeout: 20_000,
+    })
     .toBe(query);
   await page.getByRole("button", { name: "发送" }).click();
   if (expectedMode === "demo") {
