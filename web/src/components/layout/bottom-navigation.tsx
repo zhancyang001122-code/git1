@@ -40,7 +40,7 @@ export function BottomNavigation({ active }: BottomNavigationProps) {
   return (
     <nav
       aria-label="主导航"
-      className="glass-navigation fixed bottom-0 left-1/2 z-50 grid h-[calc(56px+env(safe-area-inset-bottom))] w-full max-w-[430px] -translate-x-1/2 grid-cols-5 border-t px-1 pb-[env(safe-area-inset-bottom)]"
+      className="bottom-navigation-glass glass-navigation fixed bottom-0 left-1/2 z-50 grid h-[calc(56px+env(safe-area-inset-bottom))] w-full max-w-[430px] -translate-x-1/2 grid-cols-5 border-t px-1 pb-[env(safe-area-inset-bottom)]"
     >
       {navigationItems.map((item) => {
         const Icon = item.icon;

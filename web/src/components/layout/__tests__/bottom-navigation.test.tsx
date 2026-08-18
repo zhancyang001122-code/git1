@@ -45,6 +45,7 @@ describe("BottomNavigation", () => {
     expect(navigation).toHaveClass(
       "h-[calc(56px+env(safe-area-inset-bottom))]",
       "glass-navigation",
+      "bottom-navigation-glass",
     );
     expect(screen.getByRole("link", { name: "小智" })).toHaveClass(
       "ui-interactive",

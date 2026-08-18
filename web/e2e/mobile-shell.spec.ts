@@ -64,3 +64,49 @@ test("shared glass surfaces and focus feedback use the unified visual system", a
   );
   expect(focusShadow).not.toBe("none");
 });
+
+test("main pages keep one centered canvas and the same glass navigation", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1200 });
+
+  const positions: number[] = [];
+  for (const path of ["/", "/discover", "/xiaozhi", "/messages", "/me"]) {
+    await page.goto(path);
+
+    const navigation = page.getByRole("navigation", { name: "主导航" });
+    await expect(navigation).toHaveClass(/bottom-navigation-glass/);
+
+    const metrics = await page.evaluate(() => {
+      const canvas = document.querySelector<HTMLElement>(
+        ".mobile-canvas-shell",
+      );
+      const nav = document.querySelector<HTMLElement>(
+        'nav[aria-label="主导航"]',
+      );
+      if (!canvas || !nav) return null;
+      return {
+        canvasLeft: canvas.getBoundingClientRect().left,
+        canvasWidth: canvas.getBoundingClientRect().width,
+        navLeft: nav.getBoundingClientRect().left,
+        navWidth: nav.getBoundingClientRect().width,
+        navBackdrop: getComputedStyle(nav).backdropFilter,
+        navBackgroundImage: getComputedStyle(nav).backgroundImage,
+        scrollbarGutter: getComputedStyle(
+          document.documentElement,
+        ).scrollbarGutter,
+      };
+    });
+
+    expect(metrics).not.toBeNull();
+    expect(metrics!.scrollbarGutter).toBe("stable both-edges");
+    expect(metrics!.navBackdrop).toContain("blur");
+    expect(metrics!.navBackgroundImage).not.toBe("none");
+    expect(metrics!.canvasWidth).toBe(430);
+    expect(metrics!.navWidth).toBe(430);
+    expect(metrics!.navLeft).toBeCloseTo(metrics!.canvasLeft, 1);
+    positions.push(metrics!.canvasLeft);
+  }
+
+  expect(Math.max(...positions) - Math.min(...positions)).toBeLessThan(0.5);
+});
