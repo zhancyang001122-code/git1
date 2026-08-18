@@ -58,6 +58,7 @@ const chunkSchema = z.object({
 
 export interface QwenStreamRequest {
   model: string;
+  enable_thinking: false;
   stream: true;
   stream_options: { include_usage: true };
   messages: readonly Record<string, unknown>[];
@@ -149,6 +150,7 @@ export class QwenProvider implements AIProvider {
     const toolCalls = new Map<number, ToolCallAccumulator>();
     const request: QwenStreamRequest = {
       model: this.options.model,
+      enable_thinking: false,
       stream: true,
       stream_options: { include_usage: true },
       messages: input.messages.map(providerMessage),

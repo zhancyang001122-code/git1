@@ -41,6 +41,7 @@ describe("QwenProvider", () => {
     expect(factory).toHaveBeenCalledWith(
       expect.objectContaining({
         model: "qwen-plus",
+        enable_thinking: false,
         stream: true,
         messages: [{ role: "user", content: "你好" }],
       }),

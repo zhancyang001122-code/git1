@@ -24,8 +24,65 @@ const nullableString = z.string().nullable();
 const databaseUuid = z
   .string()
   .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
-const nullableNonnegativeNumber = z.number().nonnegative().nullable();
-const nullableNonnegativeInteger = z.number().int().nonnegative().nullable();
+
+function normalizedModelNumber(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const normalized = value.trim();
+  if (!/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(normalized)) return value;
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : value;
+}
+
+function normalizedModelBoolean(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const normalized = value.trim();
+  if (normalized === "true") return true;
+  if (normalized === "false") return false;
+  return value;
+}
+
+function normalizedModelStringArray(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : value;
+  } catch {
+    return value;
+  }
+}
+
+function normalizedModelObjectNumbers(
+  value: unknown,
+  fields: readonly string[],
+): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const record = { ...(value as Record<string, unknown>) };
+  for (const field of fields) {
+    if (field in record) record[field] = normalizedModelNumber(record[field]);
+  }
+  return record;
+}
+
+function modelInteger(minimum: number, maximum: number) {
+  return z.preprocess(
+    normalizedModelNumber,
+    z.number().int().min(minimum).max(maximum),
+  );
+}
+
+const nullableNonnegativeNumber = z.preprocess(
+  normalizedModelNumber,
+  z.number().nonnegative().nullable(),
+);
+const nullableNonnegativeInteger = z.preprocess(
+  normalizedModelNumber,
+  z.number().int().nonnegative().nullable(),
+);
+const modelBoolean = z.preprocess(normalizedModelBoolean, z.boolean());
+const nullableModelBoolean = z.preprocess(
+  normalizedModelBoolean,
+  z.boolean().nullable(),
+);
 const productCategories = [
   "乳品",
   "蛋品",
@@ -46,7 +103,7 @@ const searchHousesSchema = z
     min_price: nullableNonnegativeInteger,
     max_price: nullableNonnegativeInteger,
     room_type: nullableString,
-    limit: z.number().int().min(1).max(10),
+    limit: modelInteger(1, 10),
   })
   .strict();
 
@@ -57,8 +114,8 @@ const searchDealsSchema = z
     query: nullableString,
     category: nullableString,
     max_price: nullableNonnegativeNumber,
-    refundable_only: z.boolean().nullable(),
-    limit: z.number().int().min(1).max(10),
+    refundable_only: nullableModelBoolean,
+    limit: modelInteger(1, 10),
   })
   .strict();
 
@@ -68,8 +125,8 @@ const searchProductsSchema = z
     category: z.enum(productCategories).nullable(),
     store_id: databaseUuid.nullable(),
     max_price: nullableNonnegativeNumber,
-    in_stock_only: z.boolean(),
-    limit: z.number().int().min(1).max(12),
+    in_stock_only: modelBoolean,
+    limit: modelInteger(1, 12),
   })
   .strict();
 
@@ -80,16 +137,17 @@ const getUserPreferencesSchema = z
   .strict();
 
 const preferenceListValueSchema = z
-  .array(z.string().trim().min(1).max(80))
-  .min(1)
-  .max(20)
+  .preprocess(
+    normalizedModelStringArray,
+    z.array(z.string().trim().min(1).max(80)).min(1).max(20),
+  )
   .transform((items) => [...new Set(items)]);
 
 const proposeUserPreferenceSchema = z.discriminatedUnion("key", [
   z
     .object({
       key: z.literal("max_housing_budget"),
-      value: z.number().int().nonnegative().max(200_000),
+      value: modelInteger(0, 200_000),
     })
     .strict(),
   ...(
@@ -116,9 +174,31 @@ const searchKnowledgeSchema = z
       .regex(/^[a-z][a-z0-9_-]{1,79}$/)
       .nullable(),
     city: z.string().trim().min(1).max(40).nullable(),
-    top_k: z.number().int().min(1).max(8),
+    top_k: modelInteger(1, 8),
   })
   .strict();
+
+const modelNearbySearchInputSchema = z.preprocess(
+  (value) =>
+    normalizedModelObjectNumbers(value, [
+      "longitude",
+      "latitude",
+      "radius_m",
+      "limit",
+    ]),
+  nearbySearchInputSchema,
+);
+
+const modelWalkingRouteInputSchema = z.preprocess(
+  (value) =>
+    normalizedModelObjectNumbers(value, [
+      "origin_longitude",
+      "origin_latitude",
+      "destination_longitude",
+      "destination_latitude",
+    ]),
+  walkingRouteInputSchema,
+);
 
 export const toolInputSchemas = {
   search_houses: searchHousesSchema,
@@ -128,8 +208,8 @@ export const toolInputSchemas = {
   get_product_stock: getProductStockSchema,
   get_user_preferences: getUserPreferencesSchema,
   propose_user_preference: proposeUserPreferenceSchema,
-  search_nearby_places: nearbySearchInputSchema,
-  calculate_walking_route: walkingRouteInputSchema,
+  search_nearby_places: modelNearbySearchInputSchema,
+  calculate_walking_route: modelWalkingRouteInputSchema,
   search_knowledge: searchKnowledgeSchema,
 } as const;
 

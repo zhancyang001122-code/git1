@@ -89,6 +89,23 @@ describe("Task 7 tool schemas", () => {
       }).success,
     ).toBe(true);
     expect(
+      toolInputSchemas.search_products.parse({
+        query: "早餐",
+        category: "早餐",
+        store_id: null,
+        max_price: "30",
+        in_stock_only: "true",
+        limit: "6",
+      }),
+    ).toEqual({
+      query: "早餐",
+      category: "早餐",
+      store_id: null,
+      max_price: 30,
+      in_stock_only: true,
+      limit: 6,
+    });
+    expect(
       toolInputSchemas.get_product_stock.safeParse({
         product_id: "40000000-0000-0000-0000-000000000001",
       }).success,
@@ -157,6 +174,12 @@ describe("Task 7 tool schemas", () => {
         value: ["不吃辣"],
       }).success,
     ).toBe(true);
+    expect(
+      toolInputSchemas.propose_user_preference.parse({
+        key: "dietary_restrictions",
+        value: '["不吃辣"]',
+      }),
+    ).toEqual({ key: "dietary_restrictions", value: ["不吃辣"] });
     expect(
       toolInputSchemas.propose_user_preference.safeParse({
         key: "dietary_restrictions",

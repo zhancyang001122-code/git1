@@ -40,6 +40,7 @@ function contractTool(name) {
 async function forcedToolCall(prompt, tool) {
   const stream = await client.chat.completions.create({
     model,
+    enable_thinking: false,
     stream: true,
     stream_options: { include_usage: true },
     max_tokens: 128,
@@ -68,8 +69,27 @@ async function forcedToolCall(prompt, tool) {
   return JSON.parse(call.arguments);
 }
 
+function normalizedNumber(value) {
+  if (typeof value !== "string") return value;
+  const normalized = value.trim();
+  if (!/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(normalized)) return value;
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : value;
+}
+
+function normalizedStringArray(value) {
+  if (typeof value !== "string") return value;
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : value;
+  } catch {
+    return value;
+  }
+}
+
 const textStream = await client.chat.completions.create({
   model,
+  enable_thinking: false,
   stream: true,
   stream_options: { include_usage: true },
   max_tokens: 32,
@@ -97,6 +117,10 @@ const productArgs = await forcedToolCall(
   "帮我找30元以内有库存的早餐，没有指定门店。",
   contractTool("search_products"),
 );
+const normalizedProductArgs = {
+  ...productArgs,
+  max_price: normalizedNumber(productArgs.max_price),
+};
 const productCategories = new Set([
   "乳品",
   "蛋品",
@@ -110,25 +134,31 @@ const productCategories = new Set([
   "早餐",
 ]);
 if (
-  typeof productArgs.query !== "string" ||
-  productArgs.query.trim().length === 0 ||
-  (productArgs.category !== null &&
-    !productCategories.has(productArgs.category)) ||
-  productArgs.store_id !== null ||
-  productArgs.max_price !== 30 ||
-  productArgs.in_stock_only !== true
+  typeof normalizedProductArgs.query !== "string" ||
+  normalizedProductArgs.query.trim().length === 0 ||
+  (normalizedProductArgs.category !== null &&
+    !productCategories.has(normalizedProductArgs.category)) ||
+  normalizedProductArgs.store_id !== null ||
+  normalizedProductArgs.max_price !== 30 ||
+  normalizedProductArgs.in_stock_only !== true
 ) {
-  throw new Error("Qwen product Function Calling returned invalid filters");
+  throw new Error(
+    `Qwen product Function Calling returned invalid filters: ${JSON.stringify(productArgs)}`,
+  );
 }
 
 const preferenceArgs = await forcedToolCall(
   "请准备一个待用户确认的长期偏好：我不吃辣。",
   contractTool("propose_user_preference"),
 );
+const normalizedPreferenceArgs = {
+  ...preferenceArgs,
+  value: normalizedStringArray(preferenceArgs.value),
+};
 if (
-  preferenceArgs.key !== "dietary_restrictions" ||
-  !Array.isArray(preferenceArgs.value) ||
-  !preferenceArgs.value.includes("不吃辣")
+  normalizedPreferenceArgs.key !== "dietary_restrictions" ||
+  !Array.isArray(normalizedPreferenceArgs.value) ||
+  !normalizedPreferenceArgs.value.includes("不吃辣")
 ) {
   throw new Error("Qwen preference Function Calling returned invalid value");
 }
