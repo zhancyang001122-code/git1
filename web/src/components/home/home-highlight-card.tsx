@@ -10,7 +10,7 @@ export interface HomeHighlightCardProps {
 
 export function HomeHighlightCard({ item }: HomeHighlightCardProps) {
   return (
-    <article className="min-w-0 overflow-hidden rounded-card border border-border bg-surface shadow-card">
+    <article className="glass-panel min-w-0 overflow-hidden rounded-card">
       <div className="relative aspect-[4/3] overflow-hidden bg-surface-tint">
         <Image
           fill

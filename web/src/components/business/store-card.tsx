@@ -12,10 +12,10 @@ export interface StoreCardProps {
 
 export function StoreCard({ eager, store }: StoreCardProps) {
   return (
-    <article className="group overflow-hidden rounded-card border border-border bg-surface shadow-card">
+    <article className="glass-panel group overflow-hidden rounded-card">
       <Link
         href={`/market/stores/${store.id}`}
-        className="grid min-h-32 grid-cols-[104px_1fr] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
+        className="ui-interactive grid min-h-32 grid-cols-[104px_1fr] border border-transparent outline-none"
       >
         <BusinessCardImage
           src={store.imageSrc}

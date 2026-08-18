@@ -3,38 +3,51 @@
 
 :root {
   --brand: #4169f5;
-  --brand-strong: #2548d8;
+  --brand-strong: #3158e6;
   --accent: #7557f6;
-  --brand-soft: #eef2ff;
-  --page: #f7f9fc;
+  --brand-soft: #edf1ff;
+  --page: #f4f6fa;
   --surface: #ffffff;
-  --surface-tint: #f4f7ff;
-  --text: #161a25;
-  --text-muted: #62697a;
-  --text-subtle: #9aa1b2;
-  --border: #e8ecf5;
-  --success: #22b866;
-  --warning: #ff8a34;
-  --danger: #ff4d32;
+  --surface-tint: #eff3fa;
+  --text: #182033;
+  --text-muted: #5f6979;
+  --text-subtle: #8791a2;
+  --border: #d6deeb;
+  --success: #07c160;
+  --warning: #fa9d3b;
+  --danger: #fa5151;
   --radius-tag: 8px;
   --radius-control: 12px;
-  --radius-card: 16px;
-  --radius-feature: 20px;
-  --shadow-card: 0 8px 24px rgb(51 76 145 / 8%);
-  --shadow-floating: 0 10px 30px rgb(65 105 245 / 22%);
+  --radius-card: 12px;
+  --radius-feature: 16px;
+  --shadow-card: 0 8px 24px rgb(57 72 110 / 8%);
+  --shadow-floating: 0 16px 40px rgb(65 78 126 / 16%);
 }
 
-* { box-sizing: border-box; }
-html { background: #eef1f6; }
+* {
+  box-sizing: border-box;
+}
+html {
+  background: #eef1f6;
+}
 body {
   margin: 0;
   color: var(--text);
   background: var(--page);
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
 }
-button, input, textarea { font: inherit; }
-button, a { -webkit-tap-highlight-color: transparent; }
+button,
+input,
+textarea {
+  font: inherit;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
 
 .mobile-canvas {
   width: 100%;

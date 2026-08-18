@@ -52,7 +52,7 @@ export function DetailDemoActions({
         </Button>
         <Link
           href={`/xiaozhi/chat?prompt=${encodeURIComponent(`请帮我分析：${title}`)}&source=${kind}&id=${entityId}`}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-brand bg-surface px-3 text-sm font-semibold text-brand outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          className="glass-control ui-interactive inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-brand px-3 text-sm font-semibold text-brand outline-none"
         >
           <Bot aria-hidden="true" className="size-4" />
           问小智

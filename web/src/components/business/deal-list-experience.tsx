@@ -72,10 +72,10 @@ export function DealListExperience({ deals }: DealListExperienceProps) {
               type="button"
               onClick={() => setCategory(value)}
               className={cn(
-                "min-h-11 shrink-0 rounded-full border px-3 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                "ui-interactive min-h-11 shrink-0 rounded-full border px-3 text-xs font-medium outline-none",
                 category === value
                   ? "border-brand bg-brand text-white"
-                  : "border-border bg-surface text-text-muted",
+                  : "glass-control text-text-muted",
               )}
             >
               {value}
@@ -87,10 +87,10 @@ export function DealListExperience({ deals }: DealListExperienceProps) {
           aria-pressed={refundableOnly}
           onClick={() => setRefundableOnly((value) => !value)}
           className={cn(
-            "min-h-11 rounded-full border px-3 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand",
+            "ui-interactive min-h-11 rounded-full border px-3 text-xs font-medium outline-none",
             refundableOnly
               ? "border-brand bg-brand text-white"
-              : "border-border bg-surface text-text-muted",
+              : "glass-control text-text-muted",
           )}
         >
           仅看可退款
@@ -136,7 +136,7 @@ export function DealListExperience({ deals }: DealListExperienceProps) {
                     </Button>
                     <Link
                       href={`/xiaozhi/chat?prompt=${encodeURIComponent(`这个团购适合我吗：${deal.title}`)}&source=deal&id=${deal.id}`}
-                      className="inline-flex min-h-11 items-center justify-center gap-1 rounded-control bg-brand px-2 text-xs font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                      className="ui-interactive inline-flex min-h-11 items-center justify-center gap-1 rounded-control border border-brand bg-brand px-2 text-xs font-semibold text-white outline-none"
                     >
                       <Bot aria-hidden="true" className="size-4" />
                       问小智

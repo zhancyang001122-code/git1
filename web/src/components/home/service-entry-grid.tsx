@@ -47,7 +47,7 @@ export function ServiceEntryGrid() {
             key={label}
             href={href}
             aria-label={label}
-            className="flex min-h-20 min-w-0 flex-col items-center justify-center rounded-card bg-surface px-1 py-2.5 text-center outline-none transition-colors motion-reduce:transition-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
+            className="glass-panel ui-interactive flex min-h-20 min-w-0 flex-col items-center justify-center rounded-card px-1 py-2.5 text-center outline-none motion-reduce:transition-none hover:bg-brand-soft/70"
           >
             <span className="mb-1.5 inline-flex size-9 items-center justify-center rounded-control bg-brand-soft text-brand">
               <Icon

@@ -24,7 +24,7 @@ export function AppShell({
     <MobileCanvas className="flex flex-col">
       <a
         href="#main-content"
-        className="sr-only z-[60] rounded-control bg-surface px-3 py-2 text-sm text-brand focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:ring-2 focus:ring-brand"
+        className="glass-control ui-interactive sr-only z-[60] rounded-control border px-3 py-2 text-sm text-brand focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
       >
         跳到主要内容
       </a>

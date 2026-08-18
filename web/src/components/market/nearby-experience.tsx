@@ -221,7 +221,7 @@ export function NearbyExperience() {
           type="button"
           onClick={() => void search(location, category)}
           disabled={loading || locating}
-          className="mt-3 min-h-11 w-full rounded-control text-sm font-medium text-brand outline-none hover:bg-white/60 focus-visible:ring-2 focus-visible:ring-brand disabled:opacity-60"
+          className="ui-interactive mt-3 min-h-11 w-full rounded-control border border-transparent text-sm font-medium text-brand outline-none hover:bg-white/60 disabled:opacity-60"
         >
           查询当前地点周边
         </button>
@@ -245,7 +245,7 @@ export function NearbyExperience() {
               key={item}
               onClick={() => void changeCategory(item)}
               aria-pressed={category === item}
-              className={`min-h-11 shrink-0 rounded-full px-4 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand ${category === item ? "bg-brand text-white" : "bg-surface-tint text-text-muted"}`}
+              className={`ui-interactive min-h-11 shrink-0 rounded-full border px-4 text-sm font-medium outline-none ${category === item ? "border-brand bg-brand text-white" : "glass-control text-text-muted"}`}
             >
               {item}
             </button>
@@ -280,7 +280,7 @@ export function NearbyExperience() {
               onClick={() =>
                 void search(lastSearch.location, lastSearch.category)
               }
-              className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-control border border-danger/20 bg-surface px-3 font-medium outline-none focus-visible:ring-2 focus-visible:ring-danger"
+              className="glass-control ui-interactive mt-3 inline-flex min-h-11 items-center gap-2 rounded-control border border-danger/20 px-3 font-medium outline-none"
             >
               <RotateCcw aria-hidden="true" className="size-4" />
               重试周边查询
@@ -313,7 +313,7 @@ export function NearbyExperience() {
               <button
                 type="button"
                 onClick={() => void calculateRoute(place)}
-                className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-control bg-surface-tint text-sm font-medium text-brand outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                className="glass-control ui-interactive mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-control border text-sm font-medium text-brand outline-none"
               >
                 <Navigation className="size-4" />
                 {routes[place.id] ?? "计算步行路线"}

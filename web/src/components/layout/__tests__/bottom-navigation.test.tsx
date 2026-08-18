@@ -44,6 +44,10 @@ describe("BottomNavigation", () => {
 
     expect(navigation).toHaveClass(
       "h-[calc(56px+env(safe-area-inset-bottom))]",
+      "glass-navigation",
+    );
+    expect(screen.getByRole("link", { name: "小智" })).toHaveClass(
+      "ui-interactive",
     );
     expect(xiaozhiIcon).not.toHaveClass("size-16", "-mt-8");
   });

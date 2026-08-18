@@ -29,10 +29,10 @@ const roomTypes = ["全部户型", "一居室", "两居室", "开间", "合租"]
 
 function chipClass(active: boolean) {
   return cn(
-    "min-h-11 shrink-0 rounded-full border px-3 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand",
+    "ui-interactive min-h-11 shrink-0 rounded-full border px-3 text-xs font-medium outline-none",
     active
       ? "border-brand bg-brand text-white"
-      : "border-border bg-surface text-text-muted hover:bg-brand-soft",
+      : "glass-control text-text-muted hover:bg-brand-soft",
   );
 }
 
@@ -101,7 +101,7 @@ export function HouseListExperience({
         <button
           type="button"
           onClick={() => setSheet("filters")}
-          className="flex min-h-11 items-center justify-center gap-2 rounded-control border border-border bg-surface px-3 text-sm font-medium text-text outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          className="glass-control ui-interactive flex min-h-11 items-center justify-center gap-2 rounded-control border px-3 text-sm font-medium text-text outline-none"
         >
           <SlidersHorizontal aria-hidden="true" className="size-4" />
           筛选房源{activeFilterCount ? `（${activeFilterCount}）` : ""}
@@ -109,7 +109,7 @@ export function HouseListExperience({
         <button
           type="button"
           onClick={() => setSheet("sort")}
-          className="flex min-h-11 items-center justify-center gap-2 rounded-control border border-border bg-surface px-3 text-sm font-medium text-text outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          className="glass-control ui-interactive flex min-h-11 items-center justify-center gap-2 rounded-control border px-3 text-sm font-medium text-text outline-none"
         >
           <ArrowUpDown aria-hidden="true" className="size-4" />
           排序：{sortLabels[sort]}
@@ -159,7 +159,7 @@ export function HouseListExperience({
                     </Button>
                     <Link
                       href={`/xiaozhi/chat?prompt=${encodeURIComponent(`帮我分析房源：${house.name}`)}&source=house&id=${house.id}`}
-                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-brand px-3 text-sm font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+                      className="ui-interactive inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-brand bg-brand px-3 text-sm font-semibold text-white outline-none"
                     >
                       <Bot aria-hidden="true" className="size-4" />
                       问小智
@@ -217,7 +217,7 @@ export function HouseListExperience({
         onOpenChange={(open) => setSheet(open ? "sort" : null)}
         title="房源排序"
       >
-        <div className="divide-y divide-border overflow-hidden rounded-card border border-border">
+        <div className="glass-panel divide-y divide-border overflow-hidden rounded-card">
           {(Object.entries(sortLabels) as [HouseSort, string][]).map(
             ([value, label]) => (
               <button
@@ -227,7 +227,7 @@ export function HouseListExperience({
                   setSort(value);
                   setSheet(null);
                 }}
-                className="flex min-h-12 w-full items-center justify-between bg-surface px-4 text-sm text-text outline-none hover:bg-page focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
+                className="ui-interactive flex min-h-12 w-full items-center justify-between border border-transparent bg-transparent px-4 text-sm text-text outline-none hover:bg-brand-soft/60"
               >
                 {label}
                 {sort === value ? (

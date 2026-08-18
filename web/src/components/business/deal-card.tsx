@@ -15,10 +15,10 @@ export interface DealCardProps {
 
 export function DealCard({ actions, deal, eager }: DealCardProps) {
   return (
-    <article className="group overflow-hidden rounded-card border border-border bg-surface shadow-card">
+    <article className="glass-panel group overflow-hidden rounded-card">
       <Link
         href={`/deals/${deal.id}`}
-        className="block outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
+        className="ui-interactive block border border-transparent outline-none"
       >
         <BusinessCardImage
           src={deal.imageSrc}

@@ -42,9 +42,9 @@ export function ActionSheet({
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
-        className="absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-y-auto rounded-t-feature bg-surface pb-[env(safe-area-inset-bottom)] shadow-floating outline-none"
+        className="glass-panel absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-y-auto rounded-t-feature pb-[env(safe-area-inset-bottom)] shadow-floating outline-none"
       >
-        <div className="sticky top-0 flex min-h-14 items-center justify-between border-b border-border bg-surface px-4">
+        <div className="glass-navigation sticky top-0 flex min-h-14 items-center justify-between border-b px-4">
           <div className="min-w-0 pr-3">
             <h2
               id={titleId}
@@ -62,7 +62,7 @@ export function ActionSheet({
             type="button"
             aria-label={`关闭${title}`}
             onClick={close}
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-control text-text-muted outline-none hover:bg-page focus-visible:ring-2 focus-visible:ring-brand"
+            className="ui-interactive inline-flex size-11 shrink-0 items-center justify-center rounded-control border border-transparent text-text-muted outline-none hover:bg-brand-soft"
           >
             <X aria-hidden="true" className="size-5" />
           </button>

@@ -58,7 +58,7 @@ export function CartExperience({ products }: { products: readonly Product[] }) {
               <button
                 aria-label={`减少 ${product.name}`}
                 onClick={() => decrease(product.id)}
-                className="inline-flex size-11 items-center justify-center rounded-full border border-border outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                className="glass-control ui-interactive inline-flex size-11 items-center justify-center rounded-full border outline-none"
               >
                 <Minus className="size-4" />
               </button>
@@ -66,7 +66,7 @@ export function CartExperience({ products }: { products: readonly Product[] }) {
               <button
                 aria-label={`增加 ${product.name}`}
                 onClick={() => add(product.id)}
-                className="inline-flex size-11 items-center justify-center rounded-full border border-border outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                className="glass-control ui-interactive inline-flex size-11 items-center justify-center rounded-full border outline-none"
               >
                 <Plus className="size-4" />
               </button>

@@ -52,7 +52,7 @@ export function XiaozhiWelcomePage() {
   return (
     <AppShell activeNav="xiaozhi" header={<PageHeader title="小智" />}>
       <div className="space-y-4 px-4 py-3">
-        <section className="grid grid-cols-[1fr_88px] items-center gap-3 overflow-hidden rounded-feature bg-gradient-to-br from-brand-soft to-accent/10 p-4">
+        <section className="glass-panel grid grid-cols-[1fr_88px] items-center gap-3 overflow-hidden rounded-feature bg-gradient-to-br from-brand-soft/90 to-accent/10 p-4">
           <div>
             <p className="text-xs font-semibold text-brand">AI 生活助手</p>
             <h2 className="mt-2 text-2xl font-bold leading-8 text-text">
@@ -86,7 +86,7 @@ export function XiaozhiWelcomePage() {
               <Link
                 key={label}
                 href={`/xiaozhi/chat?q=${encodeURIComponent(prompt)}`}
-                className={`flex min-h-20 items-center gap-2.5 rounded-card bg-surface p-3 outline-none transition-colors motion-reduce:transition-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand ${index === tasks.length - 1 ? "col-span-2" : ""}`}
+                className={`glass-panel ui-interactive flex min-h-20 items-center gap-2.5 rounded-card p-3 outline-none motion-reduce:transition-none hover:bg-brand-soft/70 ${index === tasks.length - 1 ? "col-span-2" : ""}`}
               >
                 <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand">
                   <Icon aria-hidden="true" className="size-5" />
@@ -110,7 +110,7 @@ export function XiaozhiWelcomePage() {
               <Link
                 key={question}
                 href={`/xiaozhi/chat?q=${encodeURIComponent(question)}`}
-                className="flex min-h-12 items-center justify-between rounded-control bg-surface px-4 text-sm text-text outline-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
+                className="glass-control ui-interactive flex min-h-12 items-center justify-between rounded-control border px-4 text-sm text-text outline-none hover:bg-brand-soft/70"
               >
                 {question}
                 <span aria-hidden="true">›</span>
@@ -121,7 +121,7 @@ export function XiaozhiWelcomePage() {
 
         <Link
           href="/xiaozhi/chat"
-          className="flex min-h-11 items-center justify-center rounded-control bg-brand px-4 text-sm font-semibold text-white outline-none hover:bg-brand-strong focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+          className="ui-interactive flex min-h-11 items-center justify-center rounded-control border border-brand bg-brand px-4 text-sm font-semibold text-white outline-none hover:bg-brand-strong"
         >
           开始演示对话
         </Link>

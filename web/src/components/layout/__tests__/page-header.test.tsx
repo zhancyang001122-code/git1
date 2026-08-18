@@ -8,6 +8,7 @@ describe("PageHeader", () => {
   it("centers the title and exposes two functional capsule actions", () => {
     render(<PageHeader title="小智" />);
 
+    expect(screen.getByRole("banner")).toHaveClass("glass-navigation");
     expect(screen.getByRole("heading", { name: "小智" })).toHaveClass(
       "text-center",
     );

@@ -6,24 +6,24 @@
   },
   "colors": {
     "brand": "#4169F5",
-    "brandStrong": "#2548D8",
+    "brandStrong": "#3158E6",
     "accent": "#7557F6",
-    "brandSoft": "#EEF2FF",
-    "page": "#F7F9FC",
+    "brandSoft": "#EDF1FF",
+    "page": "#F4F6FA",
     "surface": "#FFFFFF",
-    "surfaceTint": "#F4F7FF",
-    "text": "#161A25",
-    "textMuted": "#62697A",
-    "textSubtle": "#9AA1B2",
-    "border": "#E8ECF5",
-    "success": "#22B866",
-    "warning": "#FF8A34",
-    "danger": "#FF4D32"
+    "surfaceTint": "#EFF3FA",
+    "text": "#182033",
+    "textMuted": "#5F6979",
+    "textSubtle": "#8791A2",
+    "border": "#D6DEEB",
+    "success": "#07C160",
+    "warning": "#FA9D3B",
+    "danger": "#FA5151"
   },
   "typography": {
     "fontFamily": "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif",
     "hero": { "size": 28, "lineHeight": 36, "weight": 700 },
-    "pageTitle": { "size": 24, "lineHeight": 32, "weight": 700 },
+    "pageTitle": { "size": 18, "lineHeight": 26, "weight": 600 },
     "sectionTitle": { "size": 18, "lineHeight": 26, "weight": 600 },
     "cardTitle": { "size": 16, "lineHeight": 24, "weight": 600 },
     "body": { "size": 14, "lineHeight": 22, "weight": 400 },
@@ -33,28 +33,41 @@
   "spacing": {
     "pageX": 16,
     "section": 16,
-    "card": 16,
+    "card": 12,
     "compact": 8,
     "comfortable": 12,
-    "bottomContentPadding": 104
+    "bottomContentPadding": 72
   },
   "radius": {
     "tag": 8,
     "control": 12,
-    "card": 16,
-    "feature": 20,
+    "card": 12,
+    "feature": 16,
     "pill": 999
   },
   "sizes": {
-    "header": 56,
-    "search": 48,
-    "bottomNav": 76,
-    "xiaozhiNavButton": 64,
-    "icon": 24,
+    "header": 48,
+    "search": 44,
+    "bottomNav": 56,
+    "xiaozhiNavButton": 44,
+    "icon": 22,
     "minimumTapTarget": 44
   },
   "shadow": {
-    "card": "0 8px 24px rgba(51, 76, 145, 0.08)",
-    "floating": "0 10px 30px rgba(65, 105, 245, 0.22)"
+    "card": "0 8px 24px rgba(57, 72, 110, 0.08)",
+    "floating": "0 16px 40px rgba(65, 78, 126, 0.16)"
+  },
+  "glass": {
+    "navigationOpacity": 0.82,
+    "panelOpacity": 0.84,
+    "navigationBlurPx": 18,
+    "panelBlurPx": 14,
+    "usage": "Navigation, overlays, AI hero and key status surfaces only"
+  },
+  "interaction": {
+    "durationMs": 180,
+    "pressedScale": 0.985,
+    "border": "rgba(85, 112, 238, 0.42)",
+    "ring": "rgba(65, 105, 245, 0.18)"
   }
 }

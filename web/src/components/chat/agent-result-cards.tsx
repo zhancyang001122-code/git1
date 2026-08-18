@@ -104,14 +104,14 @@ function HouseResult({ data }: { data: z.infer<typeof houseSchema> }) {
   );
   if (data.detailAvailable === false) {
     return (
-      <article className="rounded-card border border-border bg-surface p-4 shadow-card">
+      <article className="glass-panel rounded-card p-4">
         {content}
         {data.sourceUrl ? (
           <a
             href={data.sourceUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-3 inline-flex text-xs font-medium text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            className="ui-interactive mt-3 inline-flex min-h-11 items-center rounded-control border border-transparent px-2 text-xs font-medium text-brand underline-offset-4 hover:bg-brand-soft hover:underline focus-visible:outline-none"
           >
             查看历史来源
           </a>
@@ -123,7 +123,7 @@ function HouseResult({ data }: { data: z.infer<typeof houseSchema> }) {
     <Link
       href={`/houses/${data.id}`}
       aria-label={`查看房源 ${data.name}`}
-      className="block rounded-card border border-border bg-surface p-4 shadow-card outline-none focus-visible:ring-2 focus-visible:ring-brand"
+      className="glass-panel ui-interactive block rounded-card p-4 outline-none"
     >
       {content}
     </Link>
@@ -135,7 +135,7 @@ function DealResult({ data }: { data: z.infer<typeof dealSchema> }) {
     <Link
       href={`/deals/${data.id}`}
       aria-label={`查看团购 ${data.title}`}
-      className="block rounded-card border border-border bg-surface p-4 shadow-card outline-none focus-visible:ring-2 focus-visible:ring-brand"
+      className="glass-panel ui-interactive block rounded-card p-4 outline-none"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -166,7 +166,7 @@ function ProductResult({ data }: { data: z.infer<typeof productSchema> }) {
     <Link
       href={`/market/products/${data.id}`}
       aria-label={`查看商品 ${data.name}`}
-      className="block rounded-card border border-border bg-surface p-4 shadow-card outline-none focus-visible:ring-2 focus-visible:ring-brand"
+      className="glass-panel ui-interactive block rounded-card p-4 outline-none"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -200,7 +200,7 @@ function ProductResult({ data }: { data: z.infer<typeof productSchema> }) {
 
 function PlaceResult({ data }: { data: z.infer<typeof placeSchema> }) {
   return (
-    <article className="rounded-card border border-border bg-surface p-4 shadow-card">
+    <article className="glass-panel rounded-card p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Tag>{data.category}</Tag>
@@ -312,7 +312,7 @@ function PreferenceProposalResult({
   }
 
   return (
-    <article className="rounded-card border border-brand/20 bg-surface p-4 shadow-card">
+    <article className="glass-panel rounded-card border-brand/20 p-4">
       <div className="flex items-start gap-3">
         <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
           <ShieldQuestion aria-hidden="true" className="size-5" />

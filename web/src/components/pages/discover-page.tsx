@@ -80,7 +80,7 @@ export function DiscoverPage({
               key={item}
               type="button"
               aria-pressed={category === item}
-              className={`min-h-11 shrink-0 rounded-full px-4 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-brand ${category === item ? "bg-brand text-white" : "border border-border bg-surface text-text-muted"}`}
+              className={`ui-interactive min-h-11 shrink-0 rounded-full border px-4 text-xs font-medium outline-none ${category === item ? "border-brand bg-brand text-white" : "glass-control text-text-muted"}`}
               onClick={() => setCategory(item)}
             >
               {item}
@@ -111,7 +111,7 @@ export function DiscoverPage({
                     <button
                       type="button"
                       aria-label={`${favorite ? "取消收藏" : "收藏"} ${post.title}`}
-                      className="inline-flex min-h-11 items-center gap-1 rounded-control px-2 text-xs text-text-muted outline-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
+                      className="ui-interactive inline-flex min-h-11 items-center gap-1 rounded-control border border-transparent px-2 text-xs text-text-muted outline-none hover:bg-brand-soft"
                       onClick={() => toggleFavorite(post.id)}
                     >
                       <Heart
@@ -123,7 +123,7 @@ export function DiscoverPage({
                     <Link
                       href={`/xiaozhi/chat?source=community_post&id=${post.id}`}
                       aria-label={`问问小智 ${post.title}`}
-                      className="inline-flex min-h-11 items-center gap-1 rounded-control px-2 text-xs font-medium text-brand outline-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
+                      className="ui-interactive inline-flex min-h-11 items-center gap-1 rounded-control border border-transparent px-2 text-xs font-medium text-brand outline-none hover:bg-brand-soft"
                     >
                       <Bot aria-hidden="true" className="size-4" />
                       问小智

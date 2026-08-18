@@ -11,7 +11,7 @@ export function MobileCanvas({ children, className }: MobileCanvasProps) {
   return (
     <div
       className={cn(
-        "relative mx-auto min-h-dvh w-full max-w-[430px] overflow-x-clip bg-page shadow-canvas",
+        "mobile-canvas-shell relative mx-auto min-h-dvh w-full max-w-[430px] overflow-x-clip bg-page shadow-canvas",
         className,
       )}
     >

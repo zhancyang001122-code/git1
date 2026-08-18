@@ -15,10 +15,10 @@ export interface HouseCardProps {
 
 export function HouseCard({ actions, eager, house }: HouseCardProps) {
   return (
-    <article className="group overflow-hidden rounded-card border border-border bg-surface shadow-card">
+    <article className="glass-panel group overflow-hidden rounded-card">
       <Link
         href={`/houses/${house.id}`}
-        className="grid min-h-40 grid-cols-[116px_1fr] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
+        className="ui-interactive grid min-h-40 grid-cols-[116px_1fr] border border-transparent outline-none"
       >
         <BusinessCardImage
           src={house.imageSrc}

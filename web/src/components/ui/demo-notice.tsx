@@ -13,7 +13,7 @@ export function DemoNotice({ children, className }: DemoNoticeProps) {
     <div
       role="status"
       className={cn(
-        "flex items-start gap-2 rounded-control border-l-4 border-brand bg-surface px-3 py-2.5 text-sm leading-5 text-text-muted",
+        "glass-control flex items-start gap-2 rounded-control border border-l-[3px] border-brand/35 border-l-brand px-3 py-2.5 text-sm leading-5 text-text-muted shadow-card",
         className,
       )}
     >

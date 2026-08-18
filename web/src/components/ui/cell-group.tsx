@@ -18,7 +18,7 @@ export function CellGroup({ title, children, className }: CellGroupProps) {
       className={cn("space-y-2", className)}
     >
       <h2 className="px-1 text-sm font-medium text-text-muted">{title}</h2>
-      <div className="divide-y divide-border overflow-hidden rounded-card bg-surface">
+      <div className="glass-panel divide-y divide-border overflow-hidden rounded-card">
         {children}
       </div>
     </section>
@@ -79,7 +79,7 @@ export function Cell({
     </>
   );
   const className =
-    "flex min-h-14 w-full items-center gap-3 bg-surface px-4 py-2.5 outline-none transition-colors motion-reduce:transition-none hover:bg-page focus-visible:bg-brand-soft focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand";
+    "ui-interactive flex min-h-14 w-full items-center gap-3 border border-transparent bg-transparent px-4 py-2.5 outline-none motion-reduce:transition-none hover:bg-brand-soft/60";
 
   if (href)
     return (

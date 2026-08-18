@@ -40,7 +40,7 @@ export function BottomNavigation({ active }: BottomNavigationProps) {
   return (
     <nav
       aria-label="主导航"
-      className="fixed bottom-0 left-1/2 z-50 grid h-[calc(56px+env(safe-area-inset-bottom))] w-full max-w-[430px] -translate-x-1/2 grid-cols-5 border-t border-border bg-white px-1 pb-[env(safe-area-inset-bottom)] shadow-nav"
+      className="glass-navigation fixed bottom-0 left-1/2 z-50 grid h-[calc(56px+env(safe-area-inset-bottom))] w-full max-w-[430px] -translate-x-1/2 grid-cols-5 border-t px-1 pb-[env(safe-area-inset-bottom)]"
     >
       {navigationItems.map((item) => {
         const Icon = item.icon;
@@ -52,8 +52,8 @@ export function BottomNavigation({ active }: BottomNavigationProps) {
             href={item.href}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "relative flex h-14 min-h-11 min-w-11 flex-col items-center justify-center gap-0.5 rounded-control text-xs font-medium text-text-muted outline-none transition-colors motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset",
-              isActive && "text-brand",
+              "ui-interactive relative flex h-14 min-h-11 min-w-11 flex-col items-center justify-center gap-0.5 rounded-control border border-transparent text-xs font-medium text-text-muted outline-none motion-reduce:transition-none",
+              isActive && "border-brand/15 bg-brand-soft/70 text-brand",
             )}
           >
             <span

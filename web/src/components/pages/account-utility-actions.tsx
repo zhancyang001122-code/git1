@@ -43,7 +43,7 @@ export function AccountUtilityActions({
         <button
           type="button"
           onClick={() => setNotice(notices.help)}
-          className="flex min-h-12 items-center justify-center gap-2 rounded-control border border-border bg-surface text-sm text-text-muted outline-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
+          className="glass-control ui-interactive flex min-h-12 items-center justify-center gap-2 rounded-control border text-sm text-text-muted outline-none hover:bg-brand-soft"
         >
           <HelpCircle aria-hidden="true" className="size-4" />
           帮助
@@ -51,7 +51,7 @@ export function AccountUtilityActions({
         <button
           type="button"
           onClick={() => setNotice(notices.settings)}
-          className="flex min-h-12 items-center justify-center gap-2 rounded-control border border-border bg-surface text-sm text-text-muted outline-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
+          className="glass-control ui-interactive flex min-h-12 items-center justify-center gap-2 rounded-control border text-sm text-text-muted outline-none hover:bg-brand-soft"
         >
           <Settings aria-hidden="true" className="size-4" />
           设置

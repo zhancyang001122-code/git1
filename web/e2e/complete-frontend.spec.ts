@@ -101,11 +101,14 @@ test("chat executes the housing tool and renders typed cards", async ({
     ),
   ).toBeVisible();
   await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
-    "正在查询房源",
+    "正在查询周边地点",
   );
   await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
     "已完成",
   );
+  await expect(
+    page.getByRole("region", { name: "处理进度" }),
+  ).not.toContainText("正在查询房源");
   await expect(
     page.getByRole("link", { name: /查看房源 武林晴川一居室/ }),
   ).toBeVisible();
@@ -122,11 +125,11 @@ test("chat resolves exact demo stock without exposing internal tool names", asyn
   ).toBeVisible();
   await expect(page.getByText("演示库存 30")).toBeVisible();
   await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
-    "正在查询商品",
-  );
-  await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
     "正在核对商品库存",
   );
+  await expect(
+    page.getByRole("region", { name: "处理进度" }),
+  ).not.toContainText("正在查询商品");
   await page.getByText("调试摘要", { exact: true }).click();
   await expect(
     page.getByText("工具已执行；内部调试摘要未开启。"),
@@ -193,11 +196,11 @@ test("chat composes housing and AMap tools without inventing current availabilit
   );
   await page.getByRole("button", { name: "发送" }).click();
   await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
-    "正在查询房源",
-  );
-  await expect(page.getByRole("region", { name: "处理进度" })).toContainText(
     "正在查询周边地点",
   );
+  await expect(
+    page.getByRole("region", { name: "处理进度" }),
+  ).not.toContainText("正在查询房源");
   await expect(page.getByText("武林生活超市（演示）")).toBeVisible();
   await expect(page.locator("body")).toContainText(
     "房源卡可能来自 2024-11 历史库或演示数据",
@@ -213,9 +216,9 @@ test("chat explains the full housing, nearby and demo-knowledge chain", async ({
   await page.getByRole("button", { name: "发送" }).click();
 
   const progress = page.getByRole("region", { name: "处理进度" });
-  await expect(progress).toContainText("正在查询房源");
-  await expect(progress).toContainText("正在查询周边地点");
   await expect(progress).toContainText("正在检索知识依据");
+  await expect(progress).not.toContainText("正在查询房源");
+  await expect(progress).not.toContainText("正在查询周边地点");
   await expect(
     page.getByText(/房源、周边和规则三项查询已按顺序完成/),
   ).toBeVisible();

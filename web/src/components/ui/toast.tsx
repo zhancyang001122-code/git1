@@ -49,7 +49,7 @@ export function Toast({
         type="button"
         aria-label="关闭提示"
         onClick={() => onOpenChange(false)}
-        className="inline-flex size-11 shrink-0 items-center justify-center rounded-control outline-none focus-visible:ring-2 focus-visible:ring-white"
+        className="ui-interactive inline-flex size-11 shrink-0 items-center justify-center rounded-control border border-transparent outline-none focus-visible:ring-white"
       >
         <X aria-hidden="true" className="size-4" />
       </button>

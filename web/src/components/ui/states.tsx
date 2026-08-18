@@ -19,7 +19,7 @@ export function LoadingState({
     <div
       role="status"
       className={cn(
-        "flex min-h-32 flex-col items-center justify-center gap-3 rounded-card border border-border bg-surface p-6 text-center text-sm text-text-muted",
+        "glass-panel flex min-h-32 flex-col items-center justify-center gap-3 rounded-card p-6 text-center text-sm text-text-muted",
         className,
       )}
     >
@@ -48,7 +48,7 @@ export function EmptyState({
   return (
     <section
       className={cn(
-        "flex min-h-44 flex-col items-center justify-center rounded-card border border-dashed border-border bg-surface px-6 py-8 text-center",
+        "glass-panel flex min-h-44 flex-col items-center justify-center rounded-card border-dashed px-6 py-8 text-center",
         className,
       )}
     >
@@ -81,7 +81,7 @@ export function ErrorState({
     <section
       role="alert"
       className={cn(
-        "rounded-card border border-danger/15 bg-surface p-5 text-center shadow-card",
+        "glass-panel rounded-card border-danger/20 p-5 text-center",
         className,
       )}
     >

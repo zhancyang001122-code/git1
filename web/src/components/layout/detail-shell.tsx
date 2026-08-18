@@ -22,7 +22,7 @@ export function DetailShell({
     <Link
       href={backHref}
       aria-label="返回"
-      className="-ml-2 inline-flex size-11 items-center justify-center rounded-control text-text outline-none transition-colors motion-reduce:transition-none hover:bg-page focus-visible:ring-2 focus-visible:ring-brand"
+      className="ui-interactive -ml-2 inline-flex size-11 items-center justify-center rounded-control border border-transparent text-text outline-none motion-reduce:transition-none hover:bg-brand-soft"
     >
       <ArrowLeft aria-hidden="true" className="size-5" strokeWidth={2.2} />
     </Link>

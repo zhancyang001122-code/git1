@@ -23,3 +23,41 @@ for (const width of [360, 390, 430]) {
     expect(sizes.documentWidth).toBeLessThanOrEqual(sizes.viewportWidth);
   });
 }
+
+test("shared glass surfaces and focus feedback use the unified visual system", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/xiaozhi");
+
+  const canvas = page.locator(".mobile-canvas-shell");
+  const header = page.getByRole("banner");
+  const navigation = page.getByRole("navigation", { name: "主导航" });
+  const task = page.getByRole("link", { name: /找预算内一居室/ });
+
+  await expect(canvas).toBeVisible();
+  await expect(header).toHaveClass(/glass-navigation/);
+  await expect(navigation).toHaveClass(/glass-navigation/);
+  await expect(task).toHaveClass(/ui-interactive/);
+
+  const visualStyles = await page.evaluate(() => {
+    const canvasElement = document.querySelector<HTMLElement>(
+      ".mobile-canvas-shell",
+    );
+    const headerElement = document.querySelector<HTMLElement>("header");
+    if (!canvasElement || !headerElement) return null;
+    return {
+      canvasBackground: getComputedStyle(canvasElement).backgroundImage,
+      headerBackdrop: getComputedStyle(headerElement).backdropFilter,
+    };
+  });
+  expect(visualStyles).not.toBeNull();
+  expect(visualStyles!.canvasBackground).not.toBe("none");
+  expect(visualStyles!.headerBackdrop).toContain("blur");
+
+  await task.focus();
+  const focusShadow = await task.evaluate(
+    (element) => getComputedStyle(element).boxShadow,
+  );
+  expect(focusShadow).not.toBe("none");
+});

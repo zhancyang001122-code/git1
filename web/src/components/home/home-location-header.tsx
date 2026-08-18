@@ -16,7 +16,7 @@ export function HomeLocationHeader() {
         type="button"
         aria-label={`选择位置：${location.city} · ${location.name}`}
         onClick={() => setOpen(true)}
-        className="flex min-h-12 w-full items-center justify-between gap-3 rounded-control px-1 text-left outline-none hover:bg-brand-soft focus-visible:ring-2 focus-visible:ring-brand"
+        className="glass-control ui-interactive flex min-h-12 w-full items-center justify-between gap-3 rounded-control border px-2 text-left outline-none hover:bg-brand-soft/70"
       >
         <span className="flex min-w-0 items-center gap-2">
           <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand">

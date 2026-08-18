@@ -32,9 +32,9 @@ test("the interview multi-tool scenario exposes progress and provenance", async 
   await page.getByRole("button", { name: "发送" }).click();
 
   const progress = page.getByRole("region", { name: "处理进度" });
-  await expect(progress).toContainText("正在查询房源");
-  await expect(progress).toContainText("正在查询周边地点");
   await expect(progress).toContainText("正在检索知识依据");
+  await expect(progress).not.toContainText("正在查询房源");
+  await expect(progress).not.toContainText("正在查询周边地点");
   await expect(page.getByRole("region", { name: "知识引用" })).toBeVisible();
   await expect(page.getByText("工具：search_houses")).toBeVisible();
   await expect(page.getByText("工具：search_nearby_places")).toBeVisible();

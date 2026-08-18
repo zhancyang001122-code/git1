@@ -24,10 +24,7 @@ export function KnowledgeCitationList({
   if (citations.length === 0) return null;
 
   return (
-    <section
-      aria-label="知识引用"
-      className="rounded-card border border-border bg-surface p-4 shadow-card"
-    >
+    <section aria-label="知识引用" className="glass-panel rounded-card p-4">
       <h2 className="flex items-center gap-2 text-sm font-semibold text-text">
         <BookOpenText aria-hidden="true" className="size-4 text-brand" />
         回答依据
@@ -36,7 +33,7 @@ export function KnowledgeCitationList({
         {citations.map((citation) => (
           <article
             key={citation.chunkId}
-            className="rounded-control bg-page p-3"
+            className="glass-control rounded-control border p-3"
           >
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-sm font-medium text-text">

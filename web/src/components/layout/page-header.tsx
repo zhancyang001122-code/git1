@@ -10,7 +10,7 @@ export interface PageHeaderProps {
 
 export function PageHeader({ title, leading, actions }: PageHeaderProps) {
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface pt-[env(safe-area-inset-top)]">
+    <header className="glass-navigation sticky top-0 z-40 border-b pt-[env(safe-area-inset-top)]">
       <div className="grid h-12 grid-cols-[84px_minmax(0,1fr)_84px] items-center gap-2 px-3">
         <div className="flex min-w-0 items-center">{leading}</div>
         <h1 className="truncate text-center text-lg font-semibold text-text">

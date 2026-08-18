@@ -54,7 +54,7 @@ export function SearchBar({
       method={action ? "get" : undefined}
       aria-busy={loading}
       className={cn(
-        "flex h-11 items-center gap-2 rounded-control border border-border bg-surface pl-3 shadow-card transition-colors motion-reduce:transition-none focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15",
+        "glass-control flex h-11 items-center gap-2 rounded-control border pl-3 shadow-card transition-colors motion-reduce:transition-none focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15",
         className,
       )}
       onSubmit={handleSubmit}
@@ -82,7 +82,7 @@ export function SearchBar({
         type="submit"
         aria-label={submitLabel}
         disabled={unavailable || value.trim().length === 0}
-        className="inline-flex size-11 shrink-0 items-center justify-center rounded-r-control bg-brand text-white outline-none transition-colors motion-reduce:transition-none hover:bg-brand-strong focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50"
+        className="ui-interactive inline-flex size-11 shrink-0 items-center justify-center rounded-r-control border border-brand bg-brand text-white outline-none motion-reduce:transition-none hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading ? (
           <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />

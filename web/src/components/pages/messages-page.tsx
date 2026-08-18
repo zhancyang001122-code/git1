@@ -37,14 +37,14 @@ export function MessagesPage() {
       <div className="space-y-4 py-4">
         <div
           aria-label="消息分类"
-          className="grid grid-cols-4 border-b border-border bg-surface px-4"
+          className="glass-navigation grid grid-cols-4 border-b px-4"
         >
           {tabs.map(({ key, label }) => (
             <button
               key={key}
               type="button"
               aria-pressed={tab === key}
-              className={`relative min-h-11 text-sm font-medium outline-none after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand ${tab === key ? "text-brand after:bg-brand" : "text-text-muted after:bg-transparent"}`}
+              className={`ui-interactive relative min-h-11 rounded-t-control border border-transparent text-sm font-medium outline-none after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full ${tab === key ? "bg-brand-soft/55 text-brand after:bg-brand" : "text-text-muted after:bg-transparent"}`}
               onClick={() => setTab(key)}
             >
               {label}
@@ -54,7 +54,7 @@ export function MessagesPage() {
 
         <section
           aria-label="消息列表"
-          className="mx-4 divide-y divide-border overflow-hidden rounded-card bg-surface"
+          className="glass-panel mx-4 divide-y divide-border overflow-hidden rounded-card"
         >
           {messages.map((message) => {
             const Icon = messageIcons[message.category];

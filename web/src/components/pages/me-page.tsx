@@ -82,7 +82,7 @@ export function MePage({
   return (
     <AppShell activeNav="me" header={<PageHeader title="我的" />}>
       <div className="space-y-4 px-4 py-4">
-        <section className="overflow-hidden rounded-feature bg-gradient-to-br from-brand-soft to-accent/10 p-4">
+        <section className="glass-panel overflow-hidden rounded-feature bg-gradient-to-br from-brand-soft/90 to-accent/10 p-4">
           <div className="flex items-center gap-4">
             <div className="relative size-14 overflow-hidden rounded-full bg-white">
               <Image
@@ -110,7 +110,7 @@ export function MePage({
                 key={label}
                 href={href}
                 aria-label={`${label} ${value}`}
-                className="flex min-h-16 flex-col items-center justify-center rounded-control px-1 text-center outline-none hover:bg-white/60 focus-visible:ring-2 focus-visible:ring-brand"
+                className="ui-interactive flex min-h-16 flex-col items-center justify-center rounded-control border border-transparent px-1 text-center outline-none hover:bg-white/60"
               >
                 <Icon aria-hidden="true" className="size-4 text-brand" />
                 <strong className="mt-1 text-base text-text">{value}</strong>
@@ -135,7 +135,7 @@ export function MePage({
               管理偏好
             </Link>
           </div>
-          <div className="grid grid-cols-2 divide-x divide-y divide-border overflow-hidden rounded-card bg-surface">
+          <div className="glass-panel grid grid-cols-2 divide-x divide-y divide-border overflow-hidden rounded-card">
             <p className="p-4 text-sm text-text-muted">
               预算上限
               <br />

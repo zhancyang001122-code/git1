@@ -406,7 +406,7 @@ export function KnowledgeAdminList({
             <article key={candidate.id} className="bg-surface">
               <Link
                 href={`/knowledge-admin/${candidate.id}`}
-                className="flex min-h-20 items-center gap-3 p-4 outline-none hover:bg-page focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
+                className="ui-interactive flex min-h-20 items-center gap-3 border border-transparent p-4 outline-none hover:bg-brand-soft/60"
               >
                 <span className="inline-flex size-10 items-center justify-center rounded-control bg-brand-soft text-brand">
                   <ShieldCheck className="size-5" />

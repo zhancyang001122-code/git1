@@ -19,7 +19,7 @@ function progress(overrides: Partial<PublicToolProgress>): PublicToolProgress {
 }
 
 describe("AgentProgressList", () => {
-  it("keeps completed public steps visible without exposing tool names", () => {
+  it("replaces old public steps with the latest status without exposing tool names", () => {
     render(
       <AgentProgressList
         items={[
@@ -38,11 +38,30 @@ describe("AgentProgressList", () => {
     expect(
       screen.getByRole("region", { name: "处理进度" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("正在查询房源")).toBeInTheDocument();
+    expect(screen.queryByText("正在查询房源")).not.toBeInTheDocument();
     expect(screen.getByText("正在核对商品库存")).toBeInTheDocument();
-    expect(screen.getByText("已完成")).toBeInTheDocument();
     expect(screen.getByText("处理中")).toBeInTheDocument();
+    expect(screen.getByTestId("streaming-ellipsis").children).toHaveLength(3);
     expect(screen.queryByText("search_houses")).not.toBeInTheDocument();
+  });
+
+  it("shows the last completed step in the same fixed status window", () => {
+    render(
+      <AgentProgressList
+        items={[
+          progress({}),
+          progress({
+            id: "step-2",
+            label: "正在检索知识依据",
+            source: "knowledge_base",
+          }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("正在检索知识依据")).toBeInTheDocument();
+    expect(screen.getByText("已完成")).toBeInTheDocument();
+    expect(screen.queryByTestId("streaming-ellipsis")).not.toBeInTheDocument();
   });
 
   it("renders nothing when no tool step exists", () => {

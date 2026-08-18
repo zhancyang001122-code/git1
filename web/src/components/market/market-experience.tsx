@@ -68,7 +68,7 @@ export function MarketExperience({
             key={value}
             type="button"
             onClick={() => setCategory(value)}
-            className={`min-h-11 shrink-0 rounded-full border px-3 text-xs outline-none focus-visible:ring-2 focus-visible:ring-brand ${category === value ? "border-brand bg-brand text-white" : "border-border bg-surface text-text-muted"}`}
+            className={`ui-interactive min-h-11 shrink-0 rounded-full border px-3 text-xs outline-none ${category === value ? "border-brand bg-brand text-white" : "glass-control text-text-muted"}`}
           >
             {value}
           </button>

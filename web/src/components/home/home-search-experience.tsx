@@ -45,7 +45,7 @@ export function HomeSearchExperience() {
           <button
             key={prompt}
             type="button"
-            className="inline-flex min-h-11 items-center rounded-full border border-border bg-surface px-3 text-xs font-medium text-text-muted outline-none transition-colors motion-reduce:transition-none hover:border-brand/30 hover:bg-brand-soft hover:text-brand focus-visible:ring-2 focus-visible:ring-brand"
+            className="glass-control ui-interactive inline-flex min-h-11 items-center rounded-full border px-3 text-xs font-medium text-text-muted outline-none motion-reduce:transition-none hover:bg-brand-soft hover:text-brand"
             onClick={() => choosePrompt(prompt)}
           >
             {prompt}

@@ -7,7 +7,7 @@ export function XiaozhiHero() {
   return (
     <section
       aria-labelledby="xiaozhi-home-title"
-      className="relative overflow-hidden rounded-feature bg-gradient-to-br from-brand-soft to-accent/10 p-4"
+      className="glass-panel relative overflow-hidden rounded-feature bg-gradient-to-br from-brand-soft/90 to-accent/10 p-4"
     >
       <div
         aria-hidden="true"

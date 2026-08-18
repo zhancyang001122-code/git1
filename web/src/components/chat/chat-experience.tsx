@@ -182,14 +182,14 @@ export function ChatExperience({
   const progressItems = Object.values(stream.progress);
 
   return (
-    <div className="flex min-h-[calc(100dvh-48px)] flex-col bg-page">
+    <div className="flex min-h-[calc(100dvh-48px)] flex-col bg-transparent">
       <div className="flex-1 space-y-4 px-4 py-3">
         <DemoNotice>
           回答通过服务端流式 API 生成；当前查询位置为{" "}
           {selectedLocationLabel(location)}。明确输入其他地点时，以问题为准。
         </DemoNotice>
         {messages.length === 0 && !running ? (
-          <section className="rounded-feature bg-brand-soft p-5 text-center">
+          <section className="glass-panel rounded-feature bg-brand-soft/70 p-5 text-center">
             <Bot className="mx-auto size-8 text-brand" />
             <h2 className="mt-3 text-lg font-semibold text-text">
               从一个真实需求开始
@@ -215,7 +215,7 @@ export function ChatExperience({
                 )}
               </span>
               <div
-                className={`max-w-[82%] px-4 py-2.5 text-sm leading-6 shadow-card ${message.role === "user" ? "rounded-[12px_4px_12px_12px] bg-brand text-white" : "rounded-[4px_12px_12px_12px] bg-surface text-text"}`}
+                className={`max-w-[82%] px-4 py-2.5 text-sm leading-6 ${message.role === "user" ? "rounded-[12px_4px_12px_12px] bg-brand text-white shadow-card" : "glass-panel rounded-[4px_12px_12px_12px] text-text"}`}
               >
                 <p className="whitespace-pre-wrap">{message.text}</p>
                 {message.role === "assistant" ? (
@@ -226,7 +226,7 @@ export function ChatExperience({
                       onClick={() =>
                         void submitFeedback(message.id, message.sessionId, "up")
                       }
-                      className="p-2 text-text-muted"
+                      className="ui-interactive inline-flex size-11 items-center justify-center rounded-control border border-transparent text-text-muted hover:bg-brand-soft hover:text-brand"
                     >
                       <ThumbsUp className="size-4" />
                     </button>
@@ -240,13 +240,13 @@ export function ChatExperience({
                           "down",
                         )
                       }
-                      className="p-2 text-text-muted"
+                      className="ui-interactive inline-flex size-11 items-center justify-center rounded-control border border-transparent text-text-muted hover:bg-brand-soft hover:text-brand"
                     >
                       <ThumbsDown className="size-4" />
                     </button>
                     <Link
                       href="/me/feedback"
-                      className="self-center text-xs text-brand"
+                      className="ui-interactive inline-flex min-h-11 items-center rounded-control border border-transparent px-2 text-xs text-brand hover:bg-brand-soft"
                     >
                       知识纠错
                     </Link>
@@ -260,7 +260,7 @@ export function ChatExperience({
               <span className="mt-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
                 <Bot className="size-4" />
               </span>
-              <div className="max-w-[82%] rounded-[4px_12px_12px_12px] bg-surface px-4 py-2.5 text-sm leading-6 text-text shadow-card">
+              <div className="glass-panel max-w-[82%] rounded-[4px_12px_12px_12px] px-4 py-2.5 text-sm leading-6 text-text">
                 <p className="whitespace-pre-wrap">{stream.assistantText}</p>
                 <span className="ml-1 inline-block h-4 w-0.5 animate-pulse bg-brand" />
               </div>
@@ -273,11 +273,15 @@ export function ChatExperience({
         {running && progressItems.length === 0 ? (
           <div
             role="status"
-            className="rounded-card border border-brand/20 bg-surface p-4"
+            className="glass-panel h-[108px] overflow-hidden rounded-card p-4"
           >
-            <p className="flex items-center gap-2 text-sm font-medium text-text">
-              <span className="size-2 animate-pulse rounded-full bg-brand" />
+            <p className="flex items-center text-sm font-medium text-text">
               正在生成回答
+              <span aria-hidden="true" className="ml-1 inline-flex gap-0.5">
+                <span className="status-dot size-1 rounded-full bg-brand" />
+                <span className="status-dot size-1 rounded-full bg-brand" />
+                <span className="status-dot size-1 rounded-full bg-brand" />
+              </span>
             </p>
             <p className="mt-2 text-xs text-text-subtle">
               关闭页面或点击取消会中止本轮请求
@@ -326,7 +330,7 @@ export function ChatExperience({
             {conversationId ? (
               <Link
                 href="/xiaozhi/chat"
-                className="inline-flex min-h-11 items-center rounded-control px-3 text-sm font-semibold text-brand"
+                className="ui-interactive inline-flex min-h-11 items-center rounded-control border border-transparent px-3 text-sm font-semibold text-brand hover:bg-brand-soft"
               >
                 新对话
               </Link>
@@ -339,7 +343,7 @@ export function ChatExperience({
         ) : null}
         <details
           open={initialContext.debug}
-          className="rounded-card border border-border bg-surface p-4 text-xs text-text-muted"
+          className="glass-panel rounded-card p-4 text-xs text-text-muted"
         >
           <summary className="flex cursor-pointer items-center gap-2 font-semibold text-text">
             <Bug className="size-4" />
@@ -367,7 +371,7 @@ export function ChatExperience({
       </div>
       <form
         onSubmit={submit}
-        className="sticky bottom-0 border-t border-border bg-surface p-2.5 pb-[calc(10px+env(safe-area-inset-bottom))]"
+        className="glass-navigation sticky bottom-0 border-t p-2.5 pb-[calc(10px+env(safe-area-inset-bottom))]"
       >
         <label htmlFor="chat-input" className="sr-only">
           输入消息
@@ -380,7 +384,7 @@ export function ChatExperience({
             rows={1}
             maxLength={4_000}
             placeholder="问问小智……"
-            className="min-h-11 flex-1 resize-none rounded-control border border-border bg-page px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand"
+            className="glass-control min-h-11 flex-1 resize-none rounded-control border px-3 py-2.5 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
           />
           {running ? (
             <Button

@@ -19,12 +19,24 @@ describe("common controls", () => {
 
     expect(ref.current).toBe(screen.getByRole("button", { name: "提交" }));
     expect(ref.current).toBeDisabled();
+    expect(ref.current).toHaveClass("ui-interactive");
+  });
+
+  it("uses the shared glass control treatment for secondary actions", () => {
+    render(<Button variant="secondary">查看详情</Button>);
+
+    expect(screen.getByRole("button", { name: "查看详情" })).toHaveClass(
+      "glass-control",
+      "ui-interactive",
+    );
   });
 
   it("gives icon-only actions an accessible name", () => {
     render(<IconButton label="收藏">+</IconButton>);
 
-    expect(screen.getByRole("button", { name: "收藏" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "收藏" })).toHaveClass(
+      "ui-interactive",
+    );
   });
 
   it("submits a trimmed controlled search value by keyboard", () => {
