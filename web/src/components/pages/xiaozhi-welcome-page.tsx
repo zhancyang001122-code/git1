@@ -34,7 +34,7 @@ const staticTasks = [
   },
 ] as const;
 
-export function XiaozhiWelcomePage() {
+export function XiaozhiWelcomePage({ mode }: { mode: "demo" | "live" }) {
   const { location } = useSelectedLocation();
   const tasks = [
     {
@@ -75,8 +75,9 @@ export function XiaozhiWelcomePage() {
         </section>
 
         <DemoNotice>
-          当前为可验证演示模式：对话会调用本地确定性工具；配置密钥后可切换真实千问、高德和
-          Supabase。
+          {mode === "demo"
+            ? "当前为可验证演示模式：对话使用本地确定性工具，不会伪装成已连接外部服务。"
+            : "当前为 Live 作品集：房源、高德与千问/RAG 已接入真实服务；团购和线上超市仍为明确标注的演示数据。"}
         </DemoNotice>
 
         <section aria-labelledby="xiaozhi-tasks" className="space-y-3">
@@ -123,7 +124,7 @@ export function XiaozhiWelcomePage() {
           href="/xiaozhi/chat"
           className="ui-interactive flex min-h-11 items-center justify-center rounded-control border border-brand bg-brand px-4 text-sm font-semibold text-white outline-none hover:bg-brand-strong"
         >
-          开始演示对话
+          {mode === "demo" ? "开始演示对话" : "开始对话"}
         </Link>
       </div>
     </AppShell>

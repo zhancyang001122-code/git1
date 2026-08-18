@@ -28,8 +28,8 @@ describe("primary product pages", () => {
     expect(screen.getByText(/收藏状态仅保存在当前页面/)).toBeInTheDocument();
   });
 
-  it("offers Xiaozhi tasks without claiming a model request was sent", () => {
-    render(<XiaozhiWelcomePage />);
+  it("labels the Xiaozhi welcome page as demo only in demo mode", () => {
+    render(<XiaozhiWelcomePage mode="demo" />);
 
     expect(
       screen.getByRole("heading", { name: "你好，我是小智" }),
@@ -39,6 +39,18 @@ describe("primary product pages", () => {
     expect(
       screen.getByRole("link", { name: /找预算内一居室/ }),
     ).toHaveAttribute("href", expect.stringContaining("/xiaozhi/chat"));
+  });
+
+  it("describes the real and simulated boundaries in live mode", () => {
+    render(<XiaozhiWelcomePage mode="live" />);
+
+    expect(
+      screen.getByText(/房源、高德与千问\/RAG 已接入真实服务/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/团购和线上超市仍为.*演示数据/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/当前为可验证演示模式/)).not.toBeInTheDocument();
   });
 
   it("filters messages by category", () => {

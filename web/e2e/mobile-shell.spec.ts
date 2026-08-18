@@ -39,6 +39,9 @@ test("shared glass surfaces and focus feedback use the unified visual system", a
   await expect(header).toHaveClass(/glass-navigation/);
   await expect(navigation).toHaveClass(/glass-navigation/);
   await expect(task).toHaveClass(/ui-interactive/);
+  await expect(page.getByText(/当前为 Live 作品集/)).toBeVisible();
+  await expect(page.getByText(/武林广场附近有哪些/)).toBeVisible();
+  await expect(page.locator("body")).not.toContainText("姝︽灄骞垮満");
 
   const visualStyles = await page.evaluate(() => {
     const canvasElement = document.querySelector<HTMLElement>(
