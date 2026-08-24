@@ -37,7 +37,7 @@
 - 官方资料集包含国家《住房租赁条例》和杭州租房风险提示；两份资料均已完成 Production 发布、真实 Embedding 与索引，10 条独立检索/拒答用例 10/10 通过。
 - 数据库迁移、Zod Schema、工具契约、引用 UI、生产预检和 Playwright 回归共同约束主流程。
 
-同轮三工具 Production 预检只有在任务报告记录成功后才算最终在线证据。
+同轮主演示已在精确部署提交 `b0a1ae2` 上完成 Production 预检：回答同时返回历史房源卡、高德地点卡和带版本、生效日期、官方原文链接的租赁知识引用。完整命令与边界见 `docs/task-reports/2026-08-25-rental-decision-production.md`。
 
 ## 诚实边界
 
