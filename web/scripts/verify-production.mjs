@@ -110,12 +110,12 @@ page.on("console", (message) => {
 try {
   await page.goto(url.toString(), { waitUntil: "load", timeout: 45_000 });
   await expect(
-    page.getByRole("heading", { level: 1, name: "小智本地生活" }),
+    page.getByRole("heading", { level: 1, name: "小智租房决策" }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", {
       level: 2,
-      name: "小智本地生活 AI 服务助手",
+      name: "从预算到签约核验，一次问完",
     }),
   ).toBeVisible();
   const hasOverflow = await page.evaluate(
