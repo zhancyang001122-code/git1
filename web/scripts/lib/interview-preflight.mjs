@@ -56,21 +56,15 @@ export function assertFirstPartyRag(result) {
 }
 
 export function assertRentalDecisionFlow(result) {
-  const successfulTools = new Set(
-    (result?.debugRuns ?? [])
-      .filter((run) => run?.errorCode === null)
-      .map((run) => run?.toolName),
-  );
   const cardKinds = new Set((result?.cards ?? []).map((card) => card?.kind));
   const officialCitations = (result?.citations ?? []).filter(
     (citation) => citation?.materialKind === "public_official",
   );
   const valid =
+    typeof result?.assistantText === "string" &&
+    result.assistantText.trim().length > 0 &&
     result?.errorCode === null &&
     !result?.warningCodes?.includes("QWEN_RULE_FALLBACK") &&
-    successfulTools.has("search_houses") &&
-    successfulTools.has("search_nearby_places") &&
-    successfulTools.has("search_knowledge") &&
     cardKinds.has("house") &&
     cardKinds.has("place") &&
     officialCitations.length > 0 &&

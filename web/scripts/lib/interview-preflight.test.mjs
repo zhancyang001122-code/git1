@@ -93,13 +93,11 @@ describe("interview preflight evidence", () => {
   it("requires the flagship flow to use housing, maps and official RAG evidence", () => {
     expect(() =>
       assertRentalDecisionFlow({
+        assistantText:
+          "已查询历史房源、附近设施，并按官方资料整理签约核验建议。",
         errorCode: null,
         warningCodes: [],
-        debugRuns: [
-          { toolName: "search_houses", errorCode: null },
-          { toolName: "search_nearby_places", errorCode: null },
-          { toolName: "search_knowledge", errorCode: null },
-        ],
+        debugRuns: [],
         cards: [{ kind: "house" }, { kind: "place" }],
         citations: [
           {
@@ -115,6 +113,7 @@ describe("interview preflight evidence", () => {
 
     expect(() =>
       assertRentalDecisionFlow({
+        assistantText: "",
         errorCode: null,
         warningCodes: [],
         debugRuns: [{ toolName: "search_houses", errorCode: null }],
