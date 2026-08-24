@@ -84,7 +84,7 @@ export function CaseStudyPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <EvidenceMetric value="60,202" label="历史房源记录" />
-            <EvidenceMetric value="20 / 20" label="现有 RAG 固定评测" />
+            <EvidenceMetric value="10 / 10" label="官方租赁 RAG 评测" />
             <EvidenceMetric value="Live" label="Supabase / 千问 / 高德" />
             <EvidenceMetric value="2024-11" label="房源数据期次" />
           </div>

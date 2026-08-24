@@ -93,6 +93,7 @@ const flagshipResponse = await fetch(new URL("/api/chat", productionUrl), {
     locationCity: "杭州",
     locationLabel: "杭州 · 武林广场",
     location: { longitude: 120.163102, latitude: 30.274085 },
+    locationWgs84: { longitude: 120.1585, latitude: 30.2764 },
   }),
   signal: AbortSignal.timeout(120_000),
 });

@@ -82,7 +82,7 @@ describe("environment contract", () => {
       RAG_LOW_CONFIDENCE_THRESHOLD: 0.45,
       RAG_TOP_K: 12,
       RAG_FINAL_K: 5,
-      AI_REQUEST_TIMEOUT_MS: 30000,
+      AI_REQUEST_TIMEOUT_MS: 55000,
       TOOL_TIMEOUT_MS: 8000,
       AI_MAX_TOOL_ROUNDS: 8,
       DASHSCOPE_BASE_URL: "https://dashscope.aliyuncs.com/compatible-mode/v1",

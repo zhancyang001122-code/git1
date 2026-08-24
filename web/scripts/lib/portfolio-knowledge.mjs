@@ -190,7 +190,7 @@ export function summarizeGeneration(events) {
     .map((event) => event.data.code);
   const debugRuns = events
     .filter((event) => event.type === "debug_tool_run")
-    .map((event) => event.data.run);
+    .map((event) => event.data);
   const cards = events
     .filter((event) => event.type === "result_cards")
     .flatMap((event) => event.data.cards ?? []);

@@ -160,7 +160,7 @@ const serverEnvSchema = z
       emptyStringToUndefined,
       z.string().min(32).optional(),
     ),
-    AI_REQUEST_TIMEOUT_MS: integerFromString(30_000, 1_000, 120_000),
+    AI_REQUEST_TIMEOUT_MS: integerFromString(55_000, 1_000, 120_000),
     TOOL_TIMEOUT_MS: integerFromString(8_000, 100, 30_000),
     AI_MAX_TOOL_ROUNDS: integerFromString(8, 1, 8),
     AMAP_WEB_SERVICE_KEY: optionalString,

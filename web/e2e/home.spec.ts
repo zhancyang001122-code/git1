@@ -32,6 +32,7 @@ test("case study exposes verified evidence and the unverified user outcome", asy
     page.getByRole("heading", { name: "小智租房决策助手" }),
   ).toBeVisible();
   await expect(page.getByText("60,202", { exact: true })).toBeVisible();
+  await expect(page.getByText("10 / 10", { exact: true })).toBeVisible();
   await expect(page.getByText("2024-11", { exact: true })).toBeVisible();
   await expect(page.getByText(/尚未完成真实用户效率验证/)).toBeVisible();
   await expect(
