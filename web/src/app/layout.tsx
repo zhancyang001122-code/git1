@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "小智本地生活 AI 服务助手",
-  description: "面向本地生活场景的 AI FDE 作品集项目",
+  title: "小智租房决策助手",
+  description: "结合历史房源、高德地图与可引用租赁知识的 AI 解决方案交付作品",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

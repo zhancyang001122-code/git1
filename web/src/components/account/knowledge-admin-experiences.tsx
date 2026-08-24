@@ -212,6 +212,7 @@ export function KnowledgeMaterialIntake({ isDemo }: { isDemo: boolean }) {
               className={fieldClass}
             >
               <option value="external_authorized">外部授权正式资料</option>
+              <option value="public_official">官方公开资料</option>
               <option value="portfolio_first_party">作品集首方公开说明</option>
               <option value="demo">虚构演示资料</option>
             </select>

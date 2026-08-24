@@ -55,6 +55,39 @@ export function assertFirstPartyRag(result) {
   }
 }
 
+export function assertRentalDecisionFlow(result) {
+  const successfulTools = new Set(
+    (result?.debugRuns ?? [])
+      .filter((run) => run?.errorCode === null)
+      .map((run) => run?.toolName),
+  );
+  const cardKinds = new Set((result?.cards ?? []).map((card) => card?.kind));
+  const officialCitations = (result?.citations ?? []).filter(
+    (citation) => citation?.materialKind === "public_official",
+  );
+  const valid =
+    result?.errorCode === null &&
+    !result?.warningCodes?.includes("QWEN_RULE_FALLBACK") &&
+    successfulTools.has("search_houses") &&
+    successfulTools.has("search_nearby_places") &&
+    successfulTools.has("search_knowledge") &&
+    cardKinds.has("house") &&
+    cardKinds.has("place") &&
+    officialCitations.length > 0 &&
+    officialCitations.every(
+      (citation) =>
+        typeof citation.versionLabel === "string" &&
+        citation.versionLabel.length > 0 &&
+        typeof citation.effectiveFrom === "string" &&
+        citation.effectiveFrom.length > 0 &&
+        typeof citation.sourceReference === "string" &&
+        citation.sourceReference.startsWith("https://"),
+    );
+  if (!valid) {
+    throw new Error("Production rental-decision evidence is incomplete");
+  }
+}
+
 export function assertLiveAmap({ status, body }) {
   const valid =
     status === 200 &&

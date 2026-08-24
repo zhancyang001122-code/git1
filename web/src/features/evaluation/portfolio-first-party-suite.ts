@@ -1,7 +1,11 @@
 import { z } from "zod";
 
 const isoDate = z.iso.date();
-const materialSet = z.literal("portfolio_first_party");
+const materialSet = z.enum(["portfolio_first_party", "public_official"]);
+const evaluatedMaterialKind = z.enum([
+  "portfolio_first_party",
+  "public_official",
+]);
 const knowledgeDomains = [
   "housing",
   "group_buy",
@@ -29,6 +33,7 @@ const materialDraftSchema = z
 export const portfolioMaterialManifestSchema = z
   .object({
     materialSet,
+    materialKind: evaluatedMaterialKind,
     version: z.string().trim().min(1).max(40),
     public: z.literal(true),
     owner: z.string().trim().min(2).max(120),
@@ -43,7 +48,7 @@ export const portfolioMaterialManifestSchema = z
           })
           .strict(),
       )
-      .min(4)
+      .min(2)
       .max(20),
   })
   .strict();
@@ -76,12 +81,15 @@ const retrievalExpectationSchema = z
     requireNonDemo: z.boolean(),
     requireHighConfidence: z.boolean(),
     expectNoCitations: z.boolean(),
+    requiredMaterialKind: evaluatedMaterialKind.optional(),
   })
   .strict();
 
 const portfolioEvaluationCaseSchema = z
   .object({
-    id: z.string().regex(/^portfolio-first-party-[a-z0-9-]{3,80}$/),
+    id: z
+      .string()
+      .regex(/^(?:portfolio-first-party|public-official)-[a-z0-9-]{3,80}$/),
     category: z.enum(["rag", "no_answer"]),
     input: retrievalInputSchema,
     expected: retrievalExpectationSchema,
@@ -93,7 +101,7 @@ export const portfolioEvaluationSuiteSchema = z
   .object({
     materialSet,
     version: z.string().trim().min(1).max(40),
-    cases: z.array(portfolioEvaluationCaseSchema).min(20).max(40),
+    cases: z.array(portfolioEvaluationCaseSchema).min(8).max(40),
   })
   .strict();
 
@@ -104,7 +112,12 @@ const retrievedChunkSchema = z
     content: z.string(),
     isDemo: z.boolean().default(false),
     materialKind: z
-      .enum(["demo", "portfolio_first_party", "external_authorized"])
+      .enum([
+        "demo",
+        "portfolio_first_party",
+        "public_official",
+        "external_authorized",
+      ])
       .optional(),
   })
   .passthrough();
@@ -114,7 +127,12 @@ const retrievedCitationSchema = z
     versionLabel: z.string(),
     isDemo: z.boolean().default(false),
     materialKind: z
-      .enum(["demo", "portfolio_first_party", "external_authorized"])
+      .enum([
+        "demo",
+        "portfolio_first_party",
+        "public_official",
+        "external_authorized",
+      ])
       .optional(),
   })
   .passthrough();
@@ -171,6 +189,8 @@ export function evaluatePortfolioRetrieval(
 ): PortfolioEvaluationResult {
   const actual = portfolioKnowledgeSearchResultSchema.parse(actualInput);
   const expected = evaluationCase.expected;
+  const requiredMaterialKind =
+    expected.requiredMaterialKind ?? "portfolio_first_party";
   const chunkContent = actual.chunks.map((chunk) => chunk.content).join("\n");
   const chunkTitles = new Set(actual.chunks.map((chunk) => chunk.title));
   const citationTitles = new Set(
@@ -215,10 +235,10 @@ export function evaluatePortfolioRetrieval(
         actual.chunks.every((chunk) => !chunk.isDemo) &&
         actual.citations.every((citation) => !citation.isDemo) &&
         actual.chunks.every(
-          (chunk) => chunk.materialKind === "portfolio_first_party",
+          (chunk) => chunk.materialKind === requiredMaterialKind,
         ) &&
         actual.citations.every(
-          (citation) => citation.materialKind === "portfolio_first_party",
+          (citation) => citation.materialKind === requiredMaterialKind,
         )),
     confidence:
       !expected.requireHighConfidence ||
@@ -250,12 +270,18 @@ export function evaluatePortfolioGeneration(
       title: string;
       versionLabel: string;
       isDemo?: boolean;
-      materialKind?: "demo" | "portfolio_first_party" | "external_authorized";
+      materialKind?:
+        | "demo"
+        | "portfolio_first_party"
+        | "public_official"
+        | "external_authorized";
     }[];
     errorCode: string | null;
   },
 ): PortfolioEvaluationResult {
   const expected = evaluationCase.expected;
+  const requiredMaterialKind =
+    expected.requiredMaterialKind ?? "portfolio_first_party";
   const citationTitles = new Set(actual.citations.map((item) => item.title));
   const checks: Record<string, boolean> = {
     completed:
@@ -278,7 +304,7 @@ export function evaluatePortfolioGeneration(
       actual.citations.every((citation) => citation.isDemo !== true),
     provenance: actual.citations
       .filter((item) => expected.requiredTitles.includes(item.title))
-      .every((item) => item.materialKind === "portfolio_first_party"),
+      .every((item) => item.materialKind === requiredMaterialKind),
   };
   const failures = Object.entries(checks)
     .filter(([, passed]) => !passed)

@@ -81,4 +81,25 @@ describe("knowledge ops schemas", () => {
       }).success,
     ).toBe(false);
   });
+
+  it("accepts official public material as a distinct provenance kind", () => {
+    const result = manualMaterialInputSchema.safeParse({
+      question: "租房签约前要核验哪些信息？",
+      draft: {
+        title: "住房租赁条例：签约与房源核验要点",
+        answerMarkdown:
+          "依据公开行政法规整理，签约前应核验房屋权属和出租人身份信息。",
+        changeSummary: "录入官方公开资料摘要",
+        sourceReference: "https://xzfg.moj.gov.cn/front/law/detail?LawID=1774",
+        owner: "中华人民共和国国务院",
+        domain: "housing",
+        category: "rental_contract_official",
+        versionLabel: "国务院令第812号",
+        materialKind: "public_official",
+        effectiveFrom: "2025-09-15",
+      },
+    });
+
+    expect(result.success).toBe(true);
+  });
 });

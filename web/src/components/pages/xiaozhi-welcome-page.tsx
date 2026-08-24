@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  BookOpenCheck,
   Building2,
+  Database,
   MapPinned,
   MessageSquareText,
   ShoppingBasket,
@@ -36,6 +38,7 @@ const staticTasks = [
 
 export function XiaozhiWelcomePage({ mode }: { mode: "demo" | "live" }) {
   const { location } = useSelectedLocation();
+  const flagshipPrompt = `我预算3500元，想找${location.name}附近的一居室。请查询2024年历史房源，再找附近的地铁和超市，并说明签约前需要核验哪些信息、是否需要办理网签备案。`;
   const tasks = [
     {
       label: "找预算内一居室",
@@ -80,8 +83,57 @@ export function XiaozhiWelcomePage({ mode }: { mode: "demo" | "live" }) {
             : "当前为 Live 作品集：房源、高德与千问/RAG 已接入真实服务；团购和线上超市仍为明确标注的演示数据。"}
         </DemoNotice>
 
+        <section
+          aria-labelledby="rental-demo-title"
+          className="glass-panel overflow-hidden rounded-feature border border-brand/15"
+        >
+          <div className="bg-gradient-to-br from-brand-soft/90 to-white/80 p-4">
+            <p className="text-xs font-semibold text-brand">租房决策主演示</p>
+            <h2
+              id="rental-demo-title"
+              className="mt-1 text-lg font-bold leading-7 text-text"
+            >
+              一个问题，串起三类真实能力
+            </h2>
+            <p className="mt-1 text-sm leading-[22px] text-text-muted">
+              预算 3500 元 · 一居室 · {location.name}附近 · 地铁和超市 ·
+              签约核验
+            </p>
+          </div>
+          <div className="grid grid-cols-3 divide-x divide-border border-y border-border bg-white/55">
+            {[
+              { icon: Database, label: "房源", detail: "Supabase" },
+              { icon: MapPinned, label: "周边", detail: "高德" },
+              { icon: BookOpenCheck, label: "规则", detail: "RAG 引用" },
+            ].map(({ detail, icon: Icon, label }) => (
+              <div key={label} className="px-2 py-3 text-center">
+                <Icon
+                  aria-hidden="true"
+                  className="mx-auto size-4 text-brand"
+                />
+                <p className="mt-1 text-xs font-semibold text-text">{label}</p>
+                <p className="mt-0.5 text-xs text-text-subtle">{detail}</p>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-2 p-3">
+            <Link
+              href={`/xiaozhi/chat?q=${encodeURIComponent(flagshipPrompt)}`}
+              className="ui-interactive inline-flex min-h-11 items-center justify-center rounded-control border border-brand bg-brand px-3 text-sm font-semibold text-white outline-none hover:bg-brand-strong"
+            >
+              运行完整任务
+            </Link>
+            <Link
+              href="/case-study"
+              className="glass-control ui-interactive inline-flex min-h-11 items-center justify-center rounded-control border px-3 text-sm font-semibold text-brand outline-none hover:bg-brand-soft"
+            >
+              为什么这样设计
+            </Link>
+          </div>
+        </section>
+
         <section aria-labelledby="xiaozhi-tasks" className="space-y-3">
-          <SectionHeader id="xiaozhi-tasks" title="我可以帮你" />
+          <SectionHeader id="xiaozhi-tasks" title="其他可用能力" />
           <div className="grid grid-cols-2 gap-2.5">
             {tasks.map(({ icon: Icon, label, prompt }, index) => (
               <Link

@@ -2,7 +2,7 @@ import { chromium } from "@playwright/test";
 
 import {
   adminHeaders,
-  loadPortfolioKnowledge,
+  loadKnowledgeSet,
   productionUrl,
   proxyConfiguration,
   requiredEnvironment,
@@ -18,7 +18,10 @@ import {
 const production = productionUrl();
 const supabase = supabaseConfiguration();
 const token = requiredEnvironment("ADMIN_VERIFICATION_TOKEN");
-const knowledge = loadPortfolioKnowledge();
+const setArgument = process.argv.find((value) => value.startsWith("--set="));
+const knowledge = loadKnowledgeSet(
+  setArgument?.slice("--set=".length) || "portfolio-first-party",
+);
 const browser = await chromium.launch({
   ...(proxyConfiguration() && { proxy: proxyConfiguration() }),
 });
@@ -172,7 +175,7 @@ try {
         question: material.question,
         draft: {
           ...material.draft,
-          materialKind: "portfolio_first_party",
+          materialKind: knowledge.manifest.materialKind,
           answerMarkdown: material.content,
         },
       },
@@ -187,10 +190,12 @@ try {
         candidateId,
         decision: "approve",
         notes:
-          "作品集首方公开说明；已依据仓库实现、Production 验收记录和公开边界完成复核。",
+          knowledge.manifest.materialKind === "public_official"
+            ? "官方公开资料摘要；已核对来源机构、原文链接、生效日期和信息参考边界。"
+            : "作品集首方公开说明；已依据仓库实现、Production 验收记录和公开边界完成复核。",
         draft: {
           ...material.draft,
-          materialKind: "portfolio_first_party",
+          materialKind: knowledge.manifest.materialKind,
           answerMarkdown: material.content,
         },
       },

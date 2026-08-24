@@ -23,6 +23,7 @@ export const candidateStatusSchema = z.enum([
 export const knowledgeMaterialKindSchema = z.enum([
   "demo",
   "portfolio_first_party",
+  "public_official",
   "external_authorized",
 ]);
 export const candidateEvidenceSchema = z

@@ -6,6 +6,7 @@ import {
   assertInvalidRequestBoundary,
   assertLiveAmap,
   assertLiveHealth,
+  assertRentalDecisionFlow,
 } from "./interview-preflight.mjs";
 
 describe("interview preflight evidence", () => {
@@ -87,6 +88,40 @@ describe("interview preflight evidence", () => {
         ],
       }),
     ).toThrow(/first-party RAG/i);
+  });
+
+  it("requires the flagship flow to use housing, maps and official RAG evidence", () => {
+    expect(() =>
+      assertRentalDecisionFlow({
+        errorCode: null,
+        warningCodes: [],
+        debugRuns: [
+          { toolName: "search_houses", errorCode: null },
+          { toolName: "search_nearby_places", errorCode: null },
+          { toolName: "search_knowledge", errorCode: null },
+        ],
+        cards: [{ kind: "house" }, { kind: "place" }],
+        citations: [
+          {
+            materialKind: "public_official",
+            versionLabel: "国务院令第812号",
+            effectiveFrom: "2025-09-15",
+            sourceReference:
+              "https://xzfg.moj.gov.cn/front/law/detail?LawID=1774",
+          },
+        ],
+      }),
+    ).not.toThrow();
+
+    expect(() =>
+      assertRentalDecisionFlow({
+        errorCode: null,
+        warningCodes: [],
+        debugRuns: [{ toolName: "search_houses", errorCode: null }],
+        cards: [{ kind: "house" }],
+        citations: [],
+      }),
+    ).toThrow(/rental-decision evidence/i);
   });
 
   it("requires every production service to be configured in Live mode", () => {

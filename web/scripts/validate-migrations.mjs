@@ -95,6 +95,13 @@ assert(
   knowledgeBusinessTimezoneMigration,
   "Knowledge business timezone migration is missing",
 );
+const publicOfficialKnowledgeMigration = migrations.find((migration) =>
+  migration.name.endsWith("_public_official_knowledge.sql"),
+);
+assert(
+  publicOfficialKnowledgeMigration,
+  "Public official knowledge provenance migration is missing",
+);
 
 for (const migration of migrations) {
   const normalized = migration.sql.trim().toLowerCase();
@@ -126,6 +133,7 @@ const aiOpsIncidentsSql = aiOpsIncidentsMigration.sql;
 const aiModelSlosSql = aiModelSlosMigration.sql;
 const knowledgeMaterialProvenanceSql = knowledgeMaterialProvenanceMigration.sql;
 const knowledgeBusinessTimezoneSql = knowledgeBusinessTimezoneMigration.sql;
+const publicOfficialKnowledgeSql = publicOfficialKnowledgeMigration.sql;
 const sqlStatements = allSql
   .split(";")
   .map((statement) => statement.trim().toLowerCase());
@@ -163,6 +171,44 @@ for (const requirement of [
 ]) {
   assert(
     requirement.pattern.test(knowledgeMaterialProvenanceSql),
+    requirement.message,
+  );
+}
+
+for (const requirement of [
+  {
+    pattern:
+      /'demo'[\s\S]+'portfolio_first_party'[\s\S]+'public_official'[\s\S]+'external_authorized'/i,
+    message: "Official public knowledge must have a distinct provenance value",
+  },
+  {
+    pattern:
+      /source_reference like 'knowledge-base\/public-official\/%'[\s\S]+then 'public_official'/i,
+    message: "Official public knowledge paths must be classified explicitly",
+  },
+  {
+    pattern:
+      /create (?:or replace )?function public\.hybrid_search_kb_v2[\s\S]+then 'public_official'/i,
+    message: "Hybrid knowledge search must preserve official provenance",
+  },
+  {
+    pattern:
+      /returns table[\s\S]+source_reference text[\s\S]+e\.source_reference/i,
+    message: "Hybrid knowledge search must return the official source URL",
+  },
+  {
+    pattern:
+      /revoke all on function public\.classify_knowledge_material\(\)[\s\S]+from public, anon, authenticated/i,
+    message: "Knowledge classification trigger must revoke client execution",
+  },
+  {
+    pattern:
+      /revoke all on function public\.save_knowledge_candidate_draft\(uuid, jsonb\)[\s\S]+from public, anon, authenticated[\s\S]+grant execute on function public\.save_knowledge_candidate_draft\(uuid, jsonb\)[\s\S]+to service_role/i,
+    message: "Knowledge draft mutation must remain service-role only",
+  },
+]) {
+  assert(
+    requirement.pattern.test(publicOfficialKnowledgeSql),
     requirement.message,
   );
 }

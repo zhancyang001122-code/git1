@@ -5,6 +5,7 @@ import { parseSse, summarizeGeneration } from "./lib/portfolio-knowledge.mjs";
 import {
   assertFirstPartyRag,
   assertLiveAmap,
+  assertRentalDecisionFlow,
 } from "./lib/interview-preflight.mjs";
 import {
   assertLocalLiveHealth,
@@ -129,6 +130,23 @@ try {
     signal: AbortSignal.timeout(120_000),
   });
   assertFirstPartyRag(summarizeGeneration(await parseSse(ragResponse)));
+
+  const flagshipResponse = await fetch(new URL("/api/chat", baseUrl), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      message:
+        "我预算3500元，想找武林广场附近的一居室。请查询2024年历史房源，再找附近的地铁和超市，并说明签约前需要核验哪些信息、是否需要办理网签备案。",
+      debug: true,
+      locationCity: "杭州",
+      locationLabel: "杭州 · 武林广场",
+      location: { longitude: 120.163102, latitude: 30.274085 },
+    }),
+    signal: AbortSignal.timeout(120_000),
+  });
+  assertRentalDecisionFlow(
+    summarizeGeneration(await parseSse(flagshipResponse)),
+  );
 
   const browserOutput = execFileSync(
     process.execPath,

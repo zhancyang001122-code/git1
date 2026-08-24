@@ -29,6 +29,7 @@ const hitRowSchema = z.object({
   chunk_index: z.number().int().nonnegative(),
   title: z.string(),
   version_label: z.string(),
+  source_reference: z.string().nullable().default(null),
   effective_from: z.string().nullable(),
   effective_until: z.string().nullable(),
   article_status: status,
@@ -40,7 +41,12 @@ const hitRowSchema = z.object({
   combined_score: z.number().finite(),
   is_demo: z.boolean().default(false),
   material_kind: z
-    .enum(["demo", "portfolio_first_party", "external_authorized"])
+    .enum([
+      "demo",
+      "portfolio_first_party",
+      "public_official",
+      "external_authorized",
+    ])
     .default("external_authorized"),
 });
 const versionRowSchema = z.object({
@@ -51,14 +57,24 @@ const versionRowSchema = z.object({
   status,
   is_demo: z.boolean().default(false),
   material_kind: z
-    .enum(["demo", "portfolio_first_party", "external_authorized"])
+    .enum([
+      "demo",
+      "portfolio_first_party",
+      "public_official",
+      "external_authorized",
+    ])
     .default("external_authorized"),
   kb_articles: z.object({
     title: z.string(),
     city: z.string().nullable(),
     is_demo: z.boolean().default(false),
     material_kind: z
-      .enum(["demo", "portfolio_first_party", "external_authorized"])
+      .enum([
+        "demo",
+        "portfolio_first_party",
+        "public_official",
+        "external_authorized",
+      ])
       .default("external_authorized"),
     kb_categories: z.object({
       domain: z.enum(knowledgeDomains),
@@ -85,6 +101,7 @@ function mapHit(value: unknown): HybridKnowledgeHit {
     chunkIndex: row.chunk_index,
     title: row.title,
     versionLabel: row.version_label,
+    sourceReference: row.source_reference,
     effectiveFrom: row.effective_from,
     effectiveUntil: row.effective_until,
     articleStatus: row.article_status,
@@ -181,7 +198,10 @@ export function createSupabaseKnowledgeRepository(
             : row.material_kind === "portfolio_first_party" ||
                 row.kb_articles.material_kind === "portfolio_first_party"
               ? "portfolio_first_party"
-              : "external_authorized",
+              : row.material_kind === "public_official" ||
+                  row.kb_articles.material_kind === "public_official"
+                ? "public_official"
+                : "external_authorized",
         status: row.status,
       };
     },

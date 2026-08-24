@@ -10,7 +10,7 @@ export type KnowledgeDomain = (typeof knowledgeDomains)[number];
 export type KnowledgeStatus =
   "draft" | "reviewing" | "published" | "archived" | "rejected";
 export type KnowledgeMaterialKind =
-  "demo" | "portfolio_first_party" | "external_authorized";
+  "demo" | "portfolio_first_party" | "public_official" | "external_authorized";
 
 export interface KnowledgeSearchInput {
   query: string;
@@ -34,6 +34,7 @@ export interface HybridKnowledgeHit {
   chunkIndex: number;
   title: string;
   versionLabel: string;
+  sourceReference?: string | null;
   effectiveFrom: string | null;
   effectiveUntil: string | null;
   articleStatus: KnowledgeStatus;

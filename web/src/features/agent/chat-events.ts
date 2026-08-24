@@ -95,12 +95,18 @@ const citationSchema = z.object({
   chunkId: databaseUuid,
   title: z.string(),
   versionLabel: z.string(),
+  sourceReference: z.string().max(500).nullable().optional(),
   effectiveFrom: z.string().nullable(),
   excerpt: z.string(),
   score: z.number().finite(),
   isDemo: z.boolean().optional(),
   materialKind: z
-    .enum(["demo", "portfolio_first_party", "external_authorized"])
+    .enum([
+      "demo",
+      "portfolio_first_party",
+      "public_official",
+      "external_authorized",
+    ])
     .optional(),
 });
 const debugRunSchema = progressSchema.extend({

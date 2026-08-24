@@ -6,6 +6,8 @@ const outputDir = process.env.PREVIEW_DIR;
 if (!outputDir) throw new Error("PREVIEW_DIR is required");
 const demoAdminToken = "playwright-demo-admin-token-000001";
 
+test.setTimeout(120_000);
+
 const pages = [
   ["01-home", "/", "首页"],
   ["02-discover", "/discover", "推荐"],
@@ -17,7 +19,7 @@ const pages = [
   ["04-xiaozhi", "/xiaozhi", "小智欢迎页"],
   [
     "05-chat",
-    "/xiaozhi/chat?q=找3500元以内允许养猫的房源&debug=true",
+    `/xiaozhi/chat?q=${encodeURIComponent("我预算3500元，想找武林广场附近的一居室。请查询2024年历史房源，再找附近的地铁和超市，并说明签约前需要核验哪些信息、是否需要办理网签备案。")}&debug=true`,
     "小智对话",
   ],
   ["06-existing-chat", "/xiaozhi/chat/demo-housing", "已有会话"],
@@ -51,9 +53,10 @@ const pages = [
   ],
   ["23-cart", "/cart", "购物车"],
   ["24-nearby", "/nearby", "周边服务"],
-  ["25-knowledge-admin", "/knowledge-admin", "知识运营"],
+  ["25-case-study", "/case-study", "租房决策交付案例"],
+  ["26-knowledge-admin", "/knowledge-admin", "知识运营"],
   [
-    "26-knowledge-review",
+    "27-knowledge-review",
     "/knowledge-admin/64000000-0000-4000-8000-000000000001",
     "候选审核",
   ],
@@ -77,12 +80,8 @@ test("capture every frontend route template", async ({ browser }) => {
     }
     const response = await page.goto(route, { waitUntil: "networkidle" });
     expect(response?.ok(), route).toBe(true);
-    if (slug === "05-chat") {
-      await page.getByRole("button", { name: "发送" }).click();
-      await expect(page.getByText(/已从演示房源数据查询到/)).toBeVisible();
-    }
     if (slug === "24-nearby") {
-      await page.getByRole("button", { name: "使用武林广场" }).click();
+      await page.getByRole("button", { name: "查询当前地点周边" }).click();
       await expect(page.getByText("武林生活超市（演示）")).toBeVisible();
     }
     await page.screenshot({

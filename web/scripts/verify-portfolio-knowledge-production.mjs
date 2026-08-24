@@ -3,7 +3,7 @@ import { chromium } from "@playwright/test";
 import {
   evaluatePortfolioGeneration,
   evaluatePortfolioRetrieval,
-  loadPortfolioKnowledge,
+  loadKnowledgeSet,
   parseSse,
   portfolioKnowledgeSearchResultSchema,
   productionUrl,
@@ -16,7 +16,10 @@ import {
 
 const production = productionUrl();
 const supabase = supabaseConfiguration();
-const knowledge = loadPortfolioKnowledge();
+const setArgument = process.argv.find((value) => value.startsWith("--set="));
+const knowledge = loadKnowledgeSet(
+  setArgument?.slice("--set=".length) || "portfolio-first-party",
+);
 const browser = await chromium.launch({
   ...(proxyConfiguration() && { proxy: proxyConfiguration() }),
 });
@@ -82,7 +85,7 @@ async function publishedSources() {
       row.kb_articles?.status !== "published" ||
       row.kb_articles?.current_version_id !== row.id ||
       row.kb_articles?.is_demo !== false ||
-      row.kb_articles?.material_kind !== "portfolio_first_party" ||
+      row.kb_articles?.material_kind !== knowledge.manifest.materialKind ||
       row.version_label !== material.draft.versionLabel
     ) {
       throw new Error(`invalid publication state for ${row.source_reference}`);
@@ -148,8 +151,8 @@ async function persistRuns(results) {
     passed: result.passed,
     score: result.score,
     notes: result.passed
-      ? "portfolio_first_party production evaluation passed"
-      : `portfolio_first_party failures: ${[
+      ? `${knowledge.suite.materialSet} production evaluation passed`
+      : `${knowledge.suite.materialSet} failures: ${[
           ...result.retrieval.failures,
           ...(result.generation?.failures ?? []),
         ].join(",")}`,

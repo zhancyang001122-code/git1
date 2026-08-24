@@ -38,17 +38,25 @@ describe("HomePage", () => {
 
     expect(screen.getByText("杭州 · 武林广场")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "小智本地生活", level: 1 }),
+      screen.getByRole("heading", { name: "小智租房决策", level: 1 }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "更多功能" })).toBeEnabled();
     expect(
       screen.getByRole("heading", {
-        name: "小智本地生活 AI 服务助手",
+        name: "从预算到签约核验，一次问完",
       }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "开始主演示" })).toHaveAttribute(
+      "href",
+      expect.stringContaining("/xiaozhi/chat?q="),
+    );
+    expect(screen.getByRole("link", { name: "查看交付证据" })).toHaveAttribute(
+      "href",
+      "/case-study",
+    );
     expect(screen.getByRole("search")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "附近精选" }),
+      screen.getByRole("heading", { name: "更多演示内容" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("navigation", { name: "主导航" }),

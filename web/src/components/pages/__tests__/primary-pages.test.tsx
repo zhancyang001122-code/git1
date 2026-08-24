@@ -34,6 +34,11 @@ describe("primary product pages", () => {
     expect(
       screen.getByRole("heading", { name: "你好，我是小智" }),
     ).toBeInTheDocument();
+    expect(screen.getByText("租房决策主演示")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "运行完整任务" })).toHaveAttribute(
+      "href",
+      expect.stringContaining("/xiaozhi/chat?q="),
+    );
     expect(screen.getByText(/当前为可验证演示模式/)).toBeInTheDocument();
     expect(screen.queryByText(/后续会连接/)).not.toBeInTheDocument();
     expect(

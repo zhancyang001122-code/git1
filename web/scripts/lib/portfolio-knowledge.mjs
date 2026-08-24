@@ -57,12 +57,15 @@ export function supabaseConfiguration() {
   };
 }
 
-export function knowledgeDirectory() {
-  return resolve(process.cwd(), "../knowledge-base/portfolio-first-party");
+export function knowledgeDirectory(directoryName = "portfolio-first-party") {
+  if (!/^[a-z][a-z0-9-]{2,79}$/.test(directoryName)) {
+    throw new Error("Knowledge set directory is invalid");
+  }
+  return resolve(process.cwd(), "../knowledge-base", directoryName);
 }
 
-export function loadPortfolioKnowledge() {
-  const directory = knowledgeDirectory();
+export function loadKnowledgeSet(directoryName = "portfolio-first-party") {
+  const directory = knowledgeDirectory(directoryName);
   const manifest = portfolioMaterialManifestSchema.parse(
     JSON.parse(readFileSync(resolve(directory, "manifest.json"), "utf8")),
   );
@@ -71,6 +74,9 @@ export function loadPortfolioKnowledge() {
       readFileSync(resolve(directory, "evaluation-cases.json"), "utf8"),
     ),
   );
+  if (manifest.materialSet !== suite.materialSet) {
+    throw new Error("Knowledge manifest and evaluation suite do not match");
+  }
   return {
     directory,
     manifest,
@@ -80,6 +86,10 @@ export function loadPortfolioKnowledge() {
       content: readFileSync(resolve(directory, material.file), "utf8").trim(),
     })),
   };
+}
+
+export function loadPortfolioKnowledge() {
+  return loadKnowledgeSet("portfolio-first-party");
 }
 
 function restUrl(configuration, path) {
@@ -178,6 +188,12 @@ export function summarizeGeneration(events) {
   const warningCodes = events
     .filter((event) => event.type === "warning")
     .map((event) => event.data.code);
+  const debugRuns = events
+    .filter((event) => event.type === "debug_tool_run")
+    .map((event) => event.data.run);
+  const cards = events
+    .filter((event) => event.type === "result_cards")
+    .flatMap((event) => event.data.cards ?? []);
   return {
     assistantText: events
       .filter((event) => event.type === "assistant_delta")
@@ -185,6 +201,8 @@ export function summarizeGeneration(events) {
       .join(""),
     toolSucceeded,
     citations,
+    debugRuns,
+    cards,
     errorCode: error?.data?.code ?? null,
     warningCodes,
   };

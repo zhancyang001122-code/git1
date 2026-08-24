@@ -40,7 +40,11 @@ const serviceEntries = [
 export function ServiceEntryGrid() {
   return (
     <section aria-labelledby="service-entry-title" className="space-y-2.5">
-      <SectionHeader id="service-entry-title" title="常用服务" />
+      <SectionHeader
+        id="service-entry-title"
+        title="更多生活服务"
+        description="保留完整产品形态，主演示聚焦租房决策"
+      />
       <div className="grid grid-cols-4 gap-2">
         {serviceEntries.map(({ description, href, icon: Icon, label }) => (
           <Link

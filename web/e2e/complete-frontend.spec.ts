@@ -37,6 +37,7 @@ const routes = [
   "/market/products/40000000-0000-0000-0000-000000000001",
   "/cart",
   "/nearby",
+  "/case-study",
   "/knowledge-admin",
   `/knowledge-admin/${refundCandidateId}`,
 ] as const;

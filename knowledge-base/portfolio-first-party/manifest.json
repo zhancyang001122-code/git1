@@ -1,5 +1,6 @@
 {
   "materialSet": "portfolio_first_party",
+  "materialKind": "portfolio_first_party",
   "version": "2026.08.3",
   "public": true,
   "owner": "小智作品集作者",

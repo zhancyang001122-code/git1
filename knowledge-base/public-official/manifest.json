@@ -1,0 +1,39 @@
+{
+  "materialSet": "public_official",
+  "materialKind": "public_official",
+  "version": "2026.08.1",
+  "public": true,
+  "owner": "公开资料整理：小智作品集作者",
+  "materials": [
+    {
+      "id": "national_rental_contract_rules",
+      "file": "national-housing-rental-regulation.md",
+      "question": "租房签约前应核验哪些信息，押金和合同备案有什么明确要求？",
+      "draft": {
+        "title": "住房租赁条例：签约、押金与备案要点",
+        "changeSummary": "依据现行国家行政法规整理租房签约、房源核验、押金和备案要点",
+        "sourceReference": "https://xzfg.moj.gov.cn/front/law/detail?LawID=1774",
+        "owner": "中华人民共和国国务院",
+        "domain": "housing",
+        "category": "rental_contract_national",
+        "versionLabel": "国务院令第812号",
+        "effectiveFrom": "2025-09-15"
+      }
+    },
+    {
+      "id": "hangzhou_rental_risk_guide",
+      "file": "hangzhou-rental-risk-guide.md",
+      "question": "在杭州租房，找房、看房和签合同时有哪些官方风险提示？",
+      "draft": {
+        "title": "杭州租房风险提示：找房、看房与签约",
+        "changeSummary": "依据杭州市房管局公开风险提示整理可执行的租前核验清单",
+        "sourceReference": "https://zwfw.fgj.hangzhou.gov.cn/hzzl/webrent/tzinfo_734540274.htm",
+        "owner": "杭州市住房保障和房产管理局",
+        "domain": "housing",
+        "category": "hangzhou_rental_risk_guide",
+        "versionLabel": "2025-02-18",
+        "effectiveFrom": "2025-02-18"
+      }
+    }
+  ]
+}

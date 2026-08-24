@@ -11,7 +11,7 @@ export function HomeHighlights({ items }: HomeHighlightsProps) {
     <section aria-labelledby="home-highlights-title" className="space-y-3">
       <SectionHeader
         id="home-highlights-title"
-        title="附近精选"
+        title="更多演示内容"
         description="历史数据与演示内容会明确标注来源"
       />
       <div className="grid grid-cols-1 gap-3 min-[390px]:grid-cols-2">

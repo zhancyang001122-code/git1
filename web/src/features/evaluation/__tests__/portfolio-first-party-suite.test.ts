@@ -14,11 +14,21 @@ const knowledgeDirectory = resolve(
   process.cwd(),
   "../knowledge-base/portfolio-first-party",
 );
+const officialKnowledgeDirectory = resolve(
+  process.cwd(),
+  "../knowledge-base/public-official",
+);
 const repositoryRoot = resolve(process.cwd(), "..");
 
 function loadJson(name: string): unknown {
   return JSON.parse(
     readFileSync(resolve(knowledgeDirectory, name), "utf8"),
+  ) as unknown;
+}
+
+function loadOfficialJson(name: string): unknown {
+  return JSON.parse(
+    readFileSync(resolve(officialKnowledgeDirectory, name), "utf8"),
   ) as unknown;
 }
 
@@ -231,5 +241,91 @@ describe("portfolio first-party knowledge suite", () => {
     );
 
     expect(result).toMatchObject({ passed: true, failures: [] });
+  });
+});
+
+describe("public official rental knowledge suite", () => {
+  it("contains source-linked official materials with an explicit advice boundary", () => {
+    const manifest = portfolioMaterialManifestSchema.parse(
+      loadOfficialJson("manifest.json"),
+    );
+
+    expect(manifest.materialSet).toBe("public_official");
+    expect(manifest.materialKind).toBe("public_official");
+    expect(manifest.materials).toHaveLength(2);
+
+    for (const material of manifest.materials) {
+      const content = readFileSync(
+        resolve(officialKnowledgeDirectory, material.file),
+        "utf8",
+      );
+      expect(material.draft.sourceReference).toMatch(/^https:\/\//);
+      expect(content).toMatch(/资料性质：.*官方公开/);
+      expect(content).toContain("不是法律意见");
+      expect(content.length).toBeGreaterThanOrEqual(300);
+      expect(content).not.toMatch(/\b(?:sb_secret_|sbp_|sk-[A-Za-z0-9_-]{12})/);
+    }
+  });
+
+  it("contains ten traceable retrieval and refusal cases", () => {
+    const manifest = portfolioMaterialManifestSchema.parse(
+      loadOfficialJson("manifest.json"),
+    );
+    const suite = portfolioEvaluationSuiteSchema.parse(
+      loadOfficialJson("evaluation-cases.json"),
+    );
+    const titles = new Set(
+      manifest.materials.map((material) => material.draft.title),
+    );
+
+    expect(suite.materialSet).toBe("public_official");
+    expect(suite.cases).toHaveLength(10);
+    expect(new Set(suite.cases.map((item) => item.id)).size).toBe(10);
+    expect(
+      suite.cases.filter((item) => item.category === "no_answer"),
+    ).toHaveLength(2);
+
+    for (const evaluationCase of suite.cases) {
+      expect(evaluationCase.id).toMatch(/^public-official-/);
+      expect(evaluationCase.expected.requiredMaterialKind).toBe(
+        "public_official",
+      );
+      for (const title of evaluationCase.expected.requiredTitles) {
+        expect(titles.has(title)).toBe(true);
+      }
+    }
+  });
+
+  it("scores official provenance independently from portfolio materials", () => {
+    const suite = portfolioEvaluationSuiteSchema.parse(
+      loadOfficialJson("evaluation-cases.json"),
+    );
+    const evaluationCase = suite.cases[0]!;
+
+    const result = evaluatePortfolioRetrieval(evaluationCase, {
+      chunks: [
+        {
+          title: "住房租赁条例：签约、押金与备案要点",
+          versionLabel: "国务院令第812号",
+          content:
+            "签约前核验身份证明、不动产权属证书，或者其他能够证明合法出租权利的材料。",
+          isDemo: false,
+          materialKind: "public_official",
+        },
+      ],
+      citations: [
+        {
+          title: "住房租赁条例：签约、押金与备案要点",
+          versionLabel: "国务院令第812号",
+          isDemo: false,
+          materialKind: "public_official",
+        },
+      ],
+      lowConfidence: false,
+      conflict: false,
+      isDemo: false,
+    });
+
+    expect(result).toMatchObject({ passed: true, score: 1, failures: [] });
   });
 });

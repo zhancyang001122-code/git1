@@ -9,7 +9,7 @@ import { homeHighlights } from "@/features/home/home-demo-data";
 
 export function HomePage() {
   return (
-    <AppShell activeNav="home" header={<PageHeader title="小智本地生活" />}>
+    <AppShell activeNav="home" header={<PageHeader title="小智租房决策" />}>
       <div className="space-y-4 px-4 py-3">
         <HomeLocationHeader />
         <HomeSearchExperience />

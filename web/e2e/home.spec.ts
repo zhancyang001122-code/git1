@@ -6,13 +6,37 @@ test("home page renders its complete presentation structure", async ({
   await page.goto("/");
 
   await expect(
-    page.getByRole("heading", { name: "小智本地生活 AI 服务助手" }),
+    page.getByRole("heading", { name: "小智租房决策" }),
   ).toBeVisible();
   await expect(page.getByRole("search")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "常用服务" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "附近精选" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "从预算到签约核验，一次问完" }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "开始主演示" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "查看交付证据" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "更多生活服务" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "更多演示内容" }),
+  ).toBeVisible();
   await expect(page.getByRole("article")).toHaveCount(4);
   await expect(page.getByRole("navigation", { name: "主导航" })).toBeVisible();
+});
+
+test("case study exposes verified evidence and the unverified user outcome", async ({
+  page,
+}) => {
+  await page.goto("/case-study");
+  await expect(
+    page.getByRole("heading", { name: "小智租房决策助手" }),
+  ).toBeVisible();
+  await expect(page.getByText("60,202", { exact: true })).toBeVisible();
+  await expect(page.getByText("2024-11", { exact: true })).toBeVisible();
+  await expect(page.getByText(/尚未完成真实用户效率验证/)).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "立即运行主演示" }),
+  ).toBeVisible();
 });
 
 test("search carries the question into the validated chat route", async ({

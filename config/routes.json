@@ -64,6 +64,11 @@
       "shell": "detail"
     },
     {
+      "path": "/case-study",
+      "name": "租房决策交付案例",
+      "shell": "detail"
+    },
+    {
       "path": "/messages",
       "name": "消息",
       "shell": "main"

@@ -1,0 +1,221 @@
+{
+  "materialSet": "public_official",
+  "version": "2026.08.1",
+  "cases": [
+    {
+      "id": "public-official-rental-identity",
+      "category": "rag",
+      "input": {
+        "query": "租房签约前需要核验出租人的哪些材料？",
+        "domain": "housing",
+        "category": "rental_contract_national",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["住房租赁条例：签约、押金与备案要点"],
+        "requiredVersionLabel": "国务院令第812号",
+        "requiredConcepts": ["身份证明", "不动产权属证书", "合法出租权利"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false,
+        "requiredMaterialKind": "public_official"
+      }
+    },
+    {
+      "id": "public-official-rental-safety",
+      "category": "rag",
+      "input": {
+        "query": "厨房、阳台或地下储藏室能单独出租住人吗？",
+        "domain": "housing",
+        "category": "rental_contract_national",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["住房租赁条例：签约、押金与备案要点"],
+        "requiredVersionLabel": "国务院令第812号",
+        "requiredConcepts": ["非居住空间", "不能单独出租用于居住"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false,
+        "requiredMaterialKind": "public_official"
+      }
+    },
+    {
+      "id": "public-official-rental-deposit",
+      "category": "rag",
+      "input": {
+        "query": "租房合同对押金应该写清哪些内容？",
+        "domain": "housing",
+        "category": "rental_contract_national",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["住房租赁条例：签约、押金与备案要点"],
+        "requiredVersionLabel": "国务院令第812号",
+        "requiredConcepts": ["押金数额", "返还时间", "扣减押金的具体情形"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false,
+        "requiredMaterialKind": "public_official"
+      }
+    },
+    {
+      "id": "public-official-rental-filing",
+      "category": "rag",
+      "input": {
+        "query": "出租人不办理住房租赁合同备案时，承租人可以办吗？",
+        "domain": "housing",
+        "category": "rental_contract_national",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["住房租赁条例：签约、押金与备案要点"],
+        "requiredVersionLabel": "国务院令第812号",
+        "requiredConcepts": ["承租人也可以办理", "备案不得收费"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false,
+        "requiredMaterialKind": "public_official"
+      }
+    },
+    {
+      "id": "public-official-hangzhou-channel",
+      "category": "rag",
+      "input": {
+        "query": "杭州有哪些官方提示的正规找房渠道？",
+        "domain": "housing",
+        "category": "hangzhou_rental_risk_guide",
+        "city": "杭州",
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["杭州租房风险提示：找房、看房与签约"],
+        "requiredVersionLabel": "2025-02-18",
+        "requiredConcepts": ["杭州市住房租赁公众服务平台", "浙里办—e 房通"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false,
+        "requiredMaterialKind": "public_official"
+      }
+    },
+    {
+      "id": "public-official-hangzhou-sublet",
+      "category": "rag",
+      "input": {
+        "query": "杭州租房时，出租方不是产权人要额外核验什么？",
+        "domain": "housing",
+        "category": "hangzhou_rental_risk_guide",
+        "city": "杭州",
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["杭州租房风险提示：找房、看房与签约"],
+        "requiredVersionLabel": "2025-02-18",
+        "requiredConcepts": ["与房东签订的合同", "合法转租权利"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false,
+        "requiredMaterialKind": "public_official"
+      }
+    },
+    {
+      "id": "public-official-hangzhou-viewing",
+      "category": "rag",
+      "input": {
+        "query": "杭州租房实地看房要检查什么，为什么要拍照？",
+        "domain": "housing",
+        "category": "hangzhou_rental_risk_guide",
+        "city": "杭州",
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["杭州租房风险提示：找房、看房与签约"],
+        "requiredVersionLabel": "2025-02-18",
+        "requiredConcepts": [
+          "家具家电",
+          "水压",
+          "门窗和锁具",
+          "拍照或录像留存"
+        ],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false,
+        "requiredMaterialKind": "public_official"
+      }
+    },
+    {
+      "id": "public-official-hangzhou-contract",
+      "category": "rag",
+      "input": {
+        "query": "杭州房屋租赁合同里需要明确哪些费用？",
+        "domain": "housing",
+        "category": "hangzhou_rental_risk_guide",
+        "city": "杭州",
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": ["杭州租房风险提示：找房、看房与签约"],
+        "requiredVersionLabel": "2025-02-18",
+        "requiredConcepts": ["租金", "押金", "水、电、燃气、网络、物业和停车"],
+        "requireCitation": true,
+        "requireNonDemo": true,
+        "requireHighConfidence": true,
+        "expectNoCitations": false,
+        "requiredMaterialKind": "public_official"
+      }
+    },
+    {
+      "id": "public-official-no-live-guarantee",
+      "category": "no_answer",
+      "input": {
+        "query": "小智推荐的武林广场某套房今天一定能签约吗？",
+        "domain": "housing",
+        "category": "official_unknown_live_guarantee",
+        "city": "杭州",
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": [],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [],
+        "requireCitation": false,
+        "requireNonDemo": true,
+        "requireHighConfidence": false,
+        "expectNoCitations": true,
+        "requiredMaterialKind": "public_official"
+      }
+    },
+    {
+      "id": "public-official-no-legal-outcome",
+      "category": "no_answer",
+      "input": {
+        "query": "我的房东扣了押金，法院一定会判我全额拿回吗？",
+        "domain": "housing",
+        "category": "official_unknown_case_outcome",
+        "city": null,
+        "topK": 5
+      },
+      "expected": {
+        "requiredTitles": [],
+        "requiredVersionLabel": "2026.08.1",
+        "requiredConcepts": [],
+        "requireCitation": false,
+        "requireNonDemo": true,
+        "requireHighConfidence": false,
+        "expectNoCitations": true,
+        "requiredMaterialKind": "public_official"
+      }
+    }
+  ]
+}

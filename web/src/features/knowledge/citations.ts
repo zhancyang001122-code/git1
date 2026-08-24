@@ -8,6 +8,7 @@ export function citationFromHit(hit: KnowledgeHit): KnowledgeCitation {
     chunkId: hit.chunkId,
     title: hit.title,
     versionLabel: hit.versionLabel,
+    sourceReference: hit.sourceReference ?? null,
     effectiveFrom: hit.effectiveFrom,
     excerpt: hit.content.slice(0, 280),
     score: hit.score,
