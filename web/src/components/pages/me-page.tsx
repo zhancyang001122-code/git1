@@ -87,7 +87,8 @@ export function MePage({
             <div className="relative size-14 overflow-hidden rounded-full bg-white">
               <Image
                 fill
-                src="/images/home/xiaozhi-mascot.png"
+                src="/images/home/xiaozhi-mascot.webp"
+                unoptimized
                 alt=""
                 sizes="56px"
                 className="object-cover"

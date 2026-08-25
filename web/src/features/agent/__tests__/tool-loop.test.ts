@@ -427,6 +427,57 @@ describe("agent tool loop", () => {
     expect(events.at(-1)).toEqual({ type: "done", finishReason: "stop" });
   });
 
+  it("stops repeating the same non-retryable tool failure after two attempts", async () => {
+    const business = createDemoRepository();
+    const getHouse = vi.spyOn(business, "getHouse");
+    const failedDetailCall = (id: string, houseId: string): ProviderEvent => ({
+      type: "tool_calls",
+      calls: [
+        {
+          id,
+          name: "get_house_detail",
+          arguments: JSON.stringify({ house_id: houseId }),
+        },
+      ],
+    });
+    const provider = new SequenceProvider([
+      [
+        failedDetailCall("missing-1", "20000000-0000-0000-0000-000000009991"),
+        { type: "finish", reason: "tool_calls" },
+      ],
+      [
+        failedDetailCall("missing-2", "20000000-0000-0000-0000-000000009992"),
+        { type: "finish", reason: "tool_calls" },
+      ],
+      [
+        failedDetailCall("blocked-3", "20000000-0000-0000-0000-000000009993"),
+        { type: "finish", reason: "tool_calls" },
+      ],
+      [
+        { type: "text_delta", delta: "没有找到可用详情。" },
+        { type: "finish", reason: "stop" },
+      ],
+    ]);
+    const events: ChatStreamEvent[] = [];
+
+    for await (const event of runAgentToolLoop({
+      provider,
+      messages: [{ role: "user", content: "查看房源详情" }],
+      signal: new AbortController().signal,
+      executor: new ToolExecutor(),
+      toolContext: createToolTestContext({ business }),
+    })) {
+      events.push(event);
+    }
+
+    expect(getHouse).toHaveBeenCalledTimes(2);
+    expect(events).toContainEqual({
+      type: "warning",
+      code: "TOOL_FAILURE_RETRY_EXHAUSTED",
+      message: "同一工具连续失败，本轮已停止继续尝试",
+    });
+  });
+
   it("stops after eight model rounds instead of looping forever", async () => {
     const sequences = Array.from({ length: 8 }, (_, index) => [
       toolCall(`call-${index}`),

@@ -23,6 +23,7 @@ import {
   type SelectedLocation,
 } from "@/features/location/selected-location";
 import { useSelectedLocation } from "@/features/location/selected-location-provider";
+import { buildAmapWalkingNavigationUrl } from "@/features/maps/amap-uri";
 import type { GeoPoint, PlaceResult } from "@/features/maps/types";
 
 const placeSchema = z.object({
@@ -294,22 +295,37 @@ export function NearbyExperience() {
               key={place.id}
               className="rounded-card border border-border bg-surface p-4 shadow-card"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <Tag>{place.category}</Tag>
-                  <h3 className="mt-2 text-base font-semibold text-text">
-                    {place.name}
-                  </h3>
+              <a
+                href={buildAmapWalkingNavigationUrl({
+                  destination: place.location,
+                  destinationName: place.name,
+                })}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`在高德地图导航到${place.name}`}
+                className="ui-interactive -m-2 block rounded-control border border-transparent p-2 outline-none"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <Tag>{place.category}</Tag>
+                    <h3 className="mt-2 text-base font-semibold text-text">
+                      {place.name}
+                    </h3>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold text-brand">
+                    {place.distanceM} 米
+                  </span>
                 </div>
-                <span className="shrink-0 text-sm font-semibold text-brand">
-                  {place.distanceM} 米
-                </span>
-              </div>
-              <p className="mt-2 text-xs text-text-muted">{place.address}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <SourceBadge source="amap" />
-                {place.isDemo ? <Tag>接口演示数据</Tag> : null}
-              </div>
+                <p className="mt-2 text-xs text-text-muted">{place.address}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <SourceBadge source="amap" />
+                  {place.isDemo ? <Tag>接口演示数据</Tag> : null}
+                  <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-brand">
+                    <Navigation aria-hidden="true" className="size-3.5" />
+                    打开高德
+                  </span>
+                </div>
+              </a>
               <button
                 type="button"
                 onClick={() => void calculateRoute(place)}

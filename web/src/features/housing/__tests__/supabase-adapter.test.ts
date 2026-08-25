@@ -16,6 +16,16 @@ function thenableResult<T>(value: T) {
   return query;
 }
 
+function detailQuery<T>(value: T) {
+  const query = {
+    select: vi.fn(() => query),
+    eq: vi.fn(() => query),
+    abortSignal: vi.fn(() => query),
+    maybeSingle: vi.fn(async () => value),
+  };
+  return query;
+}
+
 function hangingResult() {
   let signal: AbortSignal | undefined;
   const query = {
@@ -150,6 +160,39 @@ describe("HistoricalHousingSupabaseAdapter", () => {
       }),
     ).rejects.toMatchObject({ code: "HOUSING_INVALID_ARGUMENT" });
     expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("loads one historical row for the shared detail page", async () => {
+    const {
+      distance_m: _distance,
+      total_count: _total,
+      source_label: _source,
+      disclaimer: _disclaimer,
+      ...detailRow
+    } = row;
+    void _distance;
+    void _total;
+    void _source;
+    void _disclaimer;
+    const query = detailQuery({ data: detailRow, error: null });
+    const from = vi.fn(() => query);
+    const adapter = new HistoricalHousingSupabaseAdapter({
+      client: { from } as unknown as SupabaseClient,
+    });
+
+    const result = await adapter.getById(row.id);
+
+    expect(from).toHaveBeenCalledWith("historical_houses");
+    expect(query.eq).toHaveBeenCalledWith("id", row.id);
+    expect(query.abortSignal).toHaveBeenCalledWith(expect.any(AbortSignal));
+    expect(result).toMatchObject({
+      id: row.id,
+      title: null,
+      community: "武林小区",
+      sourceLabel: "2024年11月杭州租房历史快照",
+      disclaimer: "仅供历史房源参考，不代表当前仍可出租或当前价格",
+      location: { longitude: 120.1552, latitude: 30.2742 },
+    });
   });
 
   it("normalizes invalid database rows instead of leaking a Supabase shape", async () => {

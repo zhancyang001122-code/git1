@@ -79,6 +79,13 @@ describe("NearbyExperience", () => {
       await screen.findByText(/定位权限未开启.*继续使用杭州 · 武林广场/),
     ).toBeInTheDocument();
     expect(await screen.findByText("武林生活超市（演示）")).toBeInTheDocument();
+    const navigation = screen.getByRole("link", {
+      name: "在高德地图导航到武林生活超市（演示）",
+    });
+    expect(navigation).toHaveAttribute("target", "_blank");
+    expect(navigation.getAttribute("href")).toContain(
+      "https://uri.amap.com/navigation?",
+    );
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(
         "/api/maps/nearby",

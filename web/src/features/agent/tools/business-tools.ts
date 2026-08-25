@@ -12,7 +12,10 @@ import type {
   ToolSource,
 } from "@/features/agent/tools/types";
 import type { Deal, House, Product } from "@/features/business/domain";
-import type { HistoricalHousingItem } from "@/features/housing/types";
+import type {
+  HistoricalHousingDetail,
+  HistoricalHousingItem,
+} from "@/features/housing/types";
 import { gcj02ToWgs84 } from "@/features/maps/coordinate-systems";
 
 function contract(name: ToolName) {
@@ -50,7 +53,8 @@ function houseView(house: House): Record<string, unknown> {
 }
 
 function historicalHouseView(
-  house: HistoricalHousingItem,
+  house: HistoricalHousingItem | HistoricalHousingDetail,
+  detailAvailable: boolean,
 ): Record<string, unknown> {
   return {
     id: house.id,
@@ -63,13 +67,13 @@ function historicalHouseView(
     areaSqm: house.areaSqm,
     available: null,
     subwayDistanceM: null,
-    distanceM: house.distanceM,
+    ...("distanceM" in house && { distanceM: house.distanceM }),
     tags: [house.rentType, house.orientation, house.floor].filter(Boolean),
     historicalYear: 2024,
     datasetPeriod: house.datasetPeriod,
     location: house.location,
     isDemo: false,
-    detailAvailable: false,
+    detailAvailable,
     sourceUrl: house.sourceUrl,
   };
 }
@@ -233,7 +237,10 @@ const searchHouses: ToolDefinition<ToolInputs["search_houses"]> = {
         },
         context.signal,
       );
-      const items = result.items.map(historicalHouseView);
+      const detailAvailable = Boolean(housing.service.getById);
+      const items = result.items.map((house) =>
+        historicalHouseView(house, detailAvailable),
+      );
       return {
         ok: true,
         data: {
@@ -288,6 +295,20 @@ const getHouseDetail: ToolDefinition<ToolInputs["get_house_detail"]> = {
   source: (context) => context.businessSource,
   inputSchema: toolInputSchemas.get_house_detail,
   async execute(input, context) {
+    const historical = await context.housing?.service?.getById?.(
+      input.house_id,
+      context.signal,
+    );
+    if (historical) {
+      const data = historicalHouseView(historical, true);
+      return {
+        ok: true,
+        data,
+        source: "housing_history_2024",
+        cards: cards("house", [data]),
+        resultCount: 1,
+      };
+    }
     const house = await context.business.getHouse(input.house_id);
     const source = businessSource(context, house ? [house] : undefined);
     if (!house) return failure(source, "HOUSE_NOT_FOUND", "没有找到该房源记录");

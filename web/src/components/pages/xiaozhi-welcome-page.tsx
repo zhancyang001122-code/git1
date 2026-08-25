@@ -68,7 +68,8 @@ export function XiaozhiWelcomePage({ mode }: { mode: "demo" | "live" }) {
           <div className="relative aspect-square overflow-hidden rounded-feature bg-white/70 shadow-floating">
             <Image
               fill
-              src="/images/home/xiaozhi-mascot.png"
+              src="/images/home/xiaozhi-mascot.webp"
+              unoptimized
               alt=""
               sizes="88px"
               loading="eager"

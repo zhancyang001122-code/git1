@@ -122,6 +122,28 @@ function parseRow<T>(schema: z.ZodType<T>, row: unknown, entity: string): T {
   return result.data;
 }
 
+function localImage(value: string | null | undefined, fallback: string) {
+  if (!value?.startsWith("/images/home/")) return fallback;
+  return value.replace(/\.png$/u, ".webp");
+}
+
+function communityPostImage(category: string): string {
+  if (category.includes("租房") || category.includes("通勤")) {
+    return "/images/home/housing-history-2024.webp";
+  }
+  if (
+    category.includes("美食") ||
+    category.includes("咖啡") ||
+    category.includes("团购")
+  ) {
+    return "/images/home/group-buy-hotpot.webp";
+  }
+  if (category.includes("超市") || category.includes("家常菜")) {
+    return "/images/home/fresh-produce.webp";
+  }
+  return "/images/home/hangzhou-community.webp";
+}
+
 export function mapHouseRow(row: unknown): House {
   const value = parseRow(houseRowSchema, row, "房源");
   return {
@@ -136,7 +158,10 @@ export function mapHouseRow(row: unknown): House {
     available: value.available,
     subwayDistanceM: value.subway_distance_m ?? 0,
     description: value.description,
-    imageSrc: value.image_urls[0] ?? "/images/home/housing-history-2024.png",
+    imageSrc: localImage(
+      value.image_urls[0],
+      "/images/home/housing-history-2024.webp",
+    ),
     tags: value.tags,
     historicalYear: 2024,
     location: { longitude: value.longitude, latitude: value.latitude },
@@ -159,7 +184,7 @@ export function mapDealRow(row: unknown): Deal {
     validUntil: value.valid_until,
     address: value.address,
     description: value.description,
-    imageSrc: value.image_url ?? "/images/home/group-buy-hotpot.png",
+    imageSrc: localImage(value.image_url, "/images/home/group-buy-hotpot.webp"),
     tags: value.tags,
     salesCount: value.sales_count,
     location: { longitude: value.longitude, latitude: value.latitude },
@@ -178,7 +203,7 @@ export function mapStoreRow(row: unknown): Store {
     address: value.address,
     deliveryMinutes: value.delivery_minutes,
     minimumOrder: value.minimum_order,
-    imageSrc: value.image_url ?? "/images/home/fresh-produce.png",
+    imageSrc: localImage(value.image_url, "/images/home/fresh-produce.webp"),
     location: { longitude: value.longitude, latitude: value.latitude },
     isDemo: value.is_demo,
   };
@@ -203,7 +228,7 @@ export function mapProductRow(row: unknown): Product {
     category: value.category,
     price: value.price,
     description: value.description,
-    imageSrc: value.image_url ?? "/images/home/fresh-produce.png",
+    imageSrc: localImage(value.image_url, "/images/home/fresh-produce.webp"),
     tags: value.tags,
     stock,
     reserved,
@@ -222,8 +247,10 @@ export function mapCommunityPostRow(row: unknown): CommunityPost {
     content: value.content,
     authorName: value.author_name,
     locationLabel: value.location_label ?? "杭州",
-    coverImageSrc:
-      value.cover_image_url ?? "/images/home/hangzhou-community.png",
+    coverImageSrc: localImage(
+      value.cover_image_url,
+      communityPostImage(value.category),
+    ),
     tags: value.tags,
     likeCount: value.like_count,
     commentCount: value.comment_count,

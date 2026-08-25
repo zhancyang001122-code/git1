@@ -11,6 +11,13 @@ test("the interview demo covers search, grounded tools and feedback", async ({
   await expect(
     page.getByRole("link", { name: /查看房源 武林晴川一居室/ }),
   ).toBeVisible();
+  await page.getByRole("link", { name: /查看房源 武林晴川一居室/ }).click();
+  await expect(page).toHaveURL(
+    /\/houses\/20000000-0000-0000-0000-000000000001$/,
+  );
+  await expect(
+    page.getByRole("link", { name: "在高德地图导航到武林晴川一居室" }),
+  ).toHaveAttribute("href", /^https:\/\/uri\.amap\.com\/navigation\?/);
 
   await page.goto(
     `/xiaozhi/chat?q=${encodeURIComponent("未使用的团购券可以退款吗")}`,

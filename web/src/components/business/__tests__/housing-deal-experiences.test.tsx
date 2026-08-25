@@ -67,6 +67,13 @@ describe("housing and deal experiences", () => {
       "href",
       expect.stringContaining("/xiaozhi/chat"),
     );
+    const navigation = screen.getByRole("link", {
+      name: "在高德地图导航到武林晴川一居室",
+    });
+    expect(navigation).toHaveAttribute("target", "_blank");
+    expect(navigation.getAttribute("href")).toContain(
+      "https://uri.amap.com/navigation?",
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "预约演示" }));
     expect(screen.getByText(/不会提交真实预约/)).toBeInTheDocument();

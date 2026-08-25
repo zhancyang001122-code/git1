@@ -6,10 +6,27 @@ import type {
   Store,
 } from "@/features/business/domain";
 
-const houseImage = "/images/home/housing-history-2024.png";
-const dealImage = "/images/home/group-buy-hotpot.png";
-const productImage = "/images/home/fresh-produce.png";
-const postImage = "/images/home/hangzhou-community.png";
+const houseImage = "/images/home/housing-history-2024.webp";
+const dealImage = "/images/home/group-buy-hotpot.webp";
+const productImage = "/images/home/fresh-produce.webp";
+const postImage = "/images/home/hangzhou-community.webp";
+
+function communityPostImage(category: string): string {
+  if (category.includes("租房") || category.includes("通勤")) {
+    return houseImage;
+  }
+  if (
+    category.includes("美食") ||
+    category.includes("咖啡") ||
+    category.includes("团购")
+  ) {
+    return dealImage;
+  }
+  if (category.includes("超市") || category.includes("家常菜")) {
+    return productImage;
+  }
+  return postImage;
+}
 
 export const demoStores = [
   {
@@ -720,7 +737,7 @@ export const demoCommunityPosts: readonly CommunityPost[] =
       content,
       authorName,
       locationLabel,
-      coverImageSrc: postImage,
+      coverImageSrc: communityPostImage(category),
       tags,
       likeCount,
       commentCount,

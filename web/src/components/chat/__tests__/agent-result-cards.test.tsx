@@ -69,7 +69,7 @@ describe("AgentResultCards", () => {
     expect(screen.getByText("演示库存 19")).toBeInTheDocument();
   });
 
-  it("renders historical rows with nullable fields and no missing detail link", () => {
+  it("links historical rows to the shared house detail route", () => {
     render(
       <AgentResultCards
         cards={[
@@ -87,6 +87,7 @@ describe("AgentResultCards", () => {
               isDemo: false,
               detailAvailable: false,
               sourceUrl: "https://example.invalid/HZ-001",
+              location: { longitude: 120.1552, latitude: 30.2742 },
             },
           },
         ]}
@@ -94,16 +95,12 @@ describe("AgentResultCards", () => {
     );
 
     expect(
-      screen.queryByRole("link", { name: /查看房源 武林广场旁整租两居/ }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("link", { name: /查看房源 武林广场旁整租两居/ }),
+    ).toHaveAttribute("href", "/houses/house_abc");
     expect(screen.getByText("距查询中心 23 米")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "查看历史来源" })).toHaveAttribute(
-      "href",
-      "https://example.invalid/HZ-001",
-    );
   });
 
-  it("shows AMap place distance while keeping fixture status visible", () => {
+  it("links an AMap place card to walking navigation", () => {
     render(
       <AgentResultCards
         cards={[
@@ -117,6 +114,7 @@ describe("AgentResultCards", () => {
               distanceM: 180,
               source: "amap",
               isDemo: true,
+              location: { longitude: 120.16328, latitude: 30.27415 },
             },
           },
         ]}
@@ -126,6 +124,14 @@ describe("AgentResultCards", () => {
     expect(screen.getByText("180 米")).toBeInTheDocument();
     expect(screen.getByText("高德地图")).toBeInTheDocument();
     expect(screen.getByText("接口演示数据")).toBeInTheDocument();
+    const link = screen.getByRole("link", {
+      name: "在高德地图导航到武林生活超市（演示）",
+    });
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link.getAttribute("href")).toContain(
+      "https://uri.amap.com/navigation?",
+    );
+    expect(link.getAttribute("href")).toContain("mode=walk");
   });
 
   it("cancels a preference proposal without making any request", () => {

@@ -145,6 +145,7 @@ export async function* runAgentToolLoop(
   const messages = [...input.messages];
   const completedCalls = new Map<string, ToolExecution>();
   const invalidCounts = new Map<string, number>();
+  const failureCounts = new Map<string, number>();
   const blockedTools = new Set<string>();
   const maxRounds = input.maxRounds ?? 8;
   let assistantText = "";
@@ -386,6 +387,19 @@ export async function* runAgentToolLoop(
             type: "warning",
             code: "TOOL_ARGUMENTS_REPAIR_EXHAUSTED",
             message: "工具参数连续无效，请换一种说法后重试",
+          };
+        }
+      }
+      if (!execution.result.ok && execution.result.error && !invalid) {
+        const failureKey = `${call.name}:${execution.result.error.code}`;
+        const failureCount = (failureCounts.get(failureKey) ?? 0) + 1;
+        failureCounts.set(failureKey, failureCount);
+        if (failureCount >= 2) {
+          blockedTools.add(call.name);
+          yield {
+            type: "warning",
+            code: "TOOL_FAILURE_RETRY_EXHAUSTED",
+            message: "同一工具连续失败，本轮已停止继续尝试",
           };
         }
       }

@@ -21,7 +21,45 @@ test("home page renders its complete presentation structure", async ({
     page.getByRole("heading", { name: "更多演示内容" }),
   ).toBeVisible();
   await expect(page.getByRole("article")).toHaveCount(4);
+  const highlightLinks = page
+    .getByRole("region", { name: "更多演示内容" })
+    .getByRole("link");
+  await expect(highlightLinks).toHaveCount(4);
+  await expect(
+    page.getByRole("link", { name: "查看房源 武林晴川一居室" }),
+  ).toHaveAttribute("href", "/houses/20000000-0000-0000-0000-000000000001");
   await expect(page.getByRole("navigation", { name: "主导航" })).toBeVisible();
+});
+
+test("discover cards have loaded local previews and open their details", async ({
+  page,
+}) => {
+  await page.goto("/discover");
+  const previewImages = page.locator('main img[alt*="演示社区封面"]');
+  await expect(previewImages).toHaveCount(10);
+  await previewImages.last().scrollIntoViewIfNeeded();
+  await expect
+    .poll(async () =>
+      previewImages.evaluateAll((images) =>
+        images.every(
+          (image) =>
+            image instanceof HTMLImageElement &&
+            image.complete &&
+            image.naturalWidth > 0,
+        ),
+      ),
+    )
+    .toBe(true);
+
+  await page
+    .locator('a[href="/discover/50000000-0000-0000-0000-000000000001"]')
+    .click();
+  await expect(page).toHaveURL(
+    /\/discover\/50000000-0000-0000-0000-000000000001$/,
+  );
+  await expect(
+    page.getByRole("heading", { name: "西湖边适合慢慢走的一条路线" }),
+  ).toBeVisible();
 });
 
 test("case study exposes verified evidence and the unverified user outcome", async ({

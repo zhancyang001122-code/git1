@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { CommunityPostCard } from "@/components/business/community-post-card";
@@ -40,6 +40,10 @@ describe("business presentation components", () => {
     expect(
       screen.getByRole("link", { name: /山野火锅双人餐/ }),
     ).toHaveAttribute("href", `/deals/${deal.id}`);
+    expect(screen.getByAltText(/西湖边适合慢慢走/)).toHaveAttribute(
+      "src",
+      expect.stringContaining("/images/home/hangzhou-community.webp"),
+    );
   });
 
   it("labels demo and imported historical housing without conflating them", () => {
@@ -61,6 +65,16 @@ describe("business presentation components", () => {
     expect(screen.getByText("2024 历史记录")).toBeInTheDocument();
     expect(screen.getByText("2024 演示记录")).toBeInTheDocument();
     expect(screen.queryByText(/实时在租|当前可租/)).not.toBeInTheDocument();
+  });
+
+  it("shows an accessible fallback instead of a broken preview", () => {
+    render(<CommunityPostCard post={post} />);
+
+    fireEvent.error(screen.getByAltText(/西湖边适合慢慢走/));
+
+    expect(
+      screen.getByRole("img", { name: /图片暂不可用/ }),
+    ).toBeInTheDocument();
   });
 
   it("uses a detail shell with one main heading and no bottom navigation", () => {

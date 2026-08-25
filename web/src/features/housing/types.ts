@@ -41,6 +41,14 @@ export interface HistoricalHousingItem {
   datasetPeriod: "2024-11";
 }
 
+export interface HistoricalHousingDetail extends Omit<
+  HistoricalHousingItem,
+  "distanceM"
+> {
+  sourceLabel: string;
+  disclaimer: string;
+}
+
 export interface HistoricalHousingSearchResult {
   items: readonly HistoricalHousingItem[];
   sourceLabel: string;
@@ -58,6 +66,10 @@ export interface HousingSearchService {
     input: HousingSearchInput,
     signal?: AbortSignal,
   ): Promise<HistoricalHousingSearchResult>;
+  getById?(
+    id: string,
+    signal?: AbortSignal,
+  ): Promise<HistoricalHousingDetail | null>;
 }
 
 export interface HousingRuntime {

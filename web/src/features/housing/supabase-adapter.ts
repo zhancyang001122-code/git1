@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import type {
+  HistoricalHousingDetail,
   HistoricalHousingItem,
   HistoricalHousingSearchResult,
   HousingSearchInput,
@@ -117,6 +118,16 @@ const rowSchema = z
   })
   .strict();
 
+const detailRowSchema = rowSchema.omit({
+  distance_m: true,
+  total_count: true,
+  source_label: true,
+  disclaimer: true,
+});
+
+const DETAIL_COLUMNS =
+  "id,title,city,district,address,community,price_monthly,rent_type,layout,bedrooms,area_sqm,floor,orientation,longitude,latitude,source_url,dataset_period";
+
 interface HistoricalHousingSupabaseAdapterOptions {
   client: SupabaseClient;
   timeoutMs?: number;
@@ -156,7 +167,33 @@ function mapRow(row: z.infer<typeof rowSchema>): HistoricalHousingItem {
       longitude: row.longitude,
       latitude: row.latitude,
     },
+    datasetPeriod: row.dataset_period,
+  };
+}
+
+function mapDetailRow(
+  row: z.infer<typeof detailRowSchema>,
+): HistoricalHousingDetail {
+  return {
+    id: row.id,
+    title: row.title,
+    community: row.community,
+    address: row.address,
+    district: row.district,
+    monthlyRent: row.price_monthly,
+    rentType: row.rent_type,
+    layout: row.layout,
+    areaSqm: row.area_sqm,
+    orientation: row.orientation,
+    floor: row.floor,
+    sourceUrl: row.source_url,
+    location: {
+      longitude: row.longitude,
+      latitude: row.latitude,
+    },
     datasetPeriod: DATASET_PERIOD,
+    sourceLabel: SOURCE_LABEL,
+    disclaimer: DISCLAIMER,
   };
 }
 
@@ -274,6 +311,81 @@ export class HistoricalHousingSupabaseAdapter implements HousingSearchService {
         message: "历史房源查询暂时不可用",
         status: 502,
         retryable: true,
+      });
+    } finally {
+      clearTimeout(timeout);
+      signal?.removeEventListener("abort", abortFromCaller);
+    }
+  }
+
+  async getById(
+    id: string,
+    signal?: AbortSignal,
+  ): Promise<HistoricalHousingDetail | null> {
+    const parsedId = z.uuid().safeParse(id);
+    if (!parsedId.success) return null;
+
+    const controller = new AbortController();
+    const abortFromCaller = () => controller.abort(signal?.reason);
+    if (signal?.aborted) abortFromCaller();
+    else signal?.addEventListener("abort", abortFromCaller, { once: true });
+    let timedOut = false;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      controller.abort(new Error("housing Supabase detail timeout"));
+    }, this.timeoutMs);
+
+    try {
+      const result = await this.client
+        .from("historical_houses")
+        .select(DETAIL_COLUMNS)
+        .eq("id", parsedId.data)
+        .abortSignal(controller.signal)
+        .maybeSingle();
+      if (result.error) {
+        throw new AppError({
+          code: "HOUSING_QUERY_FAILED",
+          message: "历史房源详情暂时不可用",
+          status: 502,
+          retryable: true,
+        });
+      }
+      if (!result.data) return null;
+      const row = detailRowSchema.safeParse(result.data);
+      if (!row.success) {
+        throw new AppError({
+          code: "HOUSING_INVALID_RESPONSE",
+          message: "历史房源数据库返回了无效详情",
+          status: 502,
+          retryable: true,
+          cause: row.error,
+        });
+      }
+      return mapDetailRow(row.data);
+    } catch (error) {
+      if (signal?.aborted) {
+        throw new AppError({
+          code: "HOUSING_ABORTED",
+          message: "历史房源详情查询已取消",
+          cause: error,
+        });
+      }
+      if (timedOut) {
+        throw new AppError({
+          code: "HOUSING_TIMEOUT",
+          message: "历史房源详情查询超时",
+          status: 504,
+          retryable: true,
+          cause: error,
+        });
+      }
+      if (error instanceof AppError) throw error;
+      throw new AppError({
+        code: "HOUSING_QUERY_FAILED",
+        message: "历史房源详情暂时不可用",
+        status: 502,
+        retryable: true,
+        cause: error,
       });
     } finally {
       clearTimeout(timeout);

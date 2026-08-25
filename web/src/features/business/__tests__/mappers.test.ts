@@ -38,7 +38,7 @@ describe("Supabase business row mappers", () => {
       latitude: 30.27415,
     });
     expect(house.tags).toEqual([]);
-    expect(house.imageSrc).toBe("/images/home/housing-history-2024.png");
+    expect(house.imageSrc).toBe("/images/home/housing-history-2024.webp");
   });
 
   it("maps deal and store numeric values to domain numbers", () => {
@@ -145,6 +145,26 @@ describe("Supabase business row mappers", () => {
     });
     expect(post.locationLabel).toBe("杭州");
     expect(post.tags).toEqual([]);
+    expect(post.coverImageSrc).toBe("/images/home/hangzhou-community.webp");
+  });
+
+  it("replaces stale seeded preview paths with a local category image", () => {
+    const post = mapCommunityPostRow({
+      id: id.replace(/^2/, "5"),
+      category: "租房避坑",
+      title: "签约检查",
+      excerpt: "摘要",
+      content: "正文",
+      author_name: "演示作者",
+      location_label: "武林广场",
+      cover_image_url: "/images/demo/post-2.jpg",
+      tags: [],
+      like_count: 2,
+      comment_count: 1,
+      is_demo: true,
+    });
+
+    expect(post.coverImageSrc).toBe("/images/home/housing-history-2024.webp");
   });
 
   it("throws a stable data contract error for malformed rows", () => {

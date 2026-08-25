@@ -8,6 +8,8 @@ interface HomeHighlightBase {
   eyebrow: string;
   location: string;
   isDemo: true;
+  href: string;
+  linkLabel: string;
 }
 
 export type HomeHighlight =
@@ -15,19 +17,19 @@ export type HomeHighlight =
       kind: "housing";
       source: Extract<SourceCode, "housing_history_2024">;
       historicalYear: 2024;
-      priceText: "¥3280/月";
+      priceText: string;
       detail: string;
     })
   | (HomeHighlightBase & {
       kind: "deal";
       source: Extract<SourceCode, "supabase_mock">;
-      priceText: "¥128";
+      priceText: string;
       detail: string;
     })
   | (HomeHighlightBase & {
       kind: "product";
       source: Extract<SourceCode, "supabase_mock">;
-      priceText: "¥16.9";
+      priceText: string;
       detail: string;
     })
   | (HomeHighlightBase & {

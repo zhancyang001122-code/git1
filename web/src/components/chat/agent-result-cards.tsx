@@ -2,6 +2,7 @@
 
 import {
   MapPin,
+  Navigation,
   PackageCheck,
   PackageX,
   RotateCcw,
@@ -23,6 +24,7 @@ import {
   type ResultCard,
 } from "@/features/agent/chat-events";
 import { safeNextPath } from "@/features/auth/safe-next";
+import { buildAmapWalkingNavigationUrl } from "@/features/maps/amap-uri";
 
 const houseSchema = z.object({
   id: z.string(),
@@ -36,6 +38,9 @@ const houseSchema = z.object({
   isDemo: z.boolean(),
   detailAvailable: z.boolean().optional(),
   sourceUrl: z.string().url().nullable().optional(),
+  location: z
+    .object({ longitude: z.number(), latitude: z.number() })
+    .optional(),
 });
 
 const dealSchema = z.object({
@@ -67,6 +72,7 @@ const placeSchema = z.object({
   distanceM: z.number().nonnegative(),
   source: z.literal("amap"),
   isDemo: z.boolean(),
+  location: z.object({ longitude: z.number(), latitude: z.number() }),
 });
 
 function HouseResult({ data }: { data: z.infer<typeof houseSchema> }) {
@@ -102,23 +108,6 @@ function HouseResult({ data }: { data: z.infer<typeof houseSchema> }) {
       />
     </>
   );
-  if (data.detailAvailable === false) {
-    return (
-      <article className="glass-panel rounded-card p-4">
-        {content}
-        {data.sourceUrl ? (
-          <a
-            href={data.sourceUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="ui-interactive mt-3 inline-flex min-h-11 items-center rounded-control border border-transparent px-2 text-xs font-medium text-brand underline-offset-4 hover:bg-brand-soft hover:underline focus-visible:outline-none"
-          >
-            查看历史来源
-          </a>
-        ) : null}
-      </article>
-    );
-  }
   return (
     <Link
       href={`/houses/${data.id}`}
@@ -199,8 +188,18 @@ function ProductResult({ data }: { data: z.infer<typeof productSchema> }) {
 }
 
 function PlaceResult({ data }: { data: z.infer<typeof placeSchema> }) {
+  const href = buildAmapWalkingNavigationUrl({
+    destination: data.location,
+    destinationName: data.name,
+  });
   return (
-    <article className="glass-panel rounded-card p-4">
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`在高德地图导航到${data.name}`}
+      className="glass-panel ui-interactive block rounded-card p-4 outline-none"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Tag>{data.category}</Tag>
@@ -219,8 +218,12 @@ function PlaceResult({ data }: { data: z.infer<typeof placeSchema> }) {
       <div className="mt-3 flex flex-wrap gap-2">
         <SourceBadge source="amap" />
         {data.isDemo ? <Tag>接口演示数据</Tag> : null}
+        <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-brand">
+          <Navigation aria-hidden="true" className="size-3.5" />
+          去导航
+        </span>
       </div>
-    </article>
+    </a>
   );
 }
 
