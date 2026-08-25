@@ -11,6 +11,27 @@ import {
 } from "./interview-preflight.mjs";
 
 describe("interview preflight evidence", () => {
+  it("reports provider errors before generic RAG evidence failures", () => {
+    expect(() =>
+      assertFirstPartyRag({
+        errorCode: "QWEN_PROVIDER_TIMEOUT",
+        citations: [],
+        warningCodes: [],
+      }),
+    ).toThrow("Production first-party RAG failed: QWEN_PROVIDER_TIMEOUT");
+  });
+
+  it("reports provider errors before generic rental evidence failures", () => {
+    expect(() =>
+      assertRentalDecisionFlow({
+        errorCode: "QWEN_PROVIDER_TIMEOUT",
+        citations: [],
+        cards: [],
+        warningCodes: [],
+      }),
+    ).toThrow("Production rental-decision flow failed: QWEN_PROVIDER_TIMEOUT");
+  });
+
   it("requires the local and Production commits to match", () => {
     expect(() =>
       assertBranchDeployment({

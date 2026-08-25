@@ -31,6 +31,9 @@ export function assertInvalidRequestBoundary({ status, errorCode, body }) {
 }
 
 export function assertFirstPartyRag(result) {
+  if (result?.errorCode) {
+    throw new Error(`Production first-party RAG failed: ${result.errorCode}`);
+  }
   const citations = result?.citations ?? [];
   const valid =
     result?.toolSucceeded === true &&
@@ -56,6 +59,9 @@ export function assertFirstPartyRag(result) {
 }
 
 export function assertRentalDecisionFlow(result) {
+  if (result?.errorCode) {
+    throw new Error(`Production rental-decision flow failed: ${result.errorCode}`);
+  }
   const cardKinds = new Set((result?.cards ?? []).map((card) => card?.kind));
   const officialCitations = (result?.citations ?? []).filter(
     (citation) => citation?.materialKind === "public_official",
