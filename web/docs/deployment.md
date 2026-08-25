@@ -54,6 +54,8 @@ Demo Preview 不需要 Supabase、高德或百炼账号。页面必须持续显�
 9. 配置 `CRON_SECRET`，确认 `/api/internal/knowledge-index-worker` 只能由 Cron Bearer 或签名管理会话调用；`vercel.json` 的每日 Cron 是 Hobby 计划兜底，管理页负责即时触发。
 10. 只有上述步骤全部通过后，才将 `NEXT_PUBLIC_DEMO_MODE=false`。
 
+Production 当前将 Vercel Functions 固定在 `iad1`。这是基于本项目对百炼华北共享端点、高德和 Supabase 的跨区域实测结果，不代表地理距离越远越好；修改区域后必须重新运行全部 Live 预检。百炼余额或额度耗尽会同时影响 Chat、Embedding 和 Rerank，面试前必须在百炼控制台确认额度，不能只依赖 `/api/health` 的 `configured` 状态。
+
 完整变量以 `.env.example` 为准。
 
 ## 5. 部署后冒烟
@@ -71,6 +73,8 @@ Demo Preview 不需要 Supabase、高德或百炼账号。页面必须持续显�
 9. 发布一条受控知识后先显示 `queued/不可检索`，再触发 Worker，确认任务变为 `succeeded` 且索引、评测状态一致。
 
 未配置真实外部服务时，只能完成 Demo Preview 冒烟，不能记录为 Production Live 通过。
+
+若 `/api/health` 显示百炼已配置，但对话返回 `QWEN_PROVIDER_TIMEOUT`，或知识接口返回 `EMBEDDING_FAILED`，先核对百炼额度和业务空间状态，再排查网络与代码。`configured` 只说明密钥存在，不等于外部服务当前可用。
 
 受 Vercel Authentication 保护的 Preview 使用自动化 bypass 请求头验证，不关闭部署保护：
 
