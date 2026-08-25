@@ -46,11 +46,9 @@ GitHub App 已按最小范围安装，只授权公开仓库 `zhancyang001122-cod
 
 ## 可以延后的增强项
 
-### 6. qwen3-rerank 在线验证
+### 6. qwen3-rerank 已完成，不再需要作者输入
 
-当前 RAG 已使用真实 Embedding、pgvector 混合检索和版本化引用，主演示不依赖 rerank。若要启用 qwen3-rerank，还需要从百炼工作空间复制专属 `compatible-api/v1` 地址，写入 `DASHSCOPE_RERANK_BASE_URL`，再设置 `RAG_RERANK_ENABLED=true`。普通百炼 API Key 不能推导这个工作空间地址。
-
-启用前后应使用同一批正式评测问题比较命中率、排序质量、延迟和费用；不能只因为模型可调用就宣称质量提升。
+现有北京工作空间 Chat URL 提供了可验证的 Workspace Host，运行时只替换固定路径生成 Rerank URL。独立模型调用、Production 配置和真实知识检索重排均已通过；健康接口与 `rankingStrategy` 提供公开证据。该证据证明“已调用并应用重排”，不等于没有企业评测集时就能宣称业务质量提升。
 
 ### 7. 外部告警和值班平台
 
@@ -64,5 +62,5 @@ GitHub App 已按最小范围安装，只授权公开仓库 `zhancyang001122-cod
 2. 官方租赁资料上线并完成独立评测；
 3. 完成 3–5 位目标用户验证；
 4. 获得经授权的企业材料后建立独立评测集；
-5. 有企业评测集后再决定是否启用 rerank；
+5. 使用企业评测集比较启用 Rerank 前后的排序质量、延迟和费用；
 6. 有真实通知接收人后再接外部告警。

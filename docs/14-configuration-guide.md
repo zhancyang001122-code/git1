@@ -33,19 +33,20 @@ RAG embedding 列固定为 1024 维。改模型维度必须创建新迁移、重
 
 ```env
 DASHSCOPE_API_KEY=<server-only>
-DASHSCOPE_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-DASHSCOPE_MODEL=qwen-plus
+DASHSCOPE_BASE_URL=https://<WorkspaceId>.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
+DASHSCOPE_MODEL=qwen3.7-plus
 DASHSCOPE_EMBEDDING_MODEL=text-embedding-v4
 DASHSCOPE_EMBEDDING_DIMENSIONS=1024
 DASHSCOPE_RERANK_MODEL=qwen3-rerank
-DASHSCOPE_RERANK_BASE_URL=<工作空间专属 compatible-api/v1 地址>
+# 可显式填写；北京工作空间 chat URL 可安全推导同 Host 的 compatible-api/v1。
+DASHSCOPE_RERANK_BASE_URL=
 # 可选，以下五项必须同时配置；价格变化后要更新核验日和分档。
 DASHSCOPE_PRICING_MODEL=qwen-plus
 DASHSCOPE_PRICING_MODE_LABEL=非思考模式
 DASHSCOPE_PRICING_EFFECTIVE_FROM=2026-08-12
 DASHSCOPE_PRICING_SOURCE_URL=https://help.aliyun.com/zh/model-studio/qwen-plus
 DASHSCOPE_PRICING_TIERS_JSON=[{"maxInputTokens":128000,"inputCnyPerMillion":0.8,"outputCnyPerMillion":2},{"maxInputTokens":256000,"inputCnyPerMillion":2.4,"outputCnyPerMillion":20},{"maxInputTokens":1000000,"inputCnyPerMillion":4.8,"outputCnyPerMillion":48}]
-RAG_RERANK_ENABLED=false
+RAG_RERANK_ENABLED=true
 RAG_VECTOR_WEIGHT=0.65
 RAG_TEXT_WEIGHT=0.35
 RAG_LOW_CONFIDENCE_THRESHOLD=0.45
@@ -59,7 +60,7 @@ RAG_FINAL_K=5
 
 配置 Key 后运行 `pnpm external:verify-qwen`，该命令会以最小调用验证流式文本、流式 Function Calling 和 `text-embedding-v4` 的 1024 维输出，不打印 Key。
 
-拿到工作空间专属地址后，先只在本机进程中设置 `DASHSCOPE_RERANK_BASE_URL`，运行 `pnpm external:verify-qwen-rerank`。该脚本会验证完整结果、唯一索引、分数范围与降序，并要求直接回答房源时效问题的段落排在第一位；通过后再把地址写入 Vercel，并设置 `RAG_RERANK_ENABLED=true`。地址必须是 `https://<WorkspaceId>.cn-beijing.maas.aliyuncs.com/compatible-api/v1`，不接受其他域名、HTTP、查询参数或片段，避免 API Key 被错误发送到第三方地址。
+运行 `pnpm external:verify-qwen-rerank` 验证模型返回的完整结果、唯一索引、分数范围与降序，并要求直接回答房源时效问题的段落排在第一位。若 `DASHSCOPE_BASE_URL` 是北京工作空间专属 `compatible-mode/v1` 地址，脚本和运行时会在同一 Host 上推导 `compatible-api/v1`；其他地域或共享地址仍必须显式配置并通过白名单校验，避免 API Key 被错误发送到第三方地址。部署后运行 `pnpm external:verify-qwen-rerank-production`，要求健康状态为 `configured` 且检索返回 `rankingStrategy=hybrid_rerank`、无 `RERANK_FALLBACK`。
 
 ## 4. 高德开放平台
 
@@ -91,7 +92,7 @@ pnpm local:preflight
 4. 更新 embedding、model、embedded_at 和状态。
 5. 运行 RAG eval，确认退款、押金、配送、隐私和拒答案例。
 
-`RAG_RERANK_ENABLED=false` 时使用混合融合排序；验证 rerank 模型和预算后再启用。在线返回若缺少候选、索引重复/越界、分数非法或不是降序，整次重排结果作废并回退到混合排序，不能静默丢失候选。
+`RAG_RERANK_ENABLED=false` 时只使用混合融合排序；当前 Production 已设为 `true`。在线返回若缺少候选、索引重复/越界、分数非法或不是降序，整次重排结果作废并回退到混合排序，返回 `rankingStrategy=hybrid_rerank_fallback` 和 `RERANK_FALLBACK`，不能静默丢失候选或假装重排成功。
 
 索引入口为 `POST /api/knowledge/index`，请求体只接受 `versionId`，并要求 `Authorization: Bearer <DEMO_ADMIN_TOKEN>`。Token 必须是至少 32 位的随机值，只能放在服务端环境变量或请求头中，禁止放入 URL、浏览器代码或日志。该入口只建立索引，不负责发布知识版本。
 

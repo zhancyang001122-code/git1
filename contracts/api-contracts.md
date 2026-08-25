@@ -99,7 +99,7 @@ data: {"finishReason":"stop"}
 
 ## `POST /api/knowledge/search`
 
-仅服务端内部调用。输入为 `search_knowledge` 工具参数，返回检索片段、融合分数、引用和 `lowConfidence`。
+输入为 `search_knowledge` 工具参数，返回检索片段、融合分数、引用、`lowConfidence`、`warnings` 和 `rankingStrategy`。Production 正常重排必须返回 `hybrid_rerank`；重排失败时返回 `hybrid_rerank_fallback` 并包含 `RERANK_FALLBACK`，不得静默伪装为已重排。
 
 ## `POST /api/knowledge/publish`
 
@@ -121,4 +121,4 @@ data: {"finishReason":"stop"}
 
 ## `GET /api/health`
 
-返回应用、Supabase、Qwen、AMap 的配置可用性，以及公开的部署 Git commit 标识；不返回任何密钥。外部服务只报告配置状态，真实连通性由 `pnpm interview:preflight` 调用受控业务接口验证。
+返回应用、Supabase、Qwen、Qwen Rerank、AMap 和 Housing 的配置可用性，以及公开的部署 Git commit 标识；不返回任何密钥。外部服务只报告配置状态，真实连通性由 `pnpm interview:preflight` 调用受控业务接口验证。

@@ -88,7 +88,7 @@ pnpm test:e2e   PASS (53 passed, 1 skipped)
 
 - 尚未邀请 3–5 位杭州或绍兴目标用户完成任务测试，因此不填写节省时间、转化率或满意度数字。
 - 尚无经授权的企业客服话术、内部制度或 CRM/ERP 材料，不能宣称完成企业知识库交付。
-- `qwen3-rerank` 在线调用验证尚未完成；当前主演示不依赖它。
+- `qwen3-rerank` 后续已完成独立在线调用、Production 启用和实际检索重排验证，见 `docs/task-reports/2026-08-25-qwen-rerank-and-entrypoints.md`。
 - 外部告警通知和真实值班升级尚未接入。
 
 下一阶段应先执行 `docs/21-user-validation-protocol.md`，收集用户成功率、耗时、证据理解和失败点，再决定是否继续扩充功能。

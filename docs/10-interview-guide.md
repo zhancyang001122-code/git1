@@ -38,7 +38,7 @@ Function Calling 是应用把工具给模型并执行函数；MCP 是标准化�
 
 ## 为什么千问？
 
-面向中国内地，百炼提供 OpenAI 兼容接口、Function Calling 和中文能力。Production 已验证流式多轮、项目工具调用和 1024 维 `text-embedding-v4`；代码通过 AIProvider 隔离，未来可增加其他模型。`qwen3-rerank` 仍需业务空间专属地址，当前没有假装启用。
+面向中国内地，百炼提供 OpenAI 兼容接口、Function Calling 和中文能力。Production 已验证流式多轮、项目工具调用、1024 维 `text-embedding-v4` 和 `qwen3-rerank`。检索响应公开 `rankingStrategy`，线上预检要求实际应用重排且不允许静默回退；代码通过 Provider/Service 边界隔离，未来可替换模型。
 
 ## 如何避免过期政策？
 

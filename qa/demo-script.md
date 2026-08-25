@@ -12,7 +12,7 @@ pnpm interview:preflight
 
 ## 0:00–0:25：先讲问题，不先讲技术
 
-打开 [Production Live](https://xiaozhi.zaneyang.xyz) 首页，指向“从预算到签约核验，一次问完”。
+优先打开[正式域名](https://xiaozhi.zaneyang.xyz)；如果本机代理对自定义域名超时，立即使用已验收的 [Vercel 备用入口](https://xiaozhi-local-life.vercel.app)。两者指向同一 Production 部署。进入首页后指向“从预算到签约核验，一次问完”。
 
 > 租房者往往要在房源平台、地图和政策页面之间来回切换。纯聊天回答又容易把历史房源、推测距离或模型记忆当成事实。我把项目收敛成一个租房决策任务，让三类数据各自从正确系统取得。
 

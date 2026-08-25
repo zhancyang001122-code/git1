@@ -123,6 +123,38 @@ try {
   );
   if (hasOverflow) throw new Error("deployment page has horizontal overflow");
 
+  const caseStudyPage = await browser.newPage({
+    viewport: { width: 430, height: 932 },
+    extraHTTPHeaders: protectedDeploymentHeaders,
+  });
+  const caseStudyErrors = [];
+  caseStudyPage.on("pageerror", (error) => caseStudyErrors.push(error.message));
+  caseStudyPage.on("console", (message) => {
+    if (message.type() === "error") caseStudyErrors.push(message.text());
+  });
+  try {
+    await caseStudyPage.goto(new URL("/case-study", url).href, {
+      waitUntil: "load",
+      timeout: 45_000,
+    });
+    await expect(
+      caseStudyPage.getByRole("heading", {
+        level: 1,
+        name: "小智租房决策助手",
+      }),
+    ).toBeVisible();
+    await expect(
+      caseStudyPage.getByText("10 / 10", { exact: true }),
+    ).toBeVisible();
+    if (caseStudyErrors.length > 0) {
+      throw new Error(
+        `deployment case-study browser errors: ${caseStudyErrors.join(" | ")}`,
+      );
+    }
+  } finally {
+    await caseStudyPage.close();
+  }
+
   const searchbox = page.getByRole("searchbox");
   const query =
     expectedMode === "live"
@@ -237,7 +269,7 @@ try {
     throw new Error(`deployment browser errors: ${browserErrors.join(" | ")}`);
   }
   console.log(
-    `PASS deployment ${expectedMode} health, mobile layout, housing, maps, commerce, preference proposal and feedback flow.`,
+    `PASS deployment ${expectedMode} health, home, case study, mobile layout, housing, maps, commerce, preference proposal and feedback flow.`,
   );
 } finally {
   await browser.close();

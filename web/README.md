@@ -4,13 +4,15 @@
 
 Production Live：[https://xiaozhi.zaneyang.xyz](https://xiaozhi.zaneyang.xyz)
 
+代理兼容备用入口：[https://xiaozhi-local-life.vercel.app](https://xiaozhi-local-life.vercel.app)
+
 ## 产品能力
 
 - 一条可重复运行的租房决策主线：预算与户型筛选、周边 POI、签约核验与合同备案依据。
 - 430px 微信小程序式移动端界面，五个主页面共享统一导航和设计 Token。
 - 房源、团购、商品、库存、周边地点与路线的结构化工具查询。
 - 服务端 SSE 对话，展示公开处理进度、类型化结果卡、来源标签和知识引用。
-- RAG 混合检索、可选 Rerank、文章/版本/切片分层以及低置信拒答。
+- RAG 混合检索、Production `qwen3-rerank`、文章/版本/切片分层以及低置信拒答。
 - 官方公开资料使用独立 `public_official` 来源类型，并在引用卡提供安全的 HTTPS 原文链接。
 - 用户反馈形成候选知识，经过草稿、人工审核、发布、索引、评测和可用时回滚。
 - requestId、日志脱敏、请求体上限、限流、超时、幂等重试和进程级共享熔断（非跨实例）。
@@ -67,7 +69,7 @@ React 页面不直接执行 SQL，不使用 service role 客户端。价格、�
 
 `NEXT_PUBLIC_DEMO_MODE=false`：Supabase、匿名 Cookie 密钥和管理口令可先启用持久化会话、反馈、候选、草稿与审核。没有百炼 Key 时，发布会在任何数据库变更前明确返回 `KNOWLEDGE_INDEXING_NOT_CONFIGURED`；配置百炼后才允许发布、索引和评测。高德能力缺 Key 时同样明确显示未配置，不会伪装为在线结果。
 
-当前 Production 已接通 Supabase、千问、高德和 2024 历史房源，并通过“历史房源 + 高德”“演示商品 + 偏好提案”两条 Live 回归。两份官方租赁资料已完成受控发布、真实 Embedding、在线检索与版本化引用，固定评测 10/10 通过。公开固定演示码 Auth 已通过真实 Supabase Session、RLS 偏好、退出、重登和清理验收。四份作品集首方公开资料的固定评测为 20/20，其中 4/4 千问自然问法用例通过强制取证与严格引用范围检查。企业客服知识材料与 qwen3-rerank 仍未验收，不能从“官方/作品集 RAG 已完成”推导为“真实企业知识库已交付”。
+当前 Production 已接通 Supabase、千问、高德、`qwen3-rerank` 和 2024 历史房源，并通过“历史房源 + 高德”“演示商品 + 偏好提案”两条 Live 回归。两份官方租赁资料已完成受控发布、真实 Embedding、在线检索与版本化引用，固定评测 10/10 通过。`qwen3-rerank` 的独立在线调用与 Production Knowledge Service 实际重排均已验证，回退时预检会失败。公开固定演示码 Auth 已通过真实 Supabase Session、RLS 偏好、退出、重登和清理验收。四份作品集首方公开资料的固定评测为 20/20，其中 4/4 千问自然问法用例通过强制取证与严格引用范围检查。企业客服知识材料仍未提供，不能从“官方/作品集 RAG 已完成”推导为“真实企业知识库已交付”。
 
 部署后回归：
 

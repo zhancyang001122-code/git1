@@ -98,10 +98,11 @@
 ## P1
 
 - [x] qwen3-rerank Adapter 与契约测试
-- [ ] qwen3-rerank 在线调用验证
+- [x] qwen3-rerank 独立在线调用、Production 启用与实际检索重排验证；回退状态可见且预检失败
 - [x] 摘要和长期偏好代码与测试
 - [x] 地理编码和步行路线 Adapter 与降级测试
 - [x] 地理编码和步行路线在线调用验证
+- [x] 自定义域名直连与 Vercel 备用域名经本机系统代理的完整 Live 浏览器回归
 - [x] embedding 状态字段和发布后索引流程
 - [x] 独立 Worker 的持久化队列式 embedding：原子入队、租约、`SKIP LOCKED`、退避重试、Vercel Cron 与管理页即时触发均已实现；四个 Demo 版本和四份作品集首方资料已完成 Production 真实 Embedding
 - [x] 知识运营页的 Demo 评测指标

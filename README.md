@@ -4,6 +4,8 @@
 
 **Production Live：** [https://xiaozhi.zaneyang.xyz](https://xiaozhi.zaneyang.xyz)
 
+**代理兼容备用入口：** [https://xiaozhi-local-life.vercel.app](https://xiaozhi-local-life.vercel.app)
+
 ## 当前真实状态
 
 - Production 已使用 `NEXT_PUBLIC_DEMO_MODE=false`，Supabase、百炼千问、高德和历史房源均报告 `configured`。
@@ -12,13 +14,14 @@
 - 房源 + 高德、商品 + 偏好提案两条 Live 多工具链路已连续回归通过；点赞反馈会写入 Supabase。
 - 四份作品集首方公开资料已通过候选、审核、原子发布、持久化队列和独立 Worker 生成真实百炼 Embedding；Production 固定评测 20/20 通过，其中 4/4 千问自然问法用例同时通过强制取证、事实、版本、首方来源与引用范围检查。
 - 两份官方公开租赁资料已完成 Production 发布、真实百炼 Embedding 和索引；10 条独立检索/拒答用例 10/10 通过，引用卡保留发布机构、版本、生效日期和官方原文链接。
+- `qwen3-rerank` 已在 Production 启用；健康接口报告 `configured`，在线检索返回 `rankingStrategy=hybrid_rerank` 且未触发回退。
 - 租房主演示已在同一轮返回历史房源卡、高德地点卡和官方知识引用；Production 预检在精确部署提交上通过，不依赖线上调试事件。
 - 受保护的 AI Ops 视图会按每次 `qwen-plus` 请求的输入长度分档估算人民币成本，并显示覆盖率、价格核验日和排除项；它不是阿里云账单。
 - Supabase 提供跨 Vercel 实例的工具审计、全部 API Route 安全元数据检索和六类站内阈值状态，并已实现事故认领、解决、自动恢复与不可变事件审计；检索不返回工具载荷、查询参数、正文、Cookie、Authorization、IP 或响应正文。外部通知和真实值班升级尚未接入，不能称为完整企业告警平台。
 - Chat、Feedback、公开 Knowledge Search、地图直连和受保护的知识评测已使用 Supabase 原子共享限流；客户端标识先经服务端 HMAC-SHA256，不保存原始 IP。登录使用公开固定演示码映射到隔离的共享 Supabase 演示账号，并明确提示不要填写真实隐私。
 - 团购、商品、库存、订单和社区内容仍是明确标注的演示业务，不对应真实交易。
 - 作品集首方资料只证明本项目公开边界的 RAG 质量；用户尚未提供企业客服话术、内部制度或客户业务政策，因此不能宣称已经完成真实企业知识库交付。
-- Production 知识运营管理员口令已经配置并完成登录、Cookie、退出和受控材料录入验收。固定演示码 Auth 已完成真实 Session、RLS 偏好、退出、重登和清理验收；`qwen3-rerank` 在线调用仍未配置。
+- Production 知识运营管理员口令已经配置并完成登录、Cookie、退出和受控材料录入验收。固定演示码 Auth 已完成真实 Session、RLS 偏好、退出、重登和清理验收。
 
 ## 数据真实性
 
@@ -116,6 +119,7 @@ pnpm local:preflight
 - [第 1 课真实请求链路练习单](docs/19-lesson-01-real-request-path.md)
 - [租房决策改造案例](docs/20-rental-decision-case-study.md)
 - [租房决策 Production 交付证据](docs/task-reports/2026-08-25-rental-decision-production.md)
+- [Qwen Rerank 与双入口验收](docs/task-reports/2026-08-25-qwen-rerank-and-entrypoints.md)
 - [真实用户验证方案](docs/21-user-validation-protocol.md)
 - [知识索引 Worker 证据](web/docs/task-reports/2026-08-12-knowledge-index-worker.md)
 - [AI 成本估算证据](web/docs/task-reports/2026-08-12-ai-cost-estimate.md)

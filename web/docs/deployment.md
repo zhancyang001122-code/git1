@@ -46,7 +46,7 @@ Demo Preview 不需要 Supabase、高德或百炼账号。页面必须持续显�
 1. 创建 Supabase 项目并配置 URL、publishable key、新版 secret key（`sb_secret_`）；禁用不再使用的旧版 anon/service_role keys。
 2. 使用 Supabase CLI link 项目，在根目录按顺序应用 `supabase/migrations/`。
 3. 执行 `pnpm db:verify-http`，验证匿名、authenticated 和 server secret 边界。
-4. 配置百炼文本模型、`text-embedding-v4`，按需配置 `qwen3-rerank`。
+4. 配置百炼文本模型、`text-embedding-v4` 和 `qwen3-rerank`；北京工作空间 Chat URL 可推导同 Host 的 Rerank 专用路径。
 5. 配置高德 Web 服务 Key，不使用浏览器 JS Key。
 6. 房源方案二选一：将清洗后的历史数据导入 Supabase，或把 `services/housing-api` 独立部署到可由 Vercel 服务端访问的 HTTPS 环境。`127.0.0.1` 只适用于本机，Vercel 无法访问用户电脑。
 7. 导入已脱敏并带版本、生效日期、负责人和来源的正式知识材料。
@@ -64,10 +64,11 @@ Demo Preview 不需要 Supabase、高德或百炼账号。页面必须持续显�
 2. 首页、五个主页面和关键详情页可访问，360/390/430px 无横向溢出。
 3. 房源结果显示正确年份和数据来源，不描述为当前可租。
 4. RAG 回答展示来源、版本、生效日期和引用。
-5. 高德 POI/路线来自 Live Adapter；故障时不估算距离。
-6. 点踩生成候选但不会直接发布。
-7. 浏览器源码和 Network 响应中不存在服务端密钥。
-8. 发布一条受控知识后先显示 `queued/不可检索`，再触发 Worker，确认任务变为 `succeeded` 且索引、评测状态一致。
+5. `/api/health` 报告 `rerank=configured`，知识检索返回 `rankingStrategy=hybrid_rerank` 且无回退告警。
+6. 高德 POI/路线来自 Live Adapter；故障时不估算距离。
+7. 点踩生成候选但不会直接发布。
+8. 浏览器源码和 Network 响应中不存在服务端密钥。
+9. 发布一条受控知识后先显示 `queued/不可检索`，再触发 Worker，确认任务变为 `succeeded` 且索引、评测状态一致。
 
 未配置真实外部服务时，只能完成 Demo Preview 冒烟，不能记录为 Production Live 通过。
 
@@ -90,6 +91,8 @@ pnpm deploy:verify
 ```
 
 `DEPLOYMENT_PROXY_SERVER` 只接受 `http://`、`https://` 或 `socks5://`。代理凭证不得写入仓库或终端日志。
+
+如果系统代理能访问 `*.vercel.app`，但自定义域名在建立 CONNECT 后超时，不要把它误判成 Vercel 宕机。正式域名保持不变，面试时使用同一 Production 的 `https://xiaozhi-local-life.vercel.app` 备用入口，并用上述代理参数运行完整 Live 回归。修改 Windows 系统代理或代理规则属于电脑级配置变更，应单独确认，不由项目脚本自动执行。
 
 ## 6. 二维码与备份视频
 
