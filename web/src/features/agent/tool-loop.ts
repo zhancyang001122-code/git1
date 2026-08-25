@@ -157,6 +157,7 @@ export async function* runAgentToolLoop(
   let providerDegraded = false;
   const resultCards: NonNullable<ChatTurnCompletion["cards"]>[number][] = [];
   const citations: KnowledgeCitation[] = [];
+  const providerDefinitions = input.executor?.registry.providerDefinitions();
 
   for (let round = 1; round <= maxRounds; round += 1) {
     let roundText = "";
@@ -166,11 +167,14 @@ export async function* runAgentToolLoop(
     let roundOutputTokens: number | undefined;
     const requiredToolChoice =
       round === 1 ? input.initialToolChoice : undefined;
+    const availableTools = requiredToolChoice
+      ? providerDefinitions?.filter(
+          (definition) => definition.name === requiredToolChoice.name,
+        )
+      : providerDefinitions;
     const providerInput = {
       messages,
-      ...(input.executor && {
-        tools: input.executor.registry.providerDefinitions(),
-      }),
+      ...(availableTools && { tools: availableTools }),
       ...(requiredToolChoice && { toolChoice: requiredToolChoice }),
     };
 

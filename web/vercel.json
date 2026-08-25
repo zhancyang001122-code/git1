@@ -4,7 +4,8 @@
   "env": {
     "AI_REQUEST_TIMEOUT_MS": "110000",
     "DASHSCOPE_RERANK_MODEL": "qwen3-rerank",
-    "RAG_RERANK_ENABLED": "true"
+    "RAG_RERANK_ENABLED": "true",
+    "TOOL_TIMEOUT_MS": "20000"
   },
   "crons": [
     {

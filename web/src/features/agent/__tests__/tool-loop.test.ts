@@ -168,7 +168,11 @@ describe("agent tool loop", () => {
     await collect(provider, { requiredToolName: "search_houses" });
 
     expect(provider.turns[0]?.toolChoice).toEqual({ name: "search_houses" });
+    expect(provider.turns[0]?.tools).toEqual([
+      expect.objectContaining({ name: "search_houses" }),
+    ]);
     expect(provider.turns[1]?.toolChoice).toBeUndefined();
+    expect(provider.turns[1]?.tools).toHaveLength(10);
   });
 
   it("rejects an ungrounded first-round answer when a tool is required", async () => {
