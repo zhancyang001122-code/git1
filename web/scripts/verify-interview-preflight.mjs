@@ -1,12 +1,17 @@
 import { execFileSync } from "node:child_process";
 
-import { parseSse, summarizeGeneration } from "./lib/portfolio-knowledge.mjs";
+import {
+  parseSse,
+  portfolioKnowledgeSearchResultSchema,
+  summarizeGeneration,
+} from "./lib/portfolio-knowledge.mjs";
 import {
   assertBranchDeployment,
   assertFirstPartyRag,
   assertInvalidRequestBoundary,
   assertLiveAmap,
   assertLiveHealth,
+  assertRerankApplied,
   assertRentalDecisionFlow,
   PRODUCTION_INTERVIEW_URL,
 } from "./lib/interview-preflight.mjs";
@@ -71,6 +76,28 @@ assertLiveAmap({
   body: await amapResponse.json(),
 });
 
+const rerankResponse = await fetch(
+  new URL("/api/knowledge/search", productionUrl),
+  {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      query: "历史房源能代表当前可租状态吗？",
+      domain: "housing",
+      category: null,
+      city: "杭州",
+      topK: 5,
+    }),
+    signal: AbortSignal.timeout(45_000),
+  },
+);
+if (!rerankResponse.ok) {
+  throw new Error(`Production Rerank probe returned ${rerankResponse.status}`);
+}
+assertRerankApplied(
+  portfolioKnowledgeSearchResultSchema.parse(await rerankResponse.json()),
+);
+
 const ragResponse = await fetch(new URL("/api/chat", productionUrl), {
   method: "POST",
   headers: { "content-type": "application/json" },
@@ -118,6 +145,7 @@ console.log(
     deployment: "success",
     invalidRequest: "400/INVALID_CHAT_REQUEST",
     amap: "live/geocoding",
+    rerank: "qwen3-rerank/applied",
     firstPartyRag: "grounded/cited",
     rentalDecision: "housing+amap+official-rag",
     liveFlow: "PASS",

@@ -1,5 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "env": {
+    "DASHSCOPE_RERANK_MODEL": "qwen3-rerank",
+    "RAG_RERANK_ENABLED": "true"
+  },
   "crons": [
     {
       "path": "/api/internal/knowledge-index-worker",

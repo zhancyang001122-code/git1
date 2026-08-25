@@ -88,6 +88,7 @@ const searchKnowledge: ToolDefinition<ToolInputs["search_knowledge"]> = {
         conflict: result.conflict,
         queryPlan: result.queryPlan,
         warnings: [...warnings],
+        rankingStrategy: result.rankingStrategy,
         isDemo: result.isDemo,
       },
       source: "knowledge_base",

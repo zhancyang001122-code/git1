@@ -35,6 +35,26 @@ const optionalDashscopeRerankUrl = z.preprocess(
     .optional(),
 );
 
+function derivedDashscopeRerankBaseUrl(
+  chatBaseUrl: string | undefined,
+): string | undefined {
+  if (!chatBaseUrl) return undefined;
+  const url = new URL(chatBaseUrl);
+  if (
+    url.protocol !== "https:" ||
+    url.username !== "" ||
+    url.password !== "" ||
+    !/^[a-z0-9-]+\.cn-beijing\.maas\.aliyuncs\.com$/i.test(url.hostname) ||
+    url.pathname.replace(/\/$/, "") !== "/compatible-mode/v1" ||
+    url.search !== "" ||
+    url.hash !== ""
+  ) {
+    return undefined;
+  }
+  url.pathname = "/compatible-api/v1";
+  return url.href.replace(/\/$/, "");
+}
+
 const optionalEmail = z.preprocess(
   emptyStringToUndefined,
   z
@@ -233,7 +253,11 @@ const serverEnvSchema = z
         message: "RAG_FINAL_K 不能大于 RAG_TOP_K",
       });
     }
-    if (value.RAG_RERANK_ENABLED && !value.DASHSCOPE_RERANK_BASE_URL) {
+    if (
+      value.RAG_RERANK_ENABLED &&
+      !value.DASHSCOPE_RERANK_BASE_URL &&
+      !derivedDashscopeRerankBaseUrl(value.DASHSCOPE_BASE_URL)
+    ) {
       context.addIssue({
         code: "custom",
         path: ["DASHSCOPE_RERANK_BASE_URL"],
@@ -276,11 +300,24 @@ export type PublicEnvironment = z.infer<typeof publicEnvSchema>;
 export type ServerEnvironment = z.infer<typeof serverEnvSchema>;
 export type ServiceStatus = "configured" | "missing" | "disabled";
 
+export function resolveDashscopeRerankBaseUrl(
+  configuration: Pick<
+    ServerEnvironment,
+    "DASHSCOPE_BASE_URL" | "DASHSCOPE_RERANK_BASE_URL"
+  >,
+): string | undefined {
+  return (
+    configuration.DASHSCOPE_RERANK_BASE_URL ??
+    derivedDashscopeRerankBaseUrl(configuration.DASHSCOPE_BASE_URL)
+  );
+}
+
 export interface ServiceConfiguration {
   mode: "demo" | "live";
   services: {
     supabase: ServiceStatus;
     qwen: ServiceStatus;
+    rerank: ServiceStatus;
     amap: ServiceStatus;
     housing: ServiceStatus;
   };
@@ -307,6 +344,7 @@ export function getServiceConfiguration(
 ): ServiceConfiguration {
   const publicConfiguration = parsePublicEnv(input);
   const serverConfiguration = parseServerEnv(input);
+  const rerankBaseUrl = resolveDashscopeRerankBaseUrl(serverConfiguration);
   const supabaseHousingConfigured = Boolean(
     publicConfiguration.NEXT_PUBLIC_SUPABASE_URL &&
     serverConfiguration.SUPABASE_SECRET_KEY,
@@ -325,6 +363,7 @@ export function getServiceConfiguration(
       services: {
         supabase: "disabled",
         qwen: "disabled",
+        rerank: "disabled",
         amap: "disabled",
         housing: localHttpHousingConfigured ? "configured" : "disabled",
       },
@@ -340,6 +379,11 @@ export function getServiceConfiguration(
           ? "configured"
           : "missing",
       qwen: serverConfiguration.DASHSCOPE_API_KEY ? "configured" : "missing",
+      rerank: !serverConfiguration.RAG_RERANK_ENABLED
+        ? "disabled"
+        : serverConfiguration.DASHSCOPE_API_KEY && rerankBaseUrl
+          ? "configured"
+          : "missing",
       amap: serverConfiguration.AMAP_WEB_SERVICE_KEY ? "configured" : "missing",
       housing:
         supabaseHousingConfigured || localHttpHousingConfigured

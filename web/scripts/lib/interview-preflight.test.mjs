@@ -6,6 +6,7 @@ import {
   assertInvalidRequestBoundary,
   assertLiveAmap,
   assertLiveHealth,
+  assertRerankApplied,
   assertRentalDecisionFlow,
 } from "./interview-preflight.mjs";
 
@@ -131,6 +132,7 @@ describe("interview preflight evidence", () => {
         services: {
           supabase: "configured",
           qwen: "configured",
+          rerank: "configured",
           amap: "configured",
           housing: "configured",
         },
@@ -140,9 +142,32 @@ describe("interview preflight evidence", () => {
       assertLiveHealth({
         app: "xiaozhi",
         mode: "live",
-        services: { supabase: "configured", qwen: "missing" },
+        services: {
+          supabase: "configured",
+          qwen: "missing",
+          rerank: "missing",
+        },
       }),
     ).toThrow(/not fully configured/i);
+  });
+
+  it("requires a knowledge search to apply rerank without falling back", () => {
+    expect(() =>
+      assertRerankApplied({
+        chunks: [{ title: "小智作品集：历史房源边界" }],
+        citations: [{ title: "小智作品集：历史房源边界" }],
+        warnings: [],
+        rankingStrategy: "hybrid_rerank",
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertRerankApplied({
+        chunks: [{ title: "小智作品集：历史房源边界" }],
+        citations: [{ title: "小智作品集：历史房源边界" }],
+        warnings: ["RERANK_FALLBACK"],
+        rankingStrategy: "hybrid_rerank_fallback",
+      }),
+    ).toThrow(/Rerank/i);
   });
 
   it("requires a real Live AMap geocoding response", () => {

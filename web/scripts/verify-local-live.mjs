@@ -1,10 +1,15 @@
 import { execFileSync, spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-import { parseSse, summarizeGeneration } from "./lib/portfolio-knowledge.mjs";
+import {
+  parseSse,
+  portfolioKnowledgeSearchResultSchema,
+  summarizeGeneration,
+} from "./lib/portfolio-knowledge.mjs";
 import {
   assertFirstPartyRag,
   assertLiveAmap,
+  assertRerankApplied,
   assertRentalDecisionFlow,
 } from "./lib/interview-preflight.mjs";
 import {
@@ -119,6 +124,28 @@ try {
     status: amapResponse.status,
     body: await amapResponse.json(),
   });
+
+  const rerankResponse = await fetch(
+    new URL("/api/knowledge/search", baseUrl),
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        query: "历史房源能代表当前可租状态吗？",
+        domain: "housing",
+        category: null,
+        city: "杭州",
+        topK: 5,
+      }),
+      signal: AbortSignal.timeout(45_000),
+    },
+  );
+  if (!rerankResponse.ok) {
+    throw new Error(`本机 Rerank 验证返回 ${rerankResponse.status}`);
+  }
+  assertRerankApplied(
+    portfolioKnowledgeSearchResultSchema.parse(await rerankResponse.json()),
+  );
 
   const ragResponse = await fetch(new URL("/api/chat", baseUrl), {
     method: "POST",

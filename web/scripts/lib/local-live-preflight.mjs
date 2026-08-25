@@ -3,6 +3,7 @@ const loopbackHostnames = new Set(["127.0.0.1", "localhost", "::1"]);
 const serviceConfigurationNames = {
   supabase: "NEXT_PUBLIC_SUPABASE_URL、NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
   qwen: "DASHSCOPE_API_KEY",
+  rerank: "RAG_RERANK_ENABLED、DASHSCOPE_RERANK_BASE_URL（或北京工作空间地址）",
   amap: "AMAP_WEB_SERVICE_KEY",
   housing: "SUPABASE_SECRET_KEY（或本机房源 HTTP 配置）",
 };

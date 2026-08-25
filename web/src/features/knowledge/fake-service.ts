@@ -140,6 +140,7 @@ export class FakeKnowledgeService implements KnowledgeService {
       conflict: false,
       queryPlan,
       warnings: ["DEMO_KNOWLEDGE"],
+      rankingStrategy: "demo",
       isDemo: true,
     };
   }

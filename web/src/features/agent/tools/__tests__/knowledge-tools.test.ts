@@ -107,6 +107,7 @@ describe("knowledge tools", () => {
               category: input.category,
             },
             warnings: [],
+            rankingStrategy: "hybrid",
             isDemo: false,
           };
         }

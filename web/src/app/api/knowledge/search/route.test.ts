@@ -13,6 +13,7 @@ function service(): KnowledgeService {
       conflict: false,
       queryPlan: { rewrittenQuery: input.query },
       warnings: [],
+      rankingStrategy: "demo" as const,
       isDemo: true,
     })),
     indexVersion: vi.fn(async (versionId) => ({

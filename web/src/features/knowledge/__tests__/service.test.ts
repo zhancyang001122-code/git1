@@ -109,6 +109,44 @@ describe("DefaultKnowledgeService search", () => {
     expect(result.chunks).toHaveLength(1);
     expect(result.citations).toHaveLength(1);
     expect(result.lowConfidence).toBe(false);
+    expect(result.rankingStrategy).toBe("hybrid");
+  });
+
+  it("reports when reranking was applied to the hybrid recall", async () => {
+    const reranker: KnowledgeReranker = {
+      rerank: vi.fn(async () => [
+        { index: 1, score: 0.93 },
+        { index: 0, score: 0.61 },
+      ]),
+    };
+    const service = new DefaultKnowledgeService({
+      repository: repository([
+        hit("63000000-0000-0000-0000-000000000001", { combinedScore: 0.8 }),
+        hit("63000000-0000-0000-0000-000000000002", { combinedScore: 0.6 }),
+      ]),
+      embedding,
+      reranker,
+      now: () => new Date("2026-08-11T00:00:00Z"),
+      lowConfidenceThreshold: 0.45,
+      vectorWeight: 0.65,
+      textWeight: 0.35,
+      recallCount: 12,
+      finalCount: 5,
+    });
+
+    const result = await service.search({
+      query: "退款条件",
+      domain: null,
+      category: null,
+      city: null,
+      topK: 5,
+    });
+
+    expect(result.chunks.map((item) => item.chunkId)).toEqual([
+      "63000000-0000-0000-0000-000000000002",
+      "63000000-0000-0000-0000-000000000001",
+    ]);
+    expect(result.rankingStrategy).toBe("hybrid_rerank");
   });
 
   it("falls back to hybrid order when reranking fails", async () => {
@@ -145,6 +183,7 @@ describe("DefaultKnowledgeService search", () => {
       "63000000-0000-0000-0000-000000000002",
     ]);
     expect(result.warnings).toContain("RERANK_FALLBACK");
+    expect(result.rankingStrategy).toBe("hybrid_rerank_fallback");
   });
 
   it("flags low confidence and conflicting normalized policy values", async () => {

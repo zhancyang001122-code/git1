@@ -11,6 +11,8 @@ export type KnowledgeStatus =
   "draft" | "reviewing" | "published" | "archived" | "rejected";
 export type KnowledgeMaterialKind =
   "demo" | "portfolio_first_party" | "public_official" | "external_authorized";
+export type KnowledgeRankingStrategy =
+  "demo" | "hybrid" | "hybrid_rerank" | "hybrid_rerank_fallback";
 
 export interface KnowledgeSearchInput {
   query: string;
@@ -59,6 +61,7 @@ export interface KnowledgeSearchResult {
   conflict: boolean;
   queryPlan: KnowledgeQueryPlan;
   warnings: readonly string[];
+  rankingStrategy: KnowledgeRankingStrategy;
   isDemo: boolean;
 }
 

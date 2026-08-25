@@ -109,6 +109,7 @@ describe("createKnowledgeOpsRuntime", () => {
       conflict: false,
       queryPlan: { rewrittenQuery: "What evidence is needed?" },
       warnings: [],
+      rankingStrategy: "hybrid_rerank" as const,
       isDemo: false,
     }));
     const runtime = await createKnowledgeOpsRuntime({

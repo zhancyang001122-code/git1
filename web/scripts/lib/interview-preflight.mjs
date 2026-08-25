@@ -1,6 +1,6 @@
 export const PRODUCTION_INTERVIEW_URL = "https://xiaozhi.zaneyang.xyz";
 
-const requiredServices = ["supabase", "qwen", "amap", "housing"];
+const requiredServices = ["supabase", "qwen", "rerank", "amap", "housing"];
 
 export function assertLiveHealth(health) {
   const valid =
@@ -79,6 +79,19 @@ export function assertRentalDecisionFlow(result) {
     );
   if (!valid) {
     throw new Error("Production rental-decision evidence is incomplete");
+  }
+}
+
+export function assertRerankApplied(result) {
+  const valid =
+    result?.rankingStrategy === "hybrid_rerank" &&
+    !result?.warnings?.includes("RERANK_FALLBACK") &&
+    Array.isArray(result?.chunks) &&
+    result.chunks.length > 0 &&
+    Array.isArray(result?.citations) &&
+    result.citations.length > 0;
+  if (!valid) {
+    throw new Error("Production Rerank evidence is incomplete");
   }
 }
 

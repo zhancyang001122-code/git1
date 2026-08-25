@@ -146,6 +146,7 @@ describe("environment contract", () => {
       services: {
         supabase: "disabled",
         qwen: "disabled",
+        rerank: "disabled",
         amap: "disabled",
         housing: "disabled",
       },
@@ -165,10 +166,23 @@ describe("environment contract", () => {
       services: {
         supabase: "configured",
         qwen: "configured",
+        rerank: "disabled",
         amap: "missing",
         housing: "missing",
       },
     });
+  });
+
+  it("derives and reports the Beijing workspace rerank endpoint", () => {
+    const value = getServiceConfiguration({
+      NEXT_PUBLIC_DEMO_MODE: "false",
+      DASHSCOPE_API_KEY: "qwen-secret",
+      DASHSCOPE_BASE_URL:
+        "https://workspace.cn-beijing.maas.aliyuncs.com/compatible-mode/v1",
+      RAG_RERANK_ENABLED: "true",
+    });
+
+    expect(value.services.rerank).toBe("configured");
   });
 
   it("reports the local housing service independently in demo mode", () => {

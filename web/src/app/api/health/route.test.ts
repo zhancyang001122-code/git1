@@ -24,6 +24,7 @@ describe("GET /api/health", () => {
       services: {
         supabase: "disabled",
         qwen: "disabled",
+        rerank: "disabled",
         amap: "disabled",
         housing: "disabled",
       },
@@ -36,6 +37,11 @@ describe("GET /api/health", () => {
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "public-key");
     vi.stubEnv("DASHSCOPE_API_KEY", "qwen-secret");
+    vi.stubEnv("RAG_RERANK_ENABLED", "true");
+    vi.stubEnv(
+      "DASHSCOPE_RERANK_BASE_URL",
+      "https://workspace.cn-beijing.maas.aliyuncs.com/compatible-api/v1",
+    );
 
     const response = await GET(request());
     const body = await response.json();
@@ -43,6 +49,7 @@ describe("GET /api/health", () => {
     expect(body.services).toEqual({
       supabase: "configured",
       qwen: "configured",
+      rerank: "configured",
       amap: "missing",
       housing: "missing",
     });

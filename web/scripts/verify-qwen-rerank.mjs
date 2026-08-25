@@ -1,13 +1,28 @@
 import OpenAI from "openai";
 
-function required(name) {
-  const value = process.env[name]?.trim();
-  if (!value) throw new Error(`${name} is required`);
-  return value;
+import {
+  optionalEnvironment,
+  requiredEnvironment,
+} from "./lib/portfolio-knowledge.mjs";
+
+function rerankBaseUrl() {
+  const configured = optionalEnvironment("DASHSCOPE_RERANK_BASE_URL");
+  if (configured) return configured;
+  const chatUrl = new URL(requiredEnvironment("DASHSCOPE_BASE_URL"));
+  if (
+    !/^[a-z0-9-]+\.cn-beijing\.maas\.aliyuncs\.com$/i.test(chatUrl.hostname) ||
+    chatUrl.pathname.replace(/\/$/, "") !== "/compatible-mode/v1"
+  ) {
+    throw new Error(
+      "DASHSCOPE_RERANK_BASE_URL is required when the chat URL is not a Beijing workspace URL",
+    );
+  }
+  chatUrl.pathname = "/compatible-api/v1";
+  return chatUrl.href.replace(/\/$/, "");
 }
 
-const apiKey = required("DASHSCOPE_API_KEY");
-const rawBaseUrl = required("DASHSCOPE_RERANK_BASE_URL");
+const apiKey = requiredEnvironment("DASHSCOPE_API_KEY");
+const rawBaseUrl = rerankBaseUrl();
 const baseUrl = new URL(rawBaseUrl);
 if (
   baseUrl.protocol !== "https:" ||
@@ -23,7 +38,7 @@ if (
   );
 }
 
-const model = process.env.DASHSCOPE_RERANK_MODEL?.trim() || "qwen3-rerank";
+const model = optionalEnvironment("DASHSCOPE_RERANK_MODEL") || "qwen3-rerank";
 const client = new OpenAI({
   apiKey,
   baseURL: baseUrl.href.replace(/\/$/, ""),

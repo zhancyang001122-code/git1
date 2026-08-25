@@ -19,6 +19,7 @@ import { AppError } from "@/lib/errors";
 import {
   parsePublicEnv,
   parseServerEnv,
+  resolveDashscopeRerankBaseUrl,
   type EnvironmentInput,
 } from "@/lib/env";
 
@@ -61,13 +62,11 @@ export function createKnowledgeRuntime(
     dimensions: serverConfiguration.DASHSCOPE_EMBEDDING_DIMENSIONS,
   });
   let reranker: QwenReranker | undefined;
-  if (
-    serverConfiguration.RAG_RERANK_ENABLED &&
-    serverConfiguration.DASHSCOPE_RERANK_BASE_URL
-  ) {
+  const rerankBaseUrl = resolveDashscopeRerankBaseUrl(serverConfiguration);
+  if (serverConfiguration.RAG_RERANK_ENABLED && rerankBaseUrl) {
     const rerankClient = new OpenAI({
       apiKey: serverConfiguration.DASHSCOPE_API_KEY,
-      baseURL: serverConfiguration.DASHSCOPE_RERANK_BASE_URL,
+      baseURL: rerankBaseUrl,
       timeout: serverConfiguration.TOOL_TIMEOUT_MS,
       maxRetries: 0,
     });

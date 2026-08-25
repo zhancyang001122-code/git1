@@ -165,6 +165,8 @@ describe("portfolio first-party knowledge suite", () => {
         ],
         lowConfidence: false,
         conflict: false,
+        rankingStrategy: "hybrid_rerank",
+        warnings: [],
         isDemo: false,
       },
     );
@@ -196,6 +198,8 @@ describe("portfolio first-party knowledge suite", () => {
         citations: [],
         lowConfidence: true,
         conflict: false,
+        rankingStrategy: "hybrid_rerank",
+        warnings: [],
         isDemo: false,
       },
     );
@@ -323,6 +327,8 @@ describe("public official rental knowledge suite", () => {
       ],
       lowConfidence: false,
       conflict: false,
+      rankingStrategy: "hybrid_rerank",
+      warnings: [],
       isDemo: false,
     });
 

@@ -28,6 +28,7 @@
     "knowledge:verify-public-official-production": "node scripts/verify-portfolio-knowledge-production.mjs --set=public-official",
     "external:verify-qwen": "node scripts/verify-qwen.mjs",
     "external:verify-qwen-rerank": "node scripts/verify-qwen-rerank.mjs",
+    "external:verify-qwen-rerank-production": "node scripts/verify-qwen-rerank-production.mjs",
     "external:verify-amap": "node scripts/verify-amap.mjs",
     "start": "next start",
     "lint": "eslint",

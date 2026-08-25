@@ -166,6 +166,7 @@ export class DefaultKnowledgeService implements KnowledgeService {
       score: hit.combinedScore,
     }));
     const warnings: string[] = [];
+    let rankingStrategy: KnowledgeSearchResult["rankingStrategy"] = "hybrid";
     if (this.reranker && ranked.length > 0) {
       try {
         const reranked = await this.reranker.rerank(
@@ -177,9 +178,11 @@ export class DefaultKnowledgeService implements KnowledgeService {
           ...ranked[item.index]!,
           score: item.score,
         }));
+        rankingStrategy = "hybrid_rerank";
       } catch (error) {
         void error;
         warnings.push("RERANK_FALLBACK");
+        rankingStrategy = "hybrid_rerank_fallback";
       }
     }
     const finalCount = Math.min(input.topK, this.finalCount);
@@ -194,6 +197,7 @@ export class DefaultKnowledgeService implements KnowledgeService {
       conflict: hasConflict(candidates),
       queryPlan,
       warnings,
+      rankingStrategy,
       isDemo: chunks.length > 0 && chunks.every((chunk) => chunk.isDemo),
     };
   }

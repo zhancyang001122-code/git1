@@ -29,12 +29,13 @@ describe("local Live preflight", () => {
         services: {
           supabase: "configured",
           qwen: "missing",
+          rerank: "missing",
           amap: "missing",
           housing: "configured",
         },
       }),
     ).toThrow(
-      "本机 Live 缺少配置：DASHSCOPE_API_KEY、AMAP_WEB_SERVICE_KEY；如刚写入密钥，请先重启本机开发服务",
+      "本机 Live 缺少配置：DASHSCOPE_API_KEY、RAG_RERANK_ENABLED、DASHSCOPE_RERANK_BASE_URL（或北京工作空间地址）、AMAP_WEB_SERVICE_KEY；如刚写入密钥，请先重启本机开发服务",
     );
   });
 
@@ -46,6 +47,7 @@ describe("local Live preflight", () => {
         services: {
           supabase: "configured",
           qwen: "configured",
+          rerank: "configured",
           amap: "configured",
           housing: "configured",
         },

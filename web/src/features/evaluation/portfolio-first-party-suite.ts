@@ -143,6 +143,13 @@ export const portfolioKnowledgeSearchResultSchema = z
     citations: z.array(retrievedCitationSchema),
     lowConfidence: z.boolean(),
     conflict: z.boolean(),
+    rankingStrategy: z.enum([
+      "demo",
+      "hybrid",
+      "hybrid_rerank",
+      "hybrid_rerank_fallback",
+    ]),
+    warnings: z.array(z.string()),
     isDemo: z.boolean(),
   })
   .passthrough();
