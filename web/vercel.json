@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "regions": ["hkg1"],
+  "regions": ["sin1"],
   "env": {
     "DASHSCOPE_RERANK_MODEL": "qwen3-rerank",
     "RAG_RERANK_ENABLED": "true"
