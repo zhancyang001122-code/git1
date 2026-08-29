@@ -256,6 +256,27 @@ const houseRows: readonly HouseRow[] = [
   ],
 ];
 
+const demoHouseLocations: Record<string, House["location"]> = {
+  "0001": { longitude: 120.1626, latitude: 30.2762 },
+  "0002": { longitude: 120.1682, latitude: 30.2783 },
+  "0003": { longitude: 120.1708, latitude: 30.2861 },
+  "0004": { longitude: 120.1589, latitude: 30.2687 },
+  "0005": { longitude: 120.1493, latitude: 30.2692 },
+  "0006": { longitude: 120.1398, latitude: 30.2742 },
+  "0007": { longitude: 120.1762, latitude: 30.2897 },
+  "0008": { longitude: 120.1776, latitude: 30.2634 },
+  "0009": { longitude: 120.1649, latitude: 30.2559 },
+  "0010": { longitude: 120.1691, latitude: 30.3152 },
+  "0011": { longitude: 120.1379, latitude: 30.2816 },
+  "0012": { longitude: 120.1639, latitude: 30.2751 },
+};
+
+function demoHouseLocation(suffix: string): House["location"] {
+  const location = demoHouseLocations[suffix];
+  if (!location) throw new Error(`Missing demo house location: ${suffix}`);
+  return location;
+}
+
 export const demoHouses: readonly House[] = houseRows.map(
   ([
     suffix,
@@ -284,7 +305,7 @@ export const demoHouses: readonly House[] = houseRows.map(
     imageSrc: houseImage,
     tags,
     historicalYear: 2024,
-    location: { longitude: 120.16328, latitude: 30.27415 },
+    location: demoHouseLocation(suffix),
     isDemo: true,
   }),
 );

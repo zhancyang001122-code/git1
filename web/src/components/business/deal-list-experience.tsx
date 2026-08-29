@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { DealCard } from "@/components/business/deal-card";
+import { SelectedLocationBar } from "@/components/location/selected-location-bar";
 import { Button } from "@/components/ui/button";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { SearchBar } from "@/components/ui/search-bar";
@@ -56,6 +57,7 @@ export function DealListExperience({ deals }: DealListExperienceProps) {
       <DemoNotice>
         团购、销量和价格均为演示业务数据，当前不连接真实交易平台。
       </DemoNotice>
+      <SelectedLocationBar />
       <SearchBar
         label="搜索演示团购"
         value={queryInput}

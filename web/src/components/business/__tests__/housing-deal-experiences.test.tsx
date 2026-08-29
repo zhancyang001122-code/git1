@@ -16,6 +16,13 @@ describe("housing and deal experiences", () => {
     );
 
     expect(screen.getAllByRole("article")).toHaveLength(11);
+    expect(
+      screen.getByRole("button", { name: "选择位置：杭州 · 武林广场" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /排序：距离最近/ }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(/距您直线/)).toHaveLength(11);
 
     fireEvent.click(screen.getByRole("button", { name: "筛选房源" }));
     expect(
@@ -27,7 +34,7 @@ describe("housing and deal experiences", () => {
       availableHouses.filter((house) => house.priceMonthly <= 3500).length,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /排序：推荐顺序/ }));
+    fireEvent.click(screen.getByRole("button", { name: /排序：距离最近/ }));
     fireEvent.click(screen.getByRole("button", { name: "租金从低到高" }));
     const headings = screen.getAllByRole("heading", { level: 2 });
     expect(headings[0]).toHaveTextContent("文三路合租次卧");
@@ -46,6 +53,9 @@ describe("housing and deal experiences", () => {
     render(<DealListExperience deals={demoDeals} />);
 
     expect(screen.getAllByRole("article")).toHaveLength(8);
+    expect(
+      screen.getByRole("button", { name: "选择位置：杭州 · 武林广场" }),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "火锅" }));
     expect(screen.getAllByRole("article")).toHaveLength(1);
     expect(

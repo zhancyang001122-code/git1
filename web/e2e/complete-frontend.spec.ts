@@ -68,6 +68,13 @@ for (const route of routes) {
 
 test("housing filters and local favorite work", async ({ page }) => {
   await page.goto("/houses");
+  await expect(
+    page.getByRole("button", { name: "选择位置：杭州 · 武林广场" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /排序：距离最近/ }),
+  ).toBeVisible();
+  await expect(page.getByText(/距您直线/).first()).toBeVisible();
   await page.getByRole("button", { name: "筛选房源" }).click();
   await page.getByRole("button", { name: "3500 元以内" }).click();
   await page.getByRole("button", { name: "完成筛选" }).click();
@@ -170,6 +177,16 @@ test("manual location persists across home, nearby and chat requests", async ({
   await expect(
     page.getByRole("heading", { name: "绍兴 · 鲁迅故里" }),
   ).toBeVisible();
+
+  for (const route of ["/houses", "/deals", "/market"] as const) {
+    await page.goto(route);
+    await expect(
+      page.getByRole("button", { name: "选择位置：绍兴 · 鲁迅故里" }),
+    ).toBeVisible();
+    if (route === "/houses") {
+      await expect(page.getByText("距您直线 >10km").first()).toBeVisible();
+    }
+  }
 
   const chatRequest = page.waitForRequest(
     (request) =>

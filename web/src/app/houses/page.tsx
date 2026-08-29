@@ -8,9 +8,9 @@ export default async function HousesPage() {
   const repositories = await createRepositories();
   const result = await repositories.business.listHouses({ limit: 24 });
   const source =
-    repositories.mode.mode === "supabase"
-      ? "housing_history_2024"
-      : "supabase_mock";
+    result.items.length > 0 && result.items.every((house) => house.isDemo)
+      ? "supabase_mock"
+      : "housing_history_2024";
 
   return (
     <DetailShell

@@ -1,4 +1,4 @@
-import { MapPin } from "lucide-react";
+import { MapPin, Navigation } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -6,14 +6,21 @@ import { BusinessCardImage } from "@/components/business/business-card-image";
 import { SourceBadge } from "@/components/ui/source-badge";
 import { Tag } from "@/components/ui/tag";
 import type { House } from "@/features/business/domain";
+import { formatStraightLineDistance } from "@/features/maps/straight-line-distance";
 
 export interface HouseCardProps {
   house: House;
   actions?: ReactNode;
+  distanceM?: number;
   eager?: boolean;
 }
 
-export function HouseCard({ actions, eager, house }: HouseCardProps) {
+export function HouseCard({
+  actions,
+  distanceM,
+  eager,
+  house,
+}: HouseCardProps) {
   return (
     <article className="glass-panel group overflow-hidden rounded-card">
       <Link
@@ -46,6 +53,12 @@ export function HouseCard({ actions, eager, house }: HouseCardProps) {
               {house.district} · {house.address}
             </span>
           </p>
+          {distanceM !== undefined ? (
+            <p className="flex items-center gap-1 text-xs font-medium text-brand">
+              <Navigation aria-hidden="true" className="size-3.5" />
+              距您直线 {formatStraightLineDistance(distanceM)}
+            </p>
+          ) : null}
           <SourceBadge
             source={house.isDemo ? "supabase_mock" : "housing_history_2024"}
           />

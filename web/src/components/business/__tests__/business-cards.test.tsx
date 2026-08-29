@@ -67,6 +67,12 @@ describe("business presentation components", () => {
     expect(screen.queryByText(/实时在租|当前可租/)).not.toBeInTheDocument();
   });
 
+  it("caps the displayed straight-line distance after ten kilometres", () => {
+    render(<HouseCard house={house} distanceM={10_001} />);
+
+    expect(screen.getByText("距您直线 >10km")).toBeInTheDocument();
+  });
+
   it("shows an accessible fallback instead of a broken preview", () => {
     render(<CommunityPostCard post={post} />);
 

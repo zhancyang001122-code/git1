@@ -12,12 +12,15 @@ import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 
 import { HouseCard } from "@/components/business/house-card";
+import { SelectedLocationBar } from "@/components/location/selected-location-bar";
 import { ActionSheet } from "@/components/ui/action-sheet";
 import { Button } from "@/components/ui/button";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { EmptyState } from "@/components/ui/states";
 import { Toast } from "@/components/ui/toast";
 import type { House, HouseSort } from "@/features/business/domain";
+import { useSelectedLocation } from "@/features/location/selected-location-provider";
+import { straightLineDistanceM } from "@/features/maps/straight-line-distance";
 import { cn } from "@/lib/cn";
 
 export interface HouseListExperienceProps {
@@ -26,6 +29,7 @@ export interface HouseListExperienceProps {
 }
 
 const roomTypes = ["全部户型", "一居室", "两居室", "开间", "合租"] as const;
+type HouseListSort = HouseSort | "distance_asc";
 
 function chipClass(active: boolean) {
   return cn(
@@ -40,17 +44,19 @@ export function HouseListExperience({
   houses,
   source,
 }: HouseListExperienceProps) {
+  const { location } = useSelectedLocation();
   const [roomType, setRoomType] =
     useState<(typeof roomTypes)[number]>("全部户型");
   const [budgetOnly, setBudgetOnly] = useState(false);
-  const [sort, setSort] = useState<HouseSort>("recommended");
+  const [sort, setSort] = useState<HouseListSort>("distance_asc");
   const [favoriteIds, setFavoriteIds] = useState<ReadonlySet<string>>(
     new Set(),
   );
   const [notice, setNotice] = useState<string | null>(null);
   const [sheet, setSheet] = useState<"filters" | "sort" | null>(null);
 
-  const sortLabels: Record<HouseSort, string> = {
+  const sortLabels: Record<HouseListSort, string> = {
+    distance_asc: "距离最近",
     recommended: "推荐顺序",
     price_asc: "租金从低到高",
     price_desc: "租金从高到低",
@@ -60,24 +66,50 @@ export function HouseListExperience({
   ).length;
 
   const filteredHouses = useMemo(() => {
-    const filtered = houses.filter(
-      (house) =>
-        (roomType === "全部户型" || house.roomType === roomType) &&
-        (!budgetOnly || house.priceMonthly <= 3500),
-    );
+    const distanceCenter =
+      source === "housing_history_2024" ? location.wgs84Point : location.point;
+    const filtered = houses
+      .map((house) => ({
+        house,
+        distanceM: straightLineDistanceM(distanceCenter, house.location),
+      }))
+      .filter(
+        ({ house }) =>
+          (roomType === "全部户型" || house.roomType === roomType) &&
+          (!budgetOnly || house.priceMonthly <= 3500),
+      );
 
+    if (sort === "distance_asc") {
+      return filtered.toSorted(
+        (left, right) =>
+          left.distanceM - right.distanceM ||
+          left.house.id.localeCompare(right.house.id),
+      );
+    }
     if (sort === "price_asc") {
       return filtered.toSorted(
-        (left, right) => left.priceMonthly - right.priceMonthly,
+        (left, right) =>
+          left.house.priceMonthly - right.house.priceMonthly ||
+          left.house.id.localeCompare(right.house.id),
       );
     }
     if (sort === "price_desc") {
       return filtered.toSorted(
-        (left, right) => right.priceMonthly - left.priceMonthly,
+        (left, right) =>
+          right.house.priceMonthly - left.house.priceMonthly ||
+          left.house.id.localeCompare(right.house.id),
       );
     }
     return filtered;
-  }, [budgetOnly, houses, roomType, sort]);
+  }, [
+    budgetOnly,
+    houses,
+    location.point,
+    location.wgs84Point,
+    roomType,
+    sort,
+    source,
+  ]);
 
   function toggleFavorite(id: string) {
     setFavoriteIds((current) => {
@@ -96,6 +128,8 @@ export function HouseListExperience({
           ? "以下为 2024 年历史房源记录，不代表当前房态、租金或可签约状态。"
           : "以下为演示房源记录，不代表真实房源、当前房态或可签约状态。"}
       </DemoNotice>
+
+      <SelectedLocationBar />
 
       <section aria-label="房源筛选" className="grid grid-cols-2 gap-2">
         <button
@@ -136,12 +170,13 @@ export function HouseListExperience({
 
       {filteredHouses.length > 0 ? (
         <div className="space-y-3">
-          {filteredHouses.map((house, index) => {
+          {filteredHouses.map(({ house, distanceM }, index) => {
             const favorite = favoriteIds.has(house.id);
             return (
               <HouseCard
                 key={house.id}
                 house={house}
+                distanceM={distanceM}
                 eager={index === 0}
                 actions={
                   <div className="grid grid-cols-2 gap-2">
@@ -218,7 +253,7 @@ export function HouseListExperience({
         title="房源排序"
       >
         <div className="glass-panel divide-y divide-border overflow-hidden rounded-card">
-          {(Object.entries(sortLabels) as [HouseSort, string][]).map(
+          {(Object.entries(sortLabels) as [HouseListSort, string][]).map(
             ([value, label]) => (
               <button
                 key={value}

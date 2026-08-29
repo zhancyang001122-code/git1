@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 
 import { ProductCard } from "@/components/business/product-card";
 import { StoreCard } from "@/components/business/store-card";
+import { SelectedLocationBar } from "@/components/location/selected-location-bar";
 import { Button } from "@/components/ui/button";
 import { DemoNotice } from "@/components/ui/demo-notice";
 import { SearchBar } from "@/components/ui/search-bar";
@@ -44,6 +45,7 @@ export function MarketExperience({
       <DemoNotice>
         价格、库存和配送均为演示业务数据，不连接真实超市。
       </DemoNotice>
+      <SelectedLocationBar />
       <section className="rounded-feature bg-gradient-to-br from-brand to-brand-strong p-4 text-white">
         <p className="text-sm opacity-80">今日演示采购</p>
         <h2 className="mt-1 text-2xl font-semibold">把一周食材交给小智</h2>
