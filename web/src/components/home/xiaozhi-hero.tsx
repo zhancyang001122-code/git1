@@ -72,18 +72,12 @@ export function XiaozhiHero() {
         ))}
       </div>
 
-      <div className="relative mt-3 grid grid-cols-2 gap-2">
+      <div className="relative mt-3">
         <Link
           href={`/xiaozhi/chat?q=${encodeURIComponent(prompt)}`}
-          className="ui-interactive inline-flex min-h-11 items-center justify-center rounded-control border border-brand bg-brand px-3 text-sm font-semibold text-white outline-none hover:bg-brand-strong"
+          className="ui-interactive inline-flex min-h-11 w-full items-center justify-center rounded-control border border-brand bg-brand px-3 text-sm font-semibold text-white outline-none hover:bg-brand-strong"
         >
-          开始主演示
-        </Link>
-        <Link
-          href="/case-study"
-          className="glass-control ui-interactive inline-flex min-h-11 items-center justify-center rounded-control border px-3 text-sm font-semibold text-brand outline-none hover:bg-white"
-        >
-          查看交付证据
+          问问小智
         </Link>
       </div>
     </section>

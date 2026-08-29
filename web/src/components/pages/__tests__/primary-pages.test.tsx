@@ -35,10 +35,16 @@ describe("primary product pages", () => {
       screen.getByRole("heading", { name: "你好，我是小智" }),
     ).toBeInTheDocument();
     expect(screen.getByText("租房决策主演示")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "运行完整任务" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "运行示例任务" })).toHaveAttribute(
       "href",
       expect.stringContaining("/xiaozhi/chat?q="),
     );
+    expect(
+      screen.queryByRole("link", { name: "为什么这样设计" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "开始演示对话" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByText(/当前为可验证演示模式/)).toBeInTheDocument();
     expect(screen.queryByText(/后续会连接/)).not.toBeInTheDocument();
     expect(
@@ -46,16 +52,19 @@ describe("primary product pages", () => {
     ).toHaveAttribute("href", expect.stringContaining("/xiaozhi/chat"));
   });
 
-  it("describes the real and simulated boundaries in live mode", () => {
+  it("keeps the live welcome page focused on product actions", () => {
     render(<XiaozhiWelcomePage mode="live" />);
 
     expect(
-      screen.getByText(/房源、高德与千问\/RAG 已接入真实服务/),
+      screen.queryByText(/当前为 Live 作品集/),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/当前为可验证演示模式/)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "运行示例任务" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/团购和线上超市仍为.*演示数据/),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(/当前为可验证演示模式/)).not.toBeInTheDocument();
+      screen.queryByRole("link", { name: "开始对话" }),
+    ).not.toBeInTheDocument();
   });
 
   it("filters messages by category", () => {

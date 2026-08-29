@@ -78,11 +78,11 @@ export function XiaozhiWelcomePage({ mode }: { mode: "demo" | "live" }) {
           </div>
         </section>
 
-        <DemoNotice>
-          {mode === "demo"
-            ? "当前为可验证演示模式：对话使用本地确定性工具，不会伪装成已连接外部服务。"
-            : "当前为 Live 作品集：房源、高德与千问/RAG 已接入真实服务；团购和线上超市仍为明确标注的演示数据。"}
-        </DemoNotice>
+        {mode === "demo" ? (
+          <DemoNotice>
+            当前为可验证演示模式：对话使用本地确定性工具，不会伪装成已连接外部服务。
+          </DemoNotice>
+        ) : null}
 
         <section
           aria-labelledby="rental-demo-title"
@@ -117,18 +117,12 @@ export function XiaozhiWelcomePage({ mode }: { mode: "demo" | "live" }) {
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-2 gap-2 p-3">
+          <div className="p-3">
             <Link
               href={`/xiaozhi/chat?q=${encodeURIComponent(flagshipPrompt)}`}
-              className="ui-interactive inline-flex min-h-11 items-center justify-center rounded-control border border-brand bg-brand px-3 text-sm font-semibold text-white outline-none hover:bg-brand-strong"
+              className="ui-interactive inline-flex min-h-11 w-full items-center justify-center rounded-control border border-brand bg-brand px-3 text-sm font-semibold text-white outline-none hover:bg-brand-strong"
             >
-              运行完整任务
-            </Link>
-            <Link
-              href="/case-study"
-              className="glass-control ui-interactive inline-flex min-h-11 items-center justify-center rounded-control border px-3 text-sm font-semibold text-brand outline-none hover:bg-brand-soft"
-            >
-              为什么这样设计
+              运行示例任务
             </Link>
           </div>
         </section>
@@ -172,13 +166,6 @@ export function XiaozhiWelcomePage({ mode }: { mode: "demo" | "live" }) {
             ))}
           </div>
         </section>
-
-        <Link
-          href="/xiaozhi/chat"
-          className="ui-interactive flex min-h-11 items-center justify-center rounded-control border border-brand bg-brand px-4 text-sm font-semibold text-white outline-none hover:bg-brand-strong"
-        >
-          {mode === "demo" ? "开始演示对话" : "开始对话"}
-        </Link>
       </div>
     </AppShell>
   );

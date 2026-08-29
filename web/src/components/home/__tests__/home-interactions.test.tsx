@@ -46,14 +46,13 @@ describe("HomePage", () => {
         name: "从预算到签约核验，一次问完",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "开始主演示" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "问问小智" })).toHaveAttribute(
       "href",
       expect.stringContaining("/xiaozhi/chat?q="),
     );
-    expect(screen.getByRole("link", { name: "查看交付证据" })).toHaveAttribute(
-      "href",
-      "/case-study",
-    );
+    expect(
+      screen.queryByRole("link", { name: "查看交付证据" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("search")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "更多演示内容" }),
