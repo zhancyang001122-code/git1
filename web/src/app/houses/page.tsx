@@ -1,4 +1,4 @@
-import { HistoricalHouseListExperience } from "@/components/business/historical-house-list-experience";
+import { HousingCatalogExperience } from "@/components/business/housing-catalog-experience";
 import { HouseListExperience } from "@/components/business/house-list-experience";
 import { DetailShell } from "@/components/layout/detail-shell";
 import { SourceBadge } from "@/components/ui/source-badge";
@@ -11,12 +11,8 @@ export const dynamic = "force-dynamic";
 export default async function HousesPage() {
   if (!publicEnv().NEXT_PUBLIC_DEMO_MODE) {
     return (
-      <DetailShell
-        title="房源列表"
-        backHref="/"
-        actions={<SourceBadge source="housing_history_2024" />}
-      >
-        <HistoricalHouseListExperience />
+      <DetailShell title="房源列表" backHref="/">
+        <HousingCatalogExperience />
       </DetailShell>
     );
   }

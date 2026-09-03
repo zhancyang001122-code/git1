@@ -30,6 +30,8 @@
     "external:verify-qwen-rerank": "node scripts/verify-qwen-rerank.mjs",
     "external:verify-qwen-rerank-production": "node scripts/verify-qwen-rerank-production.mjs",
     "external:verify-amap": "node scripts/verify-amap.mjs",
+    "housing:social-pilot": "node scripts/process-social-housing-pilot.mjs",
+    "housing:social-import": "node scripts/import-social-housing-pilot.mjs",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",

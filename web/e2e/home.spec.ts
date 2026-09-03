@@ -13,9 +13,7 @@ test("home page renders its complete presentation structure", async ({
     page.getByRole("heading", { name: "从预算到签约核验，一次问完" }),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: "问问小智" })).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "查看交付证据" }),
-  ).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "查看交付证据" })).toHaveCount(0);
   await expect(
     page.getByRole("heading", { name: "更多生活服务" }),
   ).toBeVisible();

@@ -40,12 +40,10 @@ test("shared glass surfaces and focus feedback use the unified visual system", a
   await expect(navigation).toHaveClass(/glass-navigation/);
   await expect(task).toHaveClass(/ui-interactive/);
   await expect(page.getByText(/当前为 Live 作品集/)).toHaveCount(0);
-  await expect(
-    page.getByRole("link", { name: "运行示例任务" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "为什么这样设计" }),
-  ).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "运行示例任务" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "为什么这样设计" })).toHaveCount(
+    0,
+  );
   await expect(page.getByText(/武林广场附近有哪些/)).toBeVisible();
   await expect(page.locator("body")).not.toContainText("姝︽灄骞垮満");
 
@@ -98,9 +96,8 @@ test("main pages keep one centered canvas and the same glass navigation", async 
         navWidth: nav.getBoundingClientRect().width,
         navBackdrop: getComputedStyle(nav).backdropFilter,
         navBackgroundImage: getComputedStyle(nav).backgroundImage,
-        scrollbarGutter: getComputedStyle(
-          document.documentElement,
-        ).scrollbarGutter,
+        scrollbarGutter: getComputedStyle(document.documentElement)
+          .scrollbarGutter,
       };
     });
 

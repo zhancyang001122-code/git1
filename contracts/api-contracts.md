@@ -83,6 +83,26 @@ data: {"finishReason":"stop"}
 
 演示或故障回退时，`source` 必须改为 `supabase_mock`、`label` 改为“演示业务数据”、`isDemo` 改为 `true`，`mode` 分别为 `demo` 或 `demo_fallback`；客户端不得把两种来源合并展示。所有列表响应还包含 `total`，并设置 `cache-control: no-store` 与 `x-request-id`。
 
+## `GET /api/housing-leads`
+
+查询参数：`city`、`longitude`、`latitude`、`locationLabel`、`minPrice`、`maxPrice`、`roomType`、`sort`、`cursor`、`limit`。位置三字段必须同时提供；当前只接受杭州。`sort` 支持 `distance_asc`、`published_desc`、`price_asc`、`price_desc`。
+
+只返回 `review_status=approved` 且原帖未明确结束的结构化线索。每项包含 `monthlyRentMin`、可空的 `monthlyRentMax`、WGS84 坐标、直线距离、来源平台数组、来源数量和固定的 `房态未经核验`。来源封装固定为：
+
+```json
+{
+  "source": {
+    "source": "social_housing_leads",
+    "label": "近期社交平台租房线索",
+    "isVerified": false,
+    "mode": "supabase",
+    "disclaimer": "来自公开帖子并经字段清洗，房态、身份和价格均未经核验"
+  }
+}
+```
+
+浏览器不直接读取 `social_housing_*` 表；API 使用服务端 Secret 调用受限 RPC。详情 RPC 仅返回 canonical 原帖链接，不返回临时 token、昵称、联系方式、原始正文或媒体地址。
+
 ## `GET /api/deals`, `GET /api/products`, `GET /api/community-posts`
 
 采用同一分页与来源封装，支持 `cursor` 和 `limit`。列表默认只返回 active/published 数据；这些商业记录在 V1.0 中仍是明确标记的演示业务，即使未来存放在 Supabase 中也不能描述成真实交易。

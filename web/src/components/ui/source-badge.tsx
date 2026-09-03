@@ -1,6 +1,7 @@
 import {
   Database,
   History,
+  Link2,
   MapPinned,
   Sparkles,
   UserRound,
@@ -10,6 +11,7 @@ import { cn } from "@/lib/cn";
 
 export type SourceCode =
   | "housing_history_2024"
+  | "social_housing_leads"
   | "supabase_mock"
   | "amap"
   | "knowledge_base"
@@ -17,6 +19,7 @@ export type SourceCode =
 
 const sourceLabels: Record<SourceCode, string> = {
   housing_history_2024: "2024 历史房源数据",
+  social_housing_leads: "社交平台租房线索",
   supabase_mock: "演示业务数据",
   amap: "高德地图",
   knowledge_base: "知识库",
@@ -25,6 +28,7 @@ const sourceLabels: Record<SourceCode, string> = {
 
 const sourceIcons: Record<SourceCode, typeof History> = {
   housing_history_2024: History,
+  social_housing_leads: Link2,
   supabase_mock: Database,
   amap: MapPinned,
   knowledge_base: Sparkles,

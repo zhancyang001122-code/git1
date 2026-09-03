@@ -60,7 +60,9 @@ export function assertFirstPartyRag(result) {
 
 export function assertRentalDecisionFlow(result) {
   if (result?.errorCode) {
-    throw new Error(`Production rental-decision flow failed: ${result.errorCode}`);
+    throw new Error(
+      `Production rental-decision flow failed: ${result.errorCode}`,
+    );
   }
   const cardKinds = new Set((result?.cards ?? []).map((card) => card?.kind));
   const officialCitations = (result?.citations ?? []).filter(

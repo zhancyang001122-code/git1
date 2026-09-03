@@ -1,9 +1,9 @@
-import { MapPin, Navigation } from "lucide-react";
+import { Building2, MapPin, Navigation } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { BusinessCardImage } from "@/components/business/business-card-image";
-import { SourceBadge } from "@/components/ui/source-badge";
+import { SourceBadge, type SourceCode } from "@/components/ui/source-badge";
 import { Tag } from "@/components/ui/tag";
 import { formatStraightLineDistance } from "@/features/maps/straight-line-distance";
 
@@ -11,12 +11,15 @@ export interface HouseCardData {
   id: string;
   name: string;
   priceMonthly: number;
+  priceMonthlyMax?: number | null;
   roomType: string | null;
   areaSqm: number | null;
   district: string | null;
   address: string | null;
-  imageSrc: string;
+  imageSrc: string | null;
   isDemo: boolean;
+  source?: SourceCode;
+  recordLabel?: string;
 }
 
 export interface HouseCardProps {
@@ -38,18 +41,33 @@ export function HouseCard({
         href={`/houses/${house.id}`}
         className="ui-interactive grid min-h-40 grid-cols-[116px_1fr] border border-transparent outline-none"
       >
-        <BusinessCardImage
-          src={house.imageSrc}
-          alt={`${house.name}的房源配图`}
-          sizes="116px"
-          className="h-full min-h-40"
-          eager={eager}
-        />
+        {house.imageSrc ? (
+          <BusinessCardImage
+            src={house.imageSrc}
+            alt={`${house.name}的房源配图`}
+            sizes="116px"
+            className="h-full min-h-40"
+            eager={eager}
+          />
+        ) : (
+          <div className="flex min-h-40 flex-col items-center justify-center gap-2 bg-surface-tint px-2 text-center text-xs text-text-subtle">
+            <Building2 aria-hidden="true" className="size-7 text-brand" />
+            <span>未缓存原帖图片</span>
+          </div>
+        )}
         <div className="min-w-0 space-y-2 p-3">
           <div className="flex items-start justify-between gap-2">
-            <Tag>{house.isDemo ? "2024 演示记录" : "2024 历史记录"}</Tag>
+            <Tag>
+              {house.recordLabel ??
+                (house.isDemo ? "2024 演示记录" : "2024 历史记录")}
+            </Tag>
             <span className="shrink-0 text-sm font-bold text-danger">
-              ¥{house.priceMonthly}/月
+              ¥{house.priceMonthly}
+              {house.priceMonthlyMax &&
+              house.priceMonthlyMax !== house.priceMonthly
+                ? `–${house.priceMonthlyMax}`
+                : ""}
+              /月
             </span>
           </div>
           <h2 className="line-clamp-2 text-base font-semibold leading-6 text-text">
@@ -73,7 +91,10 @@ export function HouseCard({
             </p>
           ) : null}
           <SourceBadge
-            source={house.isDemo ? "supabase_mock" : "housing_history_2024"}
+            source={
+              house.source ??
+              (house.isDemo ? "supabase_mock" : "housing_history_2024")
+            }
           />
         </div>
       </Link>

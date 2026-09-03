@@ -10,7 +10,7 @@ import {
 import { BusinessCardImage } from "@/components/business/business-card-image";
 import { DetailDemoActions } from "@/components/business/detail-demo-actions";
 import { DemoNotice } from "@/components/ui/demo-notice";
-import { SourceBadge } from "@/components/ui/source-badge";
+import { SourceBadge, type SourceCode } from "@/components/ui/source-badge";
 import { Tag } from "@/components/ui/tag";
 import type { House } from "@/features/business/domain";
 import type { HistoricalHousingDetail as HistoricalHousingDetailData } from "@/features/housing/types";
@@ -18,6 +18,10 @@ import {
   buildAmapWalkingNavigationUrl,
   type AmapCoordinateSystem,
 } from "@/features/maps/amap-uri";
+import type {
+  SocialHousingLeadDetail as SocialHousingLeadDetailData,
+  SocialHousingLeadSource,
+} from "@/features/social-housing/types";
 
 export interface HouseDetailProps {
   house: House;
@@ -29,15 +33,39 @@ interface HouseDetailView {
   district: string | null;
   address: string | null;
   priceMonthly: number;
+  priceMonthlyMax?: number | null;
   roomType: string | null;
   areaSqm: number | null;
   description: string;
-  imageSrc: string;
+  imageSrc: string | null;
   tags: readonly string[];
   location: { longitude: number; latitude: number };
-  isDemo: boolean;
+  source: SourceCode;
+  notice: string;
   coordinateSystem: AmapCoordinateSystem;
+  showDemoActions: boolean;
   sourceUrl?: string | null;
+  socialSources?: readonly SocialHousingLeadSource[];
+}
+
+const platformLabels = {
+  xiaohongshu: "小红书",
+  douyin: "抖音",
+} as const;
+
+const sourceStatusLabels = {
+  not_obviously_closed: "原帖未显示已结束",
+  closed: "原帖显示已结束",
+  unknown: "状态未知",
+} as const;
+
+function formatSourceDate(value: string): string {
+  return new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(value));
 }
 
 function HouseDetailContent({ house }: { house: HouseDetailView }) {
@@ -48,21 +76,40 @@ function HouseDetailContent({ house }: { house: HouseDetailView }) {
   });
   return (
     <div className="space-y-5 pb-6">
-      <BusinessCardImage
-        src={house.imageSrc}
-        alt={`${house.name}的房源配图`}
-        sizes="430px"
-        className="aspect-[16/10]"
-        eager
-      />
+      {house.imageSrc ? (
+        <BusinessCardImage
+          src={house.imageSrc}
+          alt={`${house.name}的房源配图`}
+          sizes="430px"
+          className="aspect-[16/10]"
+          eager
+        />
+      ) : (
+        <div
+          role="img"
+          aria-label={`${house.name}暂无授权配图`}
+          className="flex aspect-[16/10] items-center justify-center bg-surface-tint text-center text-sm text-text-muted"
+        >
+          <div>
+            <Building2
+              aria-hidden="true"
+              className="mx-auto mb-2 size-7 text-brand"
+            />
+            <p>未缓存原帖图片</p>
+          </div>
+        </div>
+      )}
       <div className="space-y-5 px-4">
         <section className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <SourceBadge
-              source={house.isDemo ? "supabase_mock" : "housing_history_2024"}
-            />
+            <SourceBadge source={house.source} />
             <strong className="text-lg text-danger">
-              ¥{house.priceMonthly}/月
+              ¥{house.priceMonthly}
+              {house.priceMonthlyMax &&
+              house.priceMonthlyMax !== house.priceMonthly
+                ? `–${house.priceMonthlyMax}`
+                : ""}
+              /月
             </strong>
           </div>
           <h2 className="text-2xl font-semibold leading-8 text-text">
@@ -73,11 +120,7 @@ function HouseDetailContent({ house }: { house: HouseDetailView }) {
             {house.district ?? "区域暂无记录"} ·{" "}
             {house.address ?? "地址暂无记录"}
           </p>
-          <DemoNotice>
-            {house.isDemo
-              ? "这是演示房源记录，不代表真实房源或当前可租状态。"
-              : "这是 2024 年历史房源数据，不代表当前仍可出租，也不能替代真实看房和合同核验。"}
-          </DemoNotice>
+          <DemoNotice>{house.notice}</DemoNotice>
         </section>
 
         <section
@@ -149,18 +192,78 @@ function HouseDetailContent({ house }: { house: HouseDetailView }) {
           ) : null}
         </section>
 
-        <DetailDemoActions
-          entityId={house.id}
-          title={house.name}
-          kind="house"
-        />
+        {house.socialSources ? (
+          <section
+            aria-labelledby="house-sources"
+            className="rounded-card border border-border bg-surface p-4 shadow-card"
+          >
+            <h2
+              id="house-sources"
+              className="text-base font-semibold text-text"
+            >
+              来源与核验
+            </h2>
+            <p className="mt-2 text-xs leading-5 text-text-muted">
+              这里只保留去除追踪参数后的原帖地址；请在联系发布者前再次核验房态、身份与价格。
+            </p>
+            <div className="mt-3 space-y-2">
+              {house.socialSources.map((source) => {
+                const platformLabel = platformLabels[source.platform];
+                return (
+                  <a
+                    key={`${source.platform}:${source.canonicalUrl}`}
+                    href={source.canonicalUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`查看${platformLabel}原帖`}
+                    className="ui-interactive flex min-h-12 items-center justify-between gap-3 rounded-control border border-border px-3 text-sm outline-none hover:border-brand hover:bg-brand-soft"
+                  >
+                    <span className="min-w-0">
+                      <strong className="block font-semibold text-text">
+                        {platformLabel}原帖
+                      </strong>
+                      <span className="mt-0.5 block text-xs text-text-muted">
+                        发布于 {formatSourceDate(source.sourcePublishedAt)} ·{" "}
+                        {sourceStatusLabels[source.sourceStatus]}
+                      </span>
+                    </span>
+                    <ExternalLink
+                      aria-hidden="true"
+                      className="size-4 shrink-0 text-brand"
+                    />
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+
+        {house.showDemoActions ? (
+          <DetailDemoActions
+            entityId={house.id}
+            title={house.name}
+            kind="house"
+          />
+        ) : null}
       </div>
     </div>
   );
 }
 
 export function HouseDetail({ house }: HouseDetailProps) {
-  return <HouseDetailContent house={{ ...house, coordinateSystem: "gcj02" }} />;
+  return (
+    <HouseDetailContent
+      house={{
+        ...house,
+        coordinateSystem: "gcj02",
+        source: house.isDemo ? "supabase_mock" : "housing_history_2024",
+        notice: house.isDemo
+          ? "这是演示房源记录，不代表真实房源或当前可租状态。"
+          : "这是 2024 年历史房源数据，不代表当前仍可出租，也不能替代真实看房和合同核验。",
+        showDemoActions: true,
+      }}
+    />
+  );
 }
 
 export function HistoricalHouseDetail({
@@ -185,9 +288,46 @@ export function HistoricalHouseDetail({
           (value): value is string => Boolean(value),
         ),
         location: house.location,
-        isDemo: false,
+        source: "housing_history_2024",
+        notice:
+          "这是 2024 年历史房源数据，不代表当前仍可出租，也不能替代真实看房和合同核验。",
         coordinateSystem: "wgs84",
+        showDemoActions: true,
         sourceUrl: house.sourceUrl,
+      }}
+    />
+  );
+}
+
+export function SocialHousingLeadDetail({
+  lead,
+}: {
+  lead: SocialHousingLeadDetailData;
+}) {
+  return (
+    <HouseDetailContent
+      house={{
+        id: lead.id,
+        name: lead.title,
+        district: lead.district,
+        address: lead.address ?? lead.community,
+        priceMonthly: lead.monthlyRentMin,
+        priceMonthlyMax: lead.monthlyRentMax,
+        roomType: lead.layout ?? lead.rentType,
+        areaSqm: lead.areaSqm,
+        description: lead.summary,
+        imageSrc: null,
+        tags: [
+          lead.verificationLabel,
+          lead.rentType,
+          ...lead.sourcePlatforms.map((platform) => platformLabels[platform]),
+        ].filter((value): value is string => Boolean(value)),
+        location: lead.location,
+        source: "social_housing_leads",
+        notice: `${lead.disclaimer}，不代表当前可租。`,
+        coordinateSystem: lead.coordinateSystem,
+        showDemoActions: false,
+        socialSources: lead.sources,
       }}
     />
   );

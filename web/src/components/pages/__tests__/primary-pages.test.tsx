@@ -55,9 +55,7 @@ describe("primary product pages", () => {
   it("keeps the live welcome page focused on product actions", () => {
     render(<XiaozhiWelcomePage mode="live" />);
 
-    expect(
-      screen.queryByText(/当前为 Live 作品集/),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/当前为 Live 作品集/)).not.toBeInTheDocument();
     expect(screen.queryByText(/当前为可验证演示模式/)).not.toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "运行示例任务" }),

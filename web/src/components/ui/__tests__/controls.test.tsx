@@ -97,4 +97,10 @@ describe("common controls", () => {
 
     expect(screen.getByText("2024 历史房源数据")).toBeInTheDocument();
   });
+
+  it("labels social housing as an unverified lead source", () => {
+    render(<SourceBadge source="social_housing_leads" />);
+
+    expect(screen.getByText("社交平台租房线索")).toBeInTheDocument();
+  });
 });
