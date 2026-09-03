@@ -11,6 +11,7 @@ import {
   assertInvalidRequestBoundary,
   assertLiveAmap,
   assertLiveHealth,
+  assertProductionBranch,
   assertRerankApplied,
   assertRentalDecisionFlow,
   PRODUCTION_INTERVIEW_URL,
@@ -28,9 +29,7 @@ function git(...args) {
 const status = git("status", "--porcelain");
 if (status) throw new Error("Working tree must be clean before interview use");
 const branch = git("branch", "--show-current");
-if (branch !== "codex/housing-http-adapter") {
-  throw new Error(`Unexpected interview branch: ${branch}`);
-}
+assertProductionBranch(branch);
 const localCommit = git("rev-parse", "HEAD");
 
 const healthResponse = await fetch(new URL("/api/health", productionUrl), {

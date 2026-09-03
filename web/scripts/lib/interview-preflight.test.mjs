@@ -6,11 +6,19 @@ import {
   assertInvalidRequestBoundary,
   assertLiveAmap,
   assertLiveHealth,
+  assertProductionBranch,
   assertRerankApplied,
   assertRentalDecisionFlow,
 } from "./interview-preflight.mjs";
 
 describe("interview preflight evidence", () => {
+  it("only accepts main as the interview production branch", () => {
+    expect(() => assertProductionBranch("main")).not.toThrow();
+    expect(() => assertProductionBranch("codex/housing-http-adapter")).toThrow(
+      /Unexpected interview branch/i,
+    );
+  });
+
   it("reports provider errors before generic RAG evidence failures", () => {
     expect(() =>
       assertFirstPartyRag({

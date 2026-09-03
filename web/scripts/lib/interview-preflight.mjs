@@ -1,6 +1,13 @@
 export const PRODUCTION_INTERVIEW_URL = "https://xiaozhi.zaneyang.xyz";
+export const PRODUCTION_INTERVIEW_BRANCH = "main";
 
 const requiredServices = ["supabase", "qwen", "rerank", "amap", "housing"];
+
+export function assertProductionBranch(branch) {
+  if (branch !== PRODUCTION_INTERVIEW_BRANCH) {
+    throw new Error(`Unexpected interview branch: ${branch}`);
+  }
+}
 
 export function assertLiveHealth(health) {
   const valid =
