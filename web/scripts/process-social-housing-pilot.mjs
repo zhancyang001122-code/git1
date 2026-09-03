@@ -1,4 +1,4 @@
-import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import OpenAI from "openai";
@@ -9,23 +9,64 @@ import {
   dedupeCandidates,
   eligibilityFailureReasons,
   gcj02ToWgs84,
+  mapWithConcurrency,
+  normalizedLocationCacheKey,
+  prefilterRentalPost,
   sanitizePublicText,
   selectPreferredDistrict,
   sha256,
+  sourceIdentityKey,
 } from "./lib/social-housing-pipeline.mjs";
 
 const DEFAULT_INPUT =
   "C:\\Users\\Administrator\\Tools\\MediaCrawler\\data\\hangzhou-rental-pilot\\xhs\\jsonl\\search_contents_2026-09-03.jsonl";
 const DEFAULT_OUTPUT_DIR =
   "C:\\Users\\Administrator\\Tools\\MediaCrawler\\data\\hangzhou-rental-pilot\\review";
+const DEFAULT_CACHE_DIR =
+  "C:\\Users\\Administrator\\Tools\\MediaCrawler\\data\\hangzhou-rental-v2\\cache";
+const SOURCE_PLATFORM = "xiaohongshu";
 
 function option(name, fallback) {
   const index = process.argv.indexOf(name);
   return index >= 0 ? process.argv[index + 1] : fallback;
 }
 
-function hasFlag(name) {
-  return process.argv.includes(name);
+function integerOption(name, fallback, minimum, maximum) {
+  const value = Number(option(name, String(fallback)));
+  if (!Number.isInteger(value) || value < minimum || value > maximum) {
+    throw new Error(
+      `${name} must be an integer between ${minimum} and ${maximum}`,
+    );
+  }
+  return value;
+}
+
+async function readOptionalText(path) {
+  try {
+    return await readFile(path, "utf8");
+  } catch (error) {
+    if (error?.code === "ENOENT") return "";
+    throw error;
+  }
+}
+
+function parseJsonLines(text, schema, label) {
+  const values = [];
+  for (const [index, line] of text.split(/\r?\n/u).entries()) {
+    if (!line.trim()) continue;
+    try {
+      values.push(schema.parse(JSON.parse(line)));
+    } catch (error) {
+      process.stderr.write(
+        `${label} ignored invalid line ${index + 1}: ${error instanceof Error ? error.message : "invalid JSON"}\n`,
+      );
+    }
+  }
+  return values;
+}
+
+function safeErrorMessage(error) {
+  return String(error instanceof Error ? error.message : error).slice(0, 500);
 }
 
 async function loadLocalEnvironment() {
@@ -85,6 +126,34 @@ const extractedRecordSchema = z
 
 const extractionSchema = z
   .object({ records: z.array(extractedRecordSchema).min(1).max(5) })
+  .strict();
+
+const rawRowSchema = z
+  .object({
+    note_id: z.string().regex(/^[0-9a-f]{24}$/iu),
+    title: z.string().default(""),
+    desc: z.string().default(""),
+    time: z.union([z.number(), z.string()]),
+    source_keyword: z.string().min(1).max(200),
+  })
+  .passthrough();
+
+const classificationCacheEntrySchema = z
+  .object({
+    key: z.string().min(1),
+    model: z.string().min(1),
+    payloadHash: z.string().regex(/^[0-9a-f]{64}$/u),
+    classifiedAt: z.iso.datetime(),
+    record: extractedRecordSchema,
+  })
+  .strict();
+
+const classificationFailureSchema = z
+  .object({
+    key: z.string().min(1),
+    failedAt: z.iso.datetime(),
+    error: z.string().min(1).max(500),
+  })
   .strict();
 
 const extractionTool = {
@@ -217,13 +286,27 @@ async function extractBatch(client, model, rows, asOf) {
   }
   const parsed = extractionSchema.parse(JSON.parse(call.function.arguments));
   const expected = new Set(rows.map((row) => row.note_id));
+  const actual = new Set(parsed.records.map((record) => record.sourceId));
   if (
     parsed.records.length !== rows.length ||
-    parsed.records.some((record) => !expected.has(record.sourceId))
+    actual.size !== expected.size ||
+    parsed.records.some((record) => !expected.has(record.sourceId)) ||
+    [...expected].some((sourceId) => !actual.has(sourceId))
   ) {
     throw new Error("Qwen extraction result did not preserve the input ids");
   }
   return parsed.records;
+}
+
+function classificationPayloadHash(row) {
+  return sha256(
+    JSON.stringify({
+      sourceId: row.note_id,
+      title: sanitizePublicText(row.title, 120),
+      content: sanitizePublicText(row.desc, 1_500),
+      publishedAt: new Date(Number(row.time)).toISOString(),
+    }),
+  );
 }
 
 const geocodeSchema = z
@@ -269,6 +352,26 @@ const placeSearchSchema = z
       .default([]),
   })
   .passthrough();
+
+const normalizedGeocodeSchema = z
+  .object({
+    formattedAddress: z.string().min(1),
+    district: z.string().nullable(),
+    amapLongitude: z.number().finite(),
+    amapLatitude: z.number().finite(),
+    longitude: z.number().finite(),
+    latitude: z.number().finite(),
+    geocodeLevel: z.string().min(1),
+  })
+  .strict();
+
+const geocodeCacheEntrySchema = z
+  .object({
+    key: z.string().min(1),
+    cachedAt: z.iso.datetime(),
+    geocode: normalizedGeocodeSchema,
+  })
+  .strict();
 
 async function placeSearchLocation(amapKey, keywords, preferredDistrict) {
   const url = new URL("https://restapi.amap.com/v5/place/text");
@@ -355,7 +458,12 @@ async function geocodeLocation(amapKey, locationText) {
 await loadLocalEnvironment();
 const inputPath = option("--input", DEFAULT_INPUT);
 const outputDir = option("--output-dir", DEFAULT_OUTPUT_DIR);
+const cacheDir = option("--cache-dir", DEFAULT_CACHE_DIR);
 const asOf = new Date(option("--as-of", new Date().toISOString()));
+if (Number.isNaN(asOf.getTime()))
+  throw new Error("--as-of must be an ISO date");
+const qwenConcurrency = integerOption("--qwen-concurrency", 2, 1, 3);
+const geocodeConcurrency = integerOption("--geocode-concurrency", 2, 1, 3);
 const cutoff = new Date(asOf.getTime() - 120 * 24 * 60 * 60 * 1_000);
 const model = required("DASHSCOPE_MODEL");
 const client = new OpenAI({
@@ -366,45 +474,137 @@ const client = new OpenAI({
 });
 const amapKey = required("AMAP_WEB_SERVICE_KEY");
 
+await Promise.all([
+  mkdir(outputDir, { recursive: true }),
+  mkdir(cacheDir, { recursive: true }),
+]);
 const sourceText = await readFile(inputPath, "utf8");
 const rawRows = sourceText
   .split(/\r?\n/u)
   .filter(Boolean)
-  .map((line) => JSON.parse(line));
+  .map((line) => rawRowSchema.parse(JSON.parse(line)));
 const uniqueRows = [
-  ...new Map(rawRows.map((row) => [String(row.note_id), row])).values(),
+  ...new Map(
+    rawRows.map((row) => [
+      sourceIdentityKey(SOURCE_PLATFORM, row.note_id),
+      row,
+    ]),
+  ).values(),
 ];
 const recentRows = uniqueRows.filter((row) => {
   const publishedAt = new Date(Number(row.time));
   return publishedAt >= cutoff && publishedAt <= asOf;
 });
+const prefilterResults = recentRows.map((row) => ({
+  row,
+  result: prefilterRentalPost(row),
+}));
+const rowsForClassification = prefilterResults
+  .filter(({ result }) => result.pass)
+  .map(({ row }) => row);
+const prefilterRejections = prefilterResults
+  .filter(({ result }) => !result.pass)
+  .map(({ row, result }) => ({
+    platform: SOURCE_PLATFORM,
+    sourceId: row.note_id,
+    sourceKeyword: sanitizePublicText(row.source_keyword, 120),
+    sourcePublishedAt: new Date(Number(row.time)).toISOString(),
+    rawPayloadHash: sha256(JSON.stringify(row)),
+    reason: result.reason,
+  }));
 
-const extracted = [];
-if (hasFlag("--reuse-classification")) {
-  const checkpoint = JSON.parse(
-    await readFile(resolve(outputDir, "classified-checkpoint.json"), "utf8"),
-  );
+const classificationCachePath = resolve(cacheDir, "classification-cache.jsonl");
+const classificationCache = parseJsonLines(
+  await readOptionalText(classificationCachePath),
+  classificationCacheEntrySchema,
+  "Classification cache",
+);
+const cachedClassifications = new Map(
+  classificationCache.map((entry) => [entry.key, entry]),
+);
+const extractedByKey = new Map();
+const rowsToClassify = [];
+let reusedClassificationCount = 0;
+for (const row of rowsForClassification) {
+  const key = sourceIdentityKey(SOURCE_PLATFORM, row.note_id);
+  const cached = cachedClassifications.get(key);
   if (
-    checkpoint.inputSha256 !== sha256(sourceText) ||
-    checkpoint.model !== model
+    cached?.model === model &&
+    cached.payloadHash === classificationPayloadHash(row)
   ) {
-    throw new Error(
-      "Classification checkpoint does not match this input or model",
-    );
-  }
-  extracted.push(...z.array(extractedRecordSchema).parse(checkpoint.records));
-  process.stdout.write(`Reused ${extracted.length} classified records\n`);
-} else {
-  for (let index = 0; index < recentRows.length; index += 5) {
-    const batch = recentRows.slice(index, index + 5);
-    extracted.push(...(await extractBatch(client, model, batch, asOf)));
-    process.stdout.write(
-      `Classified ${Math.min(index + batch.length, recentRows.length)}/${recentRows.length}\n`,
-    );
+    extractedByKey.set(key, cached.record);
+    reusedClassificationCount += 1;
+  } else {
+    rowsToClassify.push(row);
   }
 }
 
-await mkdir(outputDir, { recursive: true });
+let classificationCheckpointWrite = Promise.resolve();
+const classificationFailures = [];
+const classificationBatches = [];
+for (let index = 0; index < rowsToClassify.length; index += 5) {
+  classificationBatches.push(rowsToClassify.slice(index, index + 5));
+}
+const classificationResults = await mapWithConcurrency(
+  classificationBatches,
+  qwenConcurrency,
+  async (batch, batchIndex) => {
+    try {
+      const records = await extractBatch(client, model, batch, asOf);
+      const rowsById = new Map(batch.map((row) => [row.note_id, row]));
+      const entries = records.map((record) => {
+        const row = rowsById.get(record.sourceId);
+        return classificationCacheEntrySchema.parse({
+          key: sourceIdentityKey(SOURCE_PLATFORM, record.sourceId),
+          model,
+          payloadHash: classificationPayloadHash(row),
+          classifiedAt: new Date().toISOString(),
+          record,
+        });
+      });
+      classificationCheckpointWrite = classificationCheckpointWrite.then(() =>
+        appendFile(
+          classificationCachePath,
+          `${entries.map((entry) => JSON.stringify(entry)).join("\n")}\n`,
+          "utf8",
+        ),
+      );
+      await classificationCheckpointWrite;
+      process.stdout.write(
+        `Classified batch ${batchIndex + 1}/${classificationBatches.length}\n`,
+      );
+      return { ok: true, entries };
+    } catch (error) {
+      const failedAt = new Date().toISOString();
+      return {
+        ok: false,
+        failures: batch.map((row) =>
+          classificationFailureSchema.parse({
+            key: sourceIdentityKey(SOURCE_PLATFORM, row.note_id),
+            failedAt,
+            error: safeErrorMessage(error),
+          }),
+        ),
+      };
+    }
+  },
+);
+await classificationCheckpointWrite;
+for (const result of classificationResults) {
+  if (result.ok) {
+    for (const entry of result.entries) {
+      extractedByKey.set(entry.key, entry.record);
+    }
+  } else {
+    classificationFailures.push(...result.failures);
+  }
+}
+const extracted = rowsForClassification
+  .map((row) =>
+    extractedByKey.get(sourceIdentityKey(SOURCE_PLATFORM, row.note_id)),
+  )
+  .filter(Boolean);
+
 await writeFile(
   resolve(outputDir, "classified-checkpoint.json"),
   `${JSON.stringify(
@@ -412,6 +612,8 @@ await writeFile(
       inputSha256: sha256(sourceText),
       generatedAt: asOf.toISOString(),
       model,
+      reusedCount: reusedClassificationCount,
+      failedCount: classificationFailures.length,
       records: extracted,
     },
     null,
@@ -419,50 +621,129 @@ await writeFile(
   )}\n`,
   "utf8",
 );
+await writeFile(
+  resolve(outputDir, "classification-failures.jsonl"),
+  classificationFailures.map((failure) => JSON.stringify(failure)).join("\n") +
+    (classificationFailures.length > 0 ? "\n" : ""),
+  "utf8",
+);
+await writeFile(
+  resolve(outputDir, "prefilter-rejections.jsonl"),
+  prefilterRejections.map((record) => JSON.stringify(record)).join("\n") +
+    (prefilterRejections.length > 0 ? "\n" : ""),
+  "utf8",
+);
 
-const rawById = new Map(uniqueRows.map((row) => [String(row.note_id), row]));
-const cachedGeocodes = new Map();
-if (hasFlag("--reuse-geocodes")) {
-  const cachedText = await readFile(
-    resolve(outputDir, "review-records.jsonl"),
-    "utf8",
-  );
-  for (const line of cachedText.split(/\r?\n/u).filter(Boolean)) {
-    const cached = JSON.parse(line);
-    if (cached.geocode) cachedGeocodes.set(cached.sourceId, cached.geocode);
+const rawByKey = new Map(
+  uniqueRows.map((row) => [
+    sourceIdentityKey(SOURCE_PLATFORM, row.note_id),
+    row,
+  ]),
+);
+const geocodeCachePath = resolve(cacheDir, "geocode-cache.jsonl");
+const geocodeCache = parseJsonLines(
+  await readOptionalText(geocodeCachePath),
+  geocodeCacheEntrySchema,
+  "Geocode cache",
+);
+const cachedGeocodes = new Map(
+  geocodeCache.map((entry) => [entry.key, entry.geocode]),
+);
+const geocodeInFlight = new Map();
+let geocodeCheckpointWrite = Promise.resolve();
+let reusedGeocodeCount = 0;
+
+async function resolveCachedGeocode(record, locationQuery, cacheKey) {
+  const cached = cachedGeocodes.get(cacheKey);
+  if (cached) return { geocode: cached, reused: true };
+
+  const existingRequest = geocodeInFlight.get(cacheKey);
+  if (existingRequest) {
+    return { geocode: await existingRequest, reused: true };
+  }
+
+  const request = (async () => {
+    let geocode = await placeSearchLocation(
+      amapKey,
+      locationQuery,
+      record.district,
+    );
+    geocode ??= await geocodeLocation(
+      amapKey,
+      `杭州市${record.district ?? ""}${locationQuery}`,
+    );
+    if (!geocode) return null;
+
+    const entry = geocodeCacheEntrySchema.parse({
+      key: cacheKey,
+      cachedAt: new Date().toISOString(),
+      geocode,
+    });
+    cachedGeocodes.set(cacheKey, geocode);
+    geocodeCheckpointWrite = geocodeCheckpointWrite.then(() =>
+      appendFile(geocodeCachePath, `${JSON.stringify(entry)}\n`, "utf8"),
+    );
+    await geocodeCheckpointWrite;
+    return geocode;
+  })();
+  geocodeInFlight.set(cacheKey, request);
+  try {
+    return { geocode: await request, reused: false };
+  } finally {
+    geocodeInFlight.delete(cacheKey);
   }
 }
-const reviewed = [];
-for (const record of extracted) {
-  const raw = rawById.get(record.sourceId);
-  const failureReasons = eligibilityFailureReasons(record, asOf);
-  const eligible = failureReasons.length === 0;
-  let geocode = null;
-  if (eligible) {
-    geocode = cachedGeocodes.get(record.sourceId) ?? null;
-    if (
-      geocode?.district &&
-      record.district &&
-      geocode.district !== record.district
-    ) {
-      geocode = null;
+
+const geocodedRecords = await mapWithConcurrency(
+  extracted,
+  geocodeConcurrency,
+  async (record) => {
+    const failureReasons = eligibilityFailureReasons(record, asOf);
+    if (failureReasons.length > 0) {
+      return { record, failureReasons, geocode: null, geocodeError: null };
     }
-    if (!geocode) {
-      const locationQuery = record.community ?? record.locationText;
-      geocode = await placeSearchLocation(
-        amapKey,
+    const locationQuery =
+      record.community?.trim() || record.locationText?.trim();
+    if (!locationQuery) {
+      return {
+        record,
+        failureReasons: ["缺少可用于定位的小区、地标或地铁站"],
+        geocode: null,
+        geocodeError: null,
+      };
+    }
+    const cacheKey = normalizedLocationCacheKey(record);
+    try {
+      const { geocode, reused } = await resolveCachedGeocode(
+        record,
         locationQuery,
-        record.district,
+        cacheKey,
       );
-      geocode ??= await geocodeLocation(
-        amapKey,
-        `杭州市${record.district ?? ""}${locationQuery}`,
-      );
+      if (reused) reusedGeocodeCount += 1;
+      return { record, failureReasons, geocode, geocodeError: null };
+    } catch (error) {
+      return {
+        record,
+        failureReasons,
+        geocode: null,
+        geocodeError: safeErrorMessage(error),
+      };
     }
-  }
+  },
+);
+await geocodeCheckpointWrite;
+
+const reviewed = [];
+for (const item of geocodedRecords) {
+  const { record, geocode, geocodeError } = item;
+  const raw = rawByKey.get(sourceIdentityKey(SOURCE_PLATFORM, record.sourceId));
+  if (!raw) throw new Error(`Missing raw row for ${record.sourceId}`);
+  const failureReasons = [...item.failureReasons];
+  const eligible = failureReasons.length === 0;
   const extractionWarnings = [...record.rejectionReasons];
   const rejectionReasons = [...failureReasons];
   if (eligible && !geocode) rejectionReasons.push("地点无法可靠地理编码");
+  if (geocodeError) extractionWarnings.push(`高德请求失败：${geocodeError}`);
   if (geocode && ["省", "市", "区县", "乡镇"].includes(geocode.geocodeLevel)) {
     rejectionReasons.push("地理编码粒度过粗，不能用于距离排序");
   }
@@ -483,7 +764,7 @@ for (const record of extracted) {
     title: sanitizePublicText(record.title, 80),
     summary: sanitizePublicText(record.summary, 220),
     address: record.address ? sanitizePublicText(record.address, 120) : null,
-    platform: "xiaohongshu",
+    platform: SOURCE_PLATFORM,
     sourceId: record.sourceId,
     canonicalUrl: canonicalXiaohongshuUrl(record.sourceId),
     sourcePublishedAt: new Date(Number(raw.time)).toISOString(),
@@ -518,11 +799,27 @@ const metadata = {
   batchId,
   generatedAt: asOf.toISOString(),
   cutoff: cutoff.toISOString(),
-  sourcePlatform: "xiaohongshu",
+  sourcePlatform: SOURCE_PLATFORM,
+  keywords: [...new Set(rawRows.map((row) => row.source_keyword))].slice(0, 20),
   model,
   inputCount: rawRows.length,
   uniqueCount: uniqueRows.length,
   recentCount: recentRows.length,
+  prefilteredCount: prefilterRejections.length,
+  prefilterReasons: Object.fromEntries(
+    [...new Set(prefilterRejections.map((record) => record.reason))].map(
+      (reason) => [
+        reason,
+        prefilterRejections.filter((record) => record.reason === reason).length,
+      ],
+    ),
+  ),
+  classifiedCount: extracted.length,
+  reusedClassificationCount,
+  classificationFailureCount: classificationFailures.length,
+  reusedGeocodeCount,
+  qwenConcurrency,
+  geocodeConcurrency,
   pendingReviewCount: finalRecords.filter(
     (record) => record.reviewStatus === "pending_review",
   ).length,

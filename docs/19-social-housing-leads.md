@@ -46,15 +46,21 @@ MediaCrawler 本机低频搜索
 
 ## 5. 本机操作
 
-处理脚本默认只生成仓库外审核文件：
+增量 V2 默认生成 234 个“杭州区县/小区/站点 × 转租/房东直租/个人房东”关键词，并按跨区顺序轮换。关键词矩阵变化会触发指纹校验和游标安全重置，成功批次才推进游标。MediaCrawler 固定使用 `time_descending`、单并发、每关键词 20 条，不采集评论和媒体；单篇详情损坏会跳过，不再终止整批。
+
+采集、处理和累计汇总均只写入仓库外目录：
 
 ```powershell
 cd C:\Users\Administrator\Desktop\git1\web
-pnpm housing:social-pilot -- --as-of 2026-09-03T02:30:00.000Z
+pnpm housing:social-collect
+pnpm housing:social-pilot -- --input <本次运行的 rawFile> --output-dir <本次运行目录>\review
+pnpm housing:social-summary
 pnpm housing:social-import
 ```
 
-`housing:social-import` 默认是 dry-run。只有完成 `manual-decisions.json` 后才使用 `--apply`。脚本按批次 checksum、线索 dedupe key 和平台帖子 ID 幂等写入；中途失败将批次标记为 `failed`，可以修复后重跑。
+采集状态保存在 `data\hangzhou-rental-v2\state\cursor.json`；千问分类和高德地址结果分别按帖子载荷指纹和标准化地点缓存。千问以 5 条为一批、默认 2 并发，每批成功即落盘；失败记录可续跑。规则先于千问排除明显求租、攻略、已租和模板化商业获客。累计汇总以 `平台 + 帖子 ID` 强制去重，再以地点、租金和户型做房源级去重。
+
+`housing:social-import` 默认是 dry-run。只有人工完成 `manual-decisions.json` 后才使用 `--apply`。脚本按批次 checksum、线索 dedupe key 和平台帖子 ID 幂等写入；中途失败将批次标记为 `failed`，可以修复后重跑。
 
 ## 6. 首批验证记录
 
@@ -64,9 +70,18 @@ pnpm housing:social-import
 
 Production 提交 `7ab3df71a114afdfcaf693d4d3eb9aeb0f5143ae` 已完成 430px 浏览器回归：列表能切换到近期线索、至少一条详情能打开无查询参数的 canonical 小红书原帖链接；健康接口同时确认 Supabase、高德、千问和 Rerank 均已配置。完整证据见 `docs/task-reports/2026-09-03-social-housing-leads.md`。
 
-## 7. 当前限制与后续
+## 7. 增量 V2 验证记录
+
+2026-09-03 的 V2 真实运行完成 5 个批次、334 条原始记录。处理输出共 256 条，按平台与帖子 ID 保留最新结果后为 239 条：101 条进入人工复核、137 条自动拒绝、1 条房源级重复。101 条还不是已发布房源；它们只表示已经通过规则预筛、`qwen3.7-plus` 结构化判断、地点校验和跨批去重。
+
+首轮矩阵按单一区域连续展开，前两批累计只有 37 条候选。改成跨区轮换后，两个 4 关键词批次分别把累计数提升到 63 和 99；最后以一个富阳区关键词补充到 101。这个结果证明采集效率的关键不是盲目增加并发，而是减少相邻关键词的结果重叠。
+
+真实故障演练也验证了恢复边界：首次运行因一篇异常详情中止并保留 20 条部分原始数据，游标没有推进；给 MediaCrawler 增加单帖异常隔离后，同类异常只记录为 `skipped`，其余帖子继续保存。仓库中的 `patches/mediacrawler-xhs-resilient-details.patch` 用于复现本机外部依赖补丁。
+
+## 8. 当前限制与后续
 
 - 小红书需要人工扫码维持本机登录；这不是无人值守生产采集系统。
 - 原帖可能删除或变更，面试前应重新采集并复核；当前没有自动证明房态的机制。
-- 当前只接入小红书首批数据；抖音仍只有数据模型和 URL 契约，没有已验证采集样本。
+- Supabase 当前仍只发布首批人工批准的 4 条；新增 101 条候选尚未人工复核，也没有导入正式站。
+- 当前只接入小红书数据；抖音仍只有数据模型和 URL 契约，没有已验证采集样本。
 - 当前没有把近期线索注册为小智 Agent 工具，避免模型在没有引用工具的情况下假装读取帖子。

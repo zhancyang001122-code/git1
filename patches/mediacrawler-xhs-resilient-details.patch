@@ -1,0 +1,42 @@
+diff --git a/media_platform/xhs/core.py b/media_platform/xhs/core.py
+--- a/media_platform/xhs/core.py
++++ b/media_platform/xhs/core.py
+@@
+-                    utils.logger.info(f"[XiaoHongShuCrawler.search] Search notes response: {notes_res}")
++                    utils.logger.info(
++                        "[XiaoHongShuCrawler.search] Search returned %s items",
++                        len(notes_res.get("items", [])) if notes_res else 0,
++                    )
+@@
+-                    note_details = await asyncio.gather(*task_list)
++                    note_details = await asyncio.gather(*task_list, return_exceptions=True)
++                    skipped_details = 0
+                     for note_detail in note_details:
++                        if isinstance(note_detail, Exception):
++                            skipped_details += 1
++                            utils.logger.warning(
++                                "[XiaoHongShuCrawler.search] Skipped one malformed note detail after retries: %s",
++                                type(note_detail).__name__,
++                            )
++                            continue
+                         if note_detail:
+                             await xhs_store.update_xhs_note(note_detail)
+                             await self.get_notice_media(note_detail)
+                             note_ids.append(note_detail.get("note_id"))
+                             xsec_tokens.append(note_detail.get("xsec_token"))
+                     page += 1
+-                    utils.logger.info(f"[XiaoHongShuCrawler.search] Note details: {note_details}")
++                    utils.logger.info(
++                        "[XiaoHongShuCrawler.search] Stored %s note details; skipped %s",
++                        len(note_ids),
++                        skipped_details,
++                    )
+diff --git a/store/xhs/__init__.py b/store/xhs/__init__.py
+--- a/store/xhs/__init__.py
++++ b/store/xhs/__init__.py
+@@
+-    utils.logger.info(f"[store.xhs.update_xhs_note] xhs note: {local_db_item}")
++    utils.logger.info(
++        "[store.xhs.update_xhs_note] Stored xhs note_id=%s",
++        local_db_item.get("note_id"),
++    )

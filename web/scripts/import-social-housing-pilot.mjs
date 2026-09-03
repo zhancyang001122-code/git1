@@ -98,6 +98,7 @@ const metadataSchema = z.object({
   inputCount: z.number().int().nonnegative(),
   recentCount: z.number().int().nonnegative(),
   inputSha256: z.string().regex(/^[0-9a-f]{64}$/u),
+  keywords: z.array(z.string().min(1).max(120)).min(1).max(20).optional(),
 });
 
 function bedroomsFromLayout(layout) {
@@ -171,9 +172,15 @@ const client = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } },
 );
 
+const batchKeywords =
+  metadata.keywords ??
+  [...new Set(approved.map(({ record }) => record.sourceKeyword))].slice(0, 20);
+if (batchKeywords.length === 0) {
+  throw new Error("The ingestion batch does not contain any source keywords");
+}
 const batchPayload = {
   platform: "xiaohongshu",
-  keywords: ["杭州转租", "杭州房东直租"],
+  keywords: batchKeywords,
   crawler_name: "MediaCrawler",
   crawler_revision: CRAWLER_REVISION,
   raw_count: metadata.inputCount,
