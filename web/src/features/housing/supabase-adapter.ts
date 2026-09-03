@@ -37,7 +37,7 @@ const inputSchema = z
         latitude: z.number().finite().min(-90).max(90),
       })
       .strict(),
-    radiusM: z.number().int().min(100).max(5_000),
+    radiusM: z.number().int().min(100).max(5_000).nullable(),
     filters: z
       .object({
         minPrice: z.number().int().min(0).max(1_000_000).nullable(),
@@ -54,7 +54,8 @@ const inputSchema = z
       })
       .strict(),
     sort: z.enum(["distance", "price_asc", "price_desc", "area_desc"]),
-    limit: z.number().int().min(1).max(10),
+    offset: z.number().int().min(0).max(100_000).default(0),
+    limit: z.number().int().min(1).max(24),
   })
   .strict()
   .superRefine((value, context) => {
@@ -238,7 +239,7 @@ export class HistoricalHousingSupabaseAdapter implements HousingSearchService {
           p_center_latitude: value.center.latitude,
           p_radius_m: value.radiusM,
           p_sort: value.sort,
-          p_offset: 0,
+          p_offset: value.offset,
           p_limit: value.limit,
         })
         .abortSignal(controller.signal);
@@ -277,8 +278,15 @@ export class HistoricalHousingSupabaseAdapter implements HousingSearchService {
         });
       }
 
+      const total = rows.data[0]?.total_count ?? 0;
+      const nextOffset = value.offset + rows.data.length;
       return {
         items: rows.data.map(mapRow),
+        total,
+        nextCursor:
+          rows.data.length > 0 && nextOffset < total
+            ? `offset:${nextOffset}`
+            : null,
         sourceLabel: rows.data[0]?.source_label ?? SOURCE_LABEL,
         datasetPeriod: DATASET_PERIOD,
         isHistorical: true,

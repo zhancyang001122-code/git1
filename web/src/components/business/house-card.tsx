@@ -5,11 +5,22 @@ import type { ReactNode } from "react";
 import { BusinessCardImage } from "@/components/business/business-card-image";
 import { SourceBadge } from "@/components/ui/source-badge";
 import { Tag } from "@/components/ui/tag";
-import type { House } from "@/features/business/domain";
 import { formatStraightLineDistance } from "@/features/maps/straight-line-distance";
 
+export interface HouseCardData {
+  id: string;
+  name: string;
+  priceMonthly: number;
+  roomType: string | null;
+  areaSqm: number | null;
+  district: string | null;
+  address: string | null;
+  imageSrc: string;
+  isDemo: boolean;
+}
+
 export interface HouseCardProps {
-  house: House;
+  house: HouseCardData;
   actions?: ReactNode;
   distanceM?: number;
   eager?: boolean;
@@ -45,12 +56,14 @@ export function HouseCard({
             {house.name}
           </h2>
           <p className="text-xs leading-5 text-text-muted">
-            {house.roomType} · {house.areaSqm}㎡
+            {house.roomType ?? "户型暂无记录"} ·{" "}
+            {house.areaSqm === null ? "面积暂无记录" : `${house.areaSqm}㎡`}
           </p>
           <p className="flex items-center gap-1 text-xs text-text-subtle">
             <MapPin aria-hidden="true" className="size-3.5" />
             <span className="truncate">
-              {house.district} · {house.address}
+              {house.district ?? "区域暂无记录"} ·{" "}
+              {house.address ?? "地址暂无记录"}
             </span>
           </p>
           {distanceM !== undefined ? (

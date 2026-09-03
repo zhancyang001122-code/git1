@@ -133,6 +133,8 @@ describe("business tools", () => {
           datasetPeriod: "2024-11" as const,
         },
       ],
+      total: 1,
+      nextCursor: null,
       sourceLabel: "2024年11月杭州租房历史快照",
       datasetPeriod: "2024-11" as const,
       isHistorical: true as const,
@@ -197,6 +199,8 @@ describe("business tools", () => {
   it("uses the globally selected WGS84 center for a generic nearby housing query", async () => {
     const search = vi.fn(async () => ({
       items: [],
+      total: 0,
+      nextCursor: null,
       sourceLabel: "2024年11月杭州租房历史快照",
       datasetPeriod: "2024-11" as const,
       isHistorical: true as const,

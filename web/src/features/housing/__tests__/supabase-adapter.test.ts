@@ -137,6 +137,43 @@ describe("HistoricalHousingSupabaseAdapter", () => {
     );
   });
 
+  it("supports unbounded distance sorting and offset pagination for the full list", async () => {
+    const query = thenableResult({
+      data: Array.from({ length: 24 }, () => ({
+        ...row,
+        total_count: 60_202,
+      })),
+      error: null,
+    });
+    const rpc = vi.fn(() => query);
+    const adapter = new HistoricalHousingSupabaseAdapter({
+      client: { rpc } as unknown as SupabaseClient,
+    });
+
+    const result = await adapter.search({
+      ...input,
+      radiusM: null,
+      offset: 24,
+      limit: 24,
+    });
+
+    expect(rpc).toHaveBeenCalledWith("search_historical_houses", {
+      p_city: "杭州",
+      p_min_price: 2_500,
+      p_max_price: 4_000,
+      p_rent_type: "整租",
+      p_bedrooms: 2,
+      p_center_longitude: 120.1551,
+      p_center_latitude: 30.2741,
+      p_radius_m: null,
+      p_sort: "distance",
+      p_offset: 24,
+      p_limit: 24,
+    });
+    expect(result.total).toBe(60_202);
+    expect(result.nextCursor).toBe("offset:48");
+  });
+
   it("rejects invalid or currently unsupported filters before calling Supabase", async () => {
     const rpc = vi.fn();
     const adapter = new HistoricalHousingSupabaseAdapter({

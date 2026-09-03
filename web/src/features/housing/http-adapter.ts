@@ -272,6 +272,8 @@ export class HousingHttpAdapter implements HousingSearchService {
           },
           datasetPeriod: "2024-11" as const,
         })),
+        total: parsed.data.data.returned_count,
+        nextCursor: null,
         sourceLabel: parsed.data.source.label,
         datasetPeriod: parsed.data.source.dataset_period,
         isHistorical: true,

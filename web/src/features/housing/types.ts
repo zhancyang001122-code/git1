@@ -17,9 +17,10 @@ export interface HousingSearchFilters {
 export interface HousingSearchInput {
   city: string;
   center: HousingSearchCenter;
-  radiusM: number;
+  radiusM: number | null;
   filters: HousingSearchFilters;
   sort: "distance" | "price_asc" | "price_desc" | "area_desc";
+  offset?: number;
   limit: number;
 }
 
@@ -51,6 +52,8 @@ export interface HistoricalHousingDetail extends Omit<
 
 export interface HistoricalHousingSearchResult {
   items: readonly HistoricalHousingItem[];
+  total: number;
+  nextCursor: string | null;
   sourceLabel: string;
   datasetPeriod: "2024-11";
   isHistorical: true;
