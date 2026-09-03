@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildKeywordMatrix,
   canonicalXiaohongshuUrl,
+  createPolicyApprovalDecisions,
   dedupeCandidates,
   eligibilityFailureReasons,
   gcj02ToWgs84,
@@ -78,6 +79,30 @@ describe("social housing ingestion helpers", () => {
         [{ sourceId: "a", decision: "approved" }],
       ),
     ).toThrow(/Missing decisions: b/u);
+  });
+
+  it("creates auditable policy approvals only for pending candidates", () => {
+    expect(
+      createPolicyApprovalDecisions(
+        [
+          { sourceId: "a", reviewStatus: "pending_review" },
+          { sourceId: "b", reviewStatus: "rejected_automatically" },
+        ],
+        "automated-policy-v2",
+        new Date("2026-09-04T00:00:00.000Z"),
+      ),
+    ).toEqual({
+      reviewedAt: "2026-09-04T00:00:00.000Z",
+      reviewer: "automated-policy-v2",
+      decisions: [
+        {
+          sourceId: "a",
+          decision: "approved",
+          reason:
+            "通过自动准入策略：规则预筛、结构化抽取、地理编码与跨批去重均通过",
+        },
+      ],
+    });
   });
 
   it("prefers a POI in the district extracted from the post", () => {

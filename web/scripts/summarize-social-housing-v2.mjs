@@ -1,13 +1,24 @@
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
-import { basename, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
+
+import { z } from "zod";
 
 import {
   dedupeCandidates,
+  sha256,
   sourceIdentityKey,
 } from "./lib/social-housing-pipeline.mjs";
 
 const DEFAULT_DATA_ROOT =
   "C:\\Users\\Administrator\\Tools\\MediaCrawler\\data\\hangzhou-rental-v2";
+
+const batchMetadataSchema = z.object({
+  generatedAt: z.iso.datetime(),
+  model: z.string().min(1),
+  inputCount: z.number().int().nonnegative(),
+  recentCount: z.number().int().nonnegative(),
+  keywords: z.array(z.string().min(1).max(120)).min(1).max(20),
+});
 
 function option(name, fallback) {
   const index = process.argv.indexOf(name);
@@ -31,7 +42,15 @@ const runsRoot = resolve(dataRoot, "runs");
 const outputRoot = resolve(dataRoot, "cumulative");
 const files = await findFiles(runsRoot, "review-records.jsonl");
 const records = [];
+const batchMetadata = [];
 for (const file of files) {
+  batchMetadata.push(
+    batchMetadataSchema.parse(
+      JSON.parse(
+        await readFile(resolve(dirname(file), "batch-metadata.json"), "utf8"),
+      ),
+    ),
+  );
   const text = await readFile(file, "utf8");
   for (const line of text.split(/\r?\n/u).filter(Boolean)) {
     records.push(JSON.parse(line));
@@ -54,6 +73,29 @@ const pending = latestRecords.filter(
   (record) => record.reviewStatus === "pending_review",
 );
 const uniquePending = dedupeCandidates(pending);
+const releaseText =
+  uniquePending.map((record) => JSON.stringify(record)).join("\n") +
+  (uniquePending.length > 0 ? "\n" : "");
+const models = [...new Set(batchMetadata.map((metadata) => metadata.model))];
+if (models.length !== 1) {
+  throw new Error("Cumulative release requires exactly one extraction model");
+}
+const releaseMetadata = {
+  generatedAt: new Date().toISOString(),
+  model: models[0],
+  inputCount: batchMetadata.reduce(
+    (total, metadata) => total + metadata.inputCount,
+    0,
+  ),
+  recentCount: batchMetadata.reduce(
+    (total, metadata) => total + metadata.recentCount,
+    0,
+  ),
+  inputSha256: sha256(releaseText),
+  keywords: [
+    ...new Set(batchMetadata.flatMap((metadata) => metadata.keywords)),
+  ].slice(0, 20),
+};
 const statusCounts = Object.fromEntries(
   [...new Set(latestRecords.map((record) => record.reviewStatus))]
     .sort()
@@ -75,8 +117,17 @@ const summary = {
 await mkdir(outputRoot, { recursive: true });
 await writeFile(
   resolve(outputRoot, "pending-review.jsonl"),
-  uniquePending.map((record) => JSON.stringify(record)).join("\n") +
-    (uniquePending.length > 0 ? "\n" : ""),
+  releaseText,
+  "utf8",
+);
+await writeFile(
+  resolve(outputRoot, "review-records.jsonl"),
+  releaseText,
+  "utf8",
+);
+await writeFile(
+  resolve(outputRoot, "batch-metadata.json"),
+  `${JSON.stringify(releaseMetadata, null, 2)}\n`,
   "utf8",
 );
 await writeFile(

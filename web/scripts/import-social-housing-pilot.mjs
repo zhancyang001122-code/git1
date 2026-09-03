@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { createClient } from "@supabase/supabase-js";
@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import {
   canonicalXiaohongshuUrl,
+  createPolicyApprovalDecisions,
   normalizedDedupeKey,
   requireCompleteReviewDecisions,
   sanitizePublicText,
@@ -13,7 +14,7 @@ import {
 } from "./lib/social-housing-pipeline.mjs";
 
 const DEFAULT_REVIEW_DIR =
-  "C:\\Users\\Administrator\\Tools\\MediaCrawler\\data\\hangzhou-rental-pilot\\review";
+  "C:\\Users\\Administrator\\Tools\\MediaCrawler\\data\\hangzhou-rental-v2\\cumulative";
 const CRAWLER_REVISION = "d6f7c5bb906b6dac40ddf343ef9e26438a3de092";
 
 function option(name, fallback) {
@@ -124,16 +125,41 @@ function bedroomsFromLayout(layout) {
 
 const reviewDir = option("--review-dir", DEFAULT_REVIEW_DIR);
 const apply = process.argv.includes("--apply");
-const [recordsText, decisionsText, metadataText] = await Promise.all([
+const autoApprove = process.argv.includes("--auto-approve");
+const approvalMethod = option(
+  "--approval-method",
+  autoApprove ? "policy-approved" : "human-reviewed",
+);
+if (!/^[a-z][a-z0-9-]{1,30}$/u.test(approvalMethod)) {
+  throw new Error("--approval-method must be a lowercase audit label");
+}
+const [recordsText, metadataText] = await Promise.all([
   readFile(resolve(reviewDir, "review-records.jsonl"), "utf8"),
-  readFile(resolve(reviewDir, "manual-decisions.json"), "utf8"),
   readFile(resolve(reviewDir, "batch-metadata.json"), "utf8"),
 ]);
 const records = recordsText
   .split(/\r?\n/u)
   .filter(Boolean)
   .map((line) => JSON.parse(line));
-const decisions = decisionsSchema.parse(JSON.parse(decisionsText));
+const decisions = autoApprove
+  ? decisionsSchema.parse(
+      createPolicyApprovalDecisions(
+        records,
+        option("--reviewer", "automated-policy-v2"),
+      ),
+    )
+  : decisionsSchema.parse(
+      JSON.parse(
+        await readFile(resolve(reviewDir, "manual-decisions.json"), "utf8"),
+      ),
+    );
+if (autoApprove) {
+  await writeFile(
+    resolve(reviewDir, "auto-decisions.json"),
+    `${JSON.stringify(decisions, null, 2)}\n`,
+    "utf8",
+  );
+}
 const metadata = metadataSchema.parse(JSON.parse(metadataText));
 requireCompleteReviewDecisions(records, decisions.decisions);
 const byId = new Map(records.map((record) => [record.sourceId, record]));
@@ -248,7 +274,7 @@ try {
           last_checked_at: record.lastCheckedAt,
           source_status: record.availabilityStatus,
           raw_payload_hash: record.rawPayloadHash,
-          extractor_version: `${metadata.model}-structured-v2`,
+          extractor_version: `${metadata.model}-structured-v2-${approvalMethod}`,
         },
         { onConflict: "platform,platform_post_id" },
       );

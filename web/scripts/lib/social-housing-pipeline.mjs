@@ -258,6 +258,41 @@ export function requireCompleteReviewDecisions(records, decisions) {
   }
 }
 
+export function createPolicyApprovalDecisions(
+  records,
+  reviewer,
+  reviewedAt = new Date(),
+) {
+  const normalizedReviewer = String(reviewer ?? "").trim();
+  if (!normalizedReviewer || normalizedReviewer.length > 100) {
+    throw new Error("Reviewer must contain between 1 and 100 characters");
+  }
+  if (!(reviewedAt instanceof Date) || Number.isNaN(reviewedAt.getTime())) {
+    throw new Error("Reviewed at must be a valid Date");
+  }
+
+  const pending = records.filter(
+    (record) => record.reviewStatus === "pending_review",
+  );
+  const uniquePending = new Map(
+    pending.map((record) => [record.sourceId, record]),
+  );
+  if (uniquePending.size !== pending.length) {
+    throw new Error("Pending review records contain duplicate source IDs");
+  }
+
+  return {
+    reviewedAt: reviewedAt.toISOString(),
+    reviewer: normalizedReviewer,
+    decisions: pending.map((record) => ({
+      sourceId: record.sourceId,
+      decision: "approved",
+      reason:
+        "通过自动准入策略：规则预筛、结构化抽取、地理编码与跨批去重均通过",
+    })),
+  };
+}
+
 export function selectPreferredDistrict(items, preferredDistrict) {
   if (items.length === 0) return null;
   if (!preferredDistrict) return items[0];

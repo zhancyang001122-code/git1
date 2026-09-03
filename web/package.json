@@ -34,6 +34,7 @@
     "housing:social-pilot": "node scripts/process-social-housing-pilot.mjs",
     "housing:social-summary": "node scripts/summarize-social-housing-v2.mjs",
     "housing:social-import": "node scripts/import-social-housing-pilot.mjs",
+    "housing:social-publish": "node scripts/import-social-housing-pilot.mjs --auto-approve --reviewer automated-policy-v2 --apply",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
