@@ -155,6 +155,61 @@ try {
     await caseStudyPage.close();
   }
 
+  if (expectedMode === "live") {
+    const housingLeadsPage = await browser.newPage({
+      viewport: { width: 430, height: 932 },
+      extraHTTPHeaders: protectedDeploymentHeaders,
+    });
+    const housingLeadErrors = [];
+    housingLeadsPage.on("pageerror", (error) =>
+      housingLeadErrors.push(error.message),
+    );
+    housingLeadsPage.on("console", (message) => {
+      if (message.type() === "error") housingLeadErrors.push(message.text());
+    });
+    try {
+      await housingLeadsPage.goto(new URL("/houses", url).href, {
+        waitUntil: "load",
+        timeout: 45_000,
+      });
+      await housingLeadsPage.getByRole("tab", { name: "近期租房线索" }).click();
+      await expect(
+        housingLeadsPage.getByText(/找到 [1-9]\d* 条近期线索/u),
+      ).toBeVisible({ timeout: 30_000 });
+      await expect(
+        housingLeadsPage.getByText("房态未经核验").first(),
+      ).toBeVisible();
+      const detailHref = await housingLeadsPage
+        .getByRole("link", { name: "查看来源" })
+        .first()
+        .getAttribute("href");
+      if (!detailHref) throw new Error("housing lead detail link is missing");
+      await housingLeadsPage.goto(new URL(detailHref, url).href, {
+        waitUntil: "load",
+        timeout: 45_000,
+      });
+      const originalPostHref = await housingLeadsPage
+        .getByRole("link", { name: "查看小红书原帖" })
+        .first()
+        .getAttribute("href");
+      const originalPostUrl = new URL(originalPostHref ?? "", url);
+      if (
+        originalPostUrl.origin !== "https://www.xiaohongshu.com" ||
+        originalPostUrl.search ||
+        originalPostUrl.hash
+      ) {
+        throw new Error("housing lead source URL is not canonical");
+      }
+      if (housingLeadErrors.length > 0) {
+        throw new Error(
+          `deployment housing lead browser errors: ${housingLeadErrors.join(" | ")}`,
+        );
+      }
+    } finally {
+      await housingLeadsPage.close();
+    }
+  }
+
   const searchbox = page.getByRole("searchbox");
   const query =
     expectedMode === "live"
@@ -269,7 +324,7 @@ try {
     throw new Error(`deployment browser errors: ${browserErrors.join(" | ")}`);
   }
   console.log(
-    `PASS deployment ${expectedMode} health, home, case study, mobile layout, housing, maps, commerce, preference proposal and feedback flow.`,
+    `PASS deployment ${expectedMode} health, home, case study, mobile layout, housing leads, maps, commerce, preference proposal and feedback flow.`,
   );
 } finally {
   await browser.close();

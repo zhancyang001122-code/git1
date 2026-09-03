@@ -62,6 +62,8 @@ pnpm housing:social-import
 
 本地与远端 Supabase 验证结果：4 条能按武林广场 WGS84 坐标计算距离；`2000 元以内`返回 3 条；列表与详情响应不包含临时 token。高德并发错误 `10021` 采用退避重试，单条失败会转为拒绝原因而不是中断整批。小区和地标优先使用高德 POI 文本搜索，行政区用于结果消歧，找不到 POI 时才回退到地理编码。
 
+Production 提交 `7ab3df71a114afdfcaf693d4d3eb9aeb0f5143ae` 已完成 430px 浏览器回归：列表能切换到近期线索、至少一条详情能打开无查询参数的 canonical 小红书原帖链接；健康接口同时确认 Supabase、高德、千问和 Rerank 均已配置。完整证据见 `docs/task-reports/2026-09-03-social-housing-leads.md`。
+
 ## 7. 当前限制与后续
 
 - 小红书需要人工扫码维持本机登录；这不是无人值守生产采集系统。
