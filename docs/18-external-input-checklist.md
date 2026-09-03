@@ -42,7 +42,7 @@ Production 使用现有域名的独立子域名 `xiaozhi.zaneyang.xyz`，没有�
 
 GitHub App 已按最小范围安装，只授权公开仓库 `zhancyang001122-code/git1`，没有授权其他仓库。GitHub 默认分支与 Vercel Production Branch 均已整理为 `main`，Root Directory 已修正并核验为 `web`。
 
-首次自动部署 canary 已验收：提交 `ea820c2` 触发 GitHub 来源的 Vercel Production deployment `dpl_DP1fXV5mwWfN5PLgXq3mprxSTMzc`，提交 SHA 精确匹配，状态为 `READY` / `PROMOTED`，正式别名完成切换，完整 Production Live 回归通过。2026-09-03 又使用 `main` 提交 `63613d9` 验证 GitHub Production deployment、正式域名提交号和 Live 服务配置，排除了只改仓库显示名称却没有更新部署来源的情况。详细证据见 `docs/task-reports/2026-08-13-vercel-github-connection.md` 与 `docs/task-reports/2026-09-03-main-default-branch.md`。
+首次自动部署 canary 已验收：提交 `ea820c2` 触发 GitHub 来源的 Vercel Production deployment `dpl_DP1fXV5mwWfN5PLgXq3mprxSTMzc`，提交 SHA 精确匹配，状态为 `READY` / `PROMOTED`，正式别名完成切换，完整 Production Live 回归通过。2026-09-03 又使用 `main` 提交 `f98d999` 验证 GitHub Production deployment、正式域名提交号和 Live 服务配置，排除了只改 GitHub 默认分支却没有更新 Vercel Branch Tracking 的情况。详细证据见 `docs/task-reports/2026-08-13-vercel-github-connection.md` 与 `docs/task-reports/2026-09-03-main-default-branch.md`。
 
 ## 可以延后的增强项
 

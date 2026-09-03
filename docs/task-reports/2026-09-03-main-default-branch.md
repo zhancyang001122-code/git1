@@ -21,16 +21,23 @@
 3. 通过 GitHub Branch Rename API 把远端 `codex/housing-http-adapter` 原位重命名为 `main`；不是另外创建一条内容可能漂移的新分支。
 4. 将本机 `main` 快进到同一提交并设置为跟踪 `origin/main`，刷新 `origin/HEAD`，删除已合并的本机旧分支引用。
 5. 保留 `codex/social-housing-leads` 作为开发历史分支，但它不再是默认分支或 Production 来源。
+6. 在 Vercel `Project Settings → Environments → Production → Branch Tracking` 中把旧分支名明确改为 `main`，并保持正式域名自动分配开启。
+
+## 发现并根治的部署偏差
+
+GitHub 分支原位重命名后，Vercel 没有自动同步 Production 的 Branch Tracking。提交 `6619d2e591d76542ef6c6f722edea4c24abe1fb4` 从 `main` 推送后只生成了 Preview，正式域名仍停留在 `63613d96d5808ff2da3f52e5b35df5aa3f783ce5`。这证明“GitHub 默认分支已是 `main`”不能单独作为 Vercel 已修好的证据。
+
+在 Vercel 保存 `main` 后，页面明确显示每次推送 `main` 都会创建 Production Deployment。没有使用页面提供的手工 `Redeploy`，而是推送空的 Conventional Commit `chore(deploy): verify main production tracking`，用自动链路验证根治结果。
 
 ## 在线证据
 
 - GitHub `defaultBranchRef.name` 返回 `main`。
 - 远端分支列表包含 `main`，不再包含 `codex/housing-http-adapter`。
-- GitHub 为提交 `63613d96d5808ff2da3f52e5b35df5aa3f783ce5` 记录了成功的 Vercel `Production` deployment（GitHub deployment id `6245049446`）。
-- `https://xiaozhi.zaneyang.xyz/api/health` 与 `https://xiaozhi-local-life.vercel.app/api/health` 均返回同一完整提交号 `63613d96d5808ff2da3f52e5b35df5aa3f783ce5`。
+- GitHub 为 `main` 验证提交 `f98d999810f54272cee4170a25a77cf325ce9806` 记录了成功的 Vercel `Production` deployment（GitHub deployment id `6245358185`）。
+- `https://xiaozhi.zaneyang.xyz/api/health` 与 `https://xiaozhi-local-life.vercel.app/api/health` 均返回同一完整提交号 `f98d999810f54272cee4170a25a77cf325ce9806`。
 - 正式健康接口同时返回 `mode=live`，Supabase、Qwen、Rerank、AMap 和 Housing 均为 `configured`。
 
-以上提交号精确匹配证明：Vercel 不只是构建了一个孤立 Preview，而是已经把 `main` 的提交提升到正式别名。
+以上提交号精确匹配证明：Vercel 不只是构建了一个孤立 Preview，而是已经把后续 `main` push 自动提升到正式别名。
 
 ## 本地质量门禁
 
