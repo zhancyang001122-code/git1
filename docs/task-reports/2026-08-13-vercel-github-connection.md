@@ -13,7 +13,7 @@
 - 已授权仓库：仅 `zhancyang001122-code/git1`（GitHub 页面显示 `Selected 1 repository`）
 - Vercel Project：`prj_0j62RhcRGFD4BkgeY1mHxdxkxoiW`
 - Vercel Git link：`github / zhancyang001122-code / git1`
-- Production Branch：`codex/housing-http-adapter`
+- Production Branch：当前为 `main`；首次 canary 验收时为 `codex/housing-http-adapter`
 - Root Directory：`web`
 - Node.js：`24.x`
 - Git deployments：`enabled`
@@ -35,4 +35,4 @@ GitHub App 需要对获授权仓库拥有构建、部署状态、Checks、Webhoo
 
 部署后运行 `pnpm deploy:verify-production`，通过 Live 健康检查、430px 移动布局、历史房源、真实高德地图、演示商业数据、偏好提案确认边界和反馈持久化。
 
-结论：GitHub 单仓库授权、Git 连接、Production 分支映射、`web` Root Directory、Git push 自动构建、Production 提升和部署后回归均已有在线证据。后续默认分支 push 不再依赖本机手工 Vercel 部署。
+结论：GitHub 单仓库授权、Git 连接、Production 分支映射、`web` Root Directory、Git push 自动构建、Production 提升和部署后回归均已有在线证据。默认分支已于 2026-09-03 整理为 `main`，迁移与再次部署证据见 `docs/task-reports/2026-09-03-main-default-branch.md`；后续 `main` push 不再依赖本机手工 Vercel 部署。
